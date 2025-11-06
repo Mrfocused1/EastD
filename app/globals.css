@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Signatura Monoline';
+  src: url('/fonts/Signatura Monoline.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-lora: 'Lora', serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-great-vibes: 'Great Vibes', cursive;
+  --font-signatura: 'Signatura Monoline', cursive;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+body {
+  font-family: var(--font-roboto);
+  color: #5c5c5c;
+  font-size: 15px;
+  line-height: 29px;
+}
+
+html {
+  scroll-behavior: smooth;
+  color: #636363;
+}
+
+p, a, select, textarea, label, input {
+  color: #636363;
+}
