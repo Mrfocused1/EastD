@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -14,7 +14,7 @@ const studios = [
   { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
 ];
 
-export default function BookingPage() {
+function BookingContent() {
   const searchParams = useSearchParams();
   const preselectedStudio = searchParams.get("studio");
 
@@ -312,5 +312,13 @@ export default function BookingPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingContent />
+    </Suspense>
   );
 }
