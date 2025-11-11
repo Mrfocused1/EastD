@@ -133,11 +133,10 @@ export default function MembersSection() {
           className="text-center -mb-16"
         >
           <p className="text-sm text-black mb-3">
-            Trusted by creative professionals across London
+            Our Clients
           </p>
           <h2 className="text-5xl font-light text-black">
-            Making it at{" "}
-            <em className="font-lora italic font-light">EASTDOC STUDIOS</em>
+            The creatives who make EAST DOCK STUDIOS their production home.
           </h2>
         </motion.div>
 
