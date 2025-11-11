@@ -21,22 +21,22 @@ export default function Contact() {
               <div className="flex items-start gap-4">
                 <MapPin className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-black">67-74 Saffron Hill, London, EC1N 8QX</p>
+                  <p className="text-black">30 Seagull Lane, London, E16 1YP</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <Phone className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-black">+44 (0)20 3974 5300</p>
+                  <p className="text-black">+447955873125</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <Mail className="w-5 h-5 mt-1 flex-shrink-0" />
                 <div>
-                  <a href="mailto:info@llstudios.co.uk" className="text-black hover:text-[#DC143C] transition-colors">
-                    info@llstudios.co.uk
+                  <a href="mailto:admin@eastdockstudios.co.uk" className="text-black hover:text-[#DC143C] transition-colors">
+                    admin@eastdockstudios.co.uk
                   </a>
                 </div>
               </div>
@@ -79,7 +79,7 @@ export default function Contact() {
             <h3 className="text-2xl font-light mb-6">Find Us</h3>
             <div className="bg-gray-200 h-full min-h-[350px] rounded overflow-hidden">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2482.7634834847675!2d-0.10929!3d51.51986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b4ccde6d6db%3A0x7b1d3b3b3e3e3e3e!2s67-74%20Saffron%20Hill%2C%20London%20EC1N%208QX!5e0!3m2!1sen!2suk!4v1234567890"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2481.234!2d0.02847!3d51.50867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s30%20Seagull%20Lane%2C%20London%20E16%201YP!5e0!3m2!1sen!2suk!4v1234567890"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
