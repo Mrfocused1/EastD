@@ -44,14 +44,14 @@ export default function Experience() {
                 Exclusive
               </p>
               <h2 className="text-5xl lg:text-6xl font-light text-black mb-8 leading-tight">
-                The Experience
+                Your Vision, Our Space
               </h2>
               <div className="w-16 h-px bg-black/30 mx-auto lg:mx-0 mb-8"></div>
               <p className="text-base text-black leading-relaxed max-w-lg mx-auto lg:mx-0">
-                Three distinctive set options provide the flexibility to film multiple pieces
-                of content in a single session. These sets are fully customizable, modular
-                and we can reconfigure each set with different furnishings and accessories.
-                Creating bespoke experiences tailor made for our clients.
+                Our three sets let you film multiple projects in one session. Modular furnishings, expert
+                lighting, and professional equipment make it perfect for live streams, interviews, online
+                shows, talking head shots, beauty content, and photography.
+                Every session is tailor-made to your vision — a polished, flexible space where creativity thrives.
               </p>
             </motion.div>
 
