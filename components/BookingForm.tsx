@@ -8,13 +8,15 @@ import { useState } from "react";
 
 const bookingSchema = z.object({
   studio: z.string().min(1, "Please select a studio"),
-  bookingType: z.string().min(1, "Please select a booking type"),
-  audio: z.array(z.string()).optional(),
-  cameras: z.array(z.string()).optional(),
-  lighting: z.array(z.string()).optional(),
-  lensFilters: z.array(z.string()).optional(),
-  accessories: z.array(z.string()).optional(),
-  recordingMonitoring: z.array(z.string()).optional(),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  bookingDate: z.string().min(1, "Please select a date"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  bookingLength: z.string().min(1, "Please select booking length"),
+  cameraLens: z.string().optional(),
+  videoSwitcher: z.string().optional(),
+  accessories: z.string().optional(),
+  comments: z.string().optional(),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -77,9 +79,9 @@ export default function BookingForm() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-8"
+          className="space-y-6"
         >
-          {/* Studio and Booking Type */}
+          {/* Studios and Name */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-black font-medium mb-2">Studios *</label>
@@ -103,146 +105,144 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <label className="block text-sm text-black font-medium mb-2">Booking Types *</label>
-              <select
-                {...register("bookingType")}
-                className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                }}
-              >
-                <option value="">Select</option>
-                <option value="minimum2hrs">Minimum 2 Hours</option>
-                <option value="halfday">Half Day (4 Hours)</option>
-                <option value="fullday">Full Day (8 Hours)</option>
-              </select>
-              {errors.bookingType && (
-                <p className="text-red-600 text-sm mt-1">{errors.bookingType.message}</p>
+              <label className="block text-sm text-black font-medium mb-2">NAME *</label>
+              <input
+                {...register("name")}
+                type="text"
+                placeholder="Enter your name"
+                className="w-full bg-white border border-gray-300 px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors"
+              />
+              {errors.name && (
+                <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
               )}
             </div>
           </div>
 
-          {/* Equipment & Dry Hire Section */}
+          {/* Date and Email */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm text-black font-medium mb-2">DATE OF ENQUIRED BOOKING *</label>
+              <input
+                {...register("bookingDate")}
+                type="date"
+                className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors"
+              />
+              {errors.bookingDate && (
+                <p className="text-red-600 text-sm mt-1">{errors.bookingDate.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm text-black font-medium mb-2">EMAIL *</label>
+              <input
+                {...register("email")}
+                type="email"
+                placeholder="Enter your email"
+                className="w-full bg-white border border-gray-300 px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors"
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Phone Number */}
           <div>
-            <h3 className="text-lg font-medium text-black mb-6">Equipment & Dry Hire</h3>
+            <label className="block text-sm text-black font-medium mb-2">NUMBER *</label>
+            <input
+              {...register("phone")}
+              type="tel"
+              placeholder="Enter your phone number"
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors"
+            />
+            {errors.phone && (
+              <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>
+            )}
+          </div>
 
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Audio</label>
-                <select
-                  {...register("audio")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="microphone">Microphone</option>
-                  <option value="lavalier">Lavalier Mic</option>
-                  <option value="wireless">Wireless System</option>
-                </select>
-              </div>
+          {/* Booking Length/Type */}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">BOOKING LENGTH/TYPE *</label>
+            <select
+              {...register("bookingLength")}
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 1rem center',
+              }}
+            >
+              <option value="">Select Booking Length</option>
+              <option value="minimum2hrs">MINIMUM 2HRS</option>
+              <option value="halfday4hrs">HALF DAY (4HRS)</option>
+              <option value="fullday8hrs">FULL DAY (8HRS)</option>
+            </select>
+            {errors.bookingLength && (
+              <p className="text-red-600 text-sm mt-1">{errors.bookingLength.message}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Cameras</label>
-                <select
-                  {...register("cameras")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="4k">4K Camera</option>
-                  <option value="6k">6K Camera</option>
-                  <option value="cinema">Cinema Camera</option>
-                </select>
-              </div>
+          {/* Camera and Lens */}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">CAMERA AND LENS</label>
+            <select
+              {...register("cameraLens")}
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 1rem center',
+              }}
+            >
+              <option value="">Select Camera Option</option>
+              <option value="quantity2more">QUANTITY, UPTO 2MORE (AS EACH BOOKING COMES WITH TWO CAMERAS ALREADY) - £30 EACH</option>
+            </select>
+          </div>
 
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Lighting</label>
-                <select
-                  {...register("lighting")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="key">Key Light</option>
-                  <option value="fill">Fill Light</option>
-                  <option value="backlight">Back Light</option>
-                </select>
-              </div>
-            </div>
+          {/* Video Switcher */}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">VIDEO SWITCHER</label>
+            <select
+              {...register("videoSwitcher")}
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 1rem center',
+              }}
+            >
+              <option value="">Select Video Switcher Option</option>
+              <option value="halfday">ENGINEER FOR UPTO HALF DAY SESSION - £35</option>
+              <option value="fullday">FULL DAY - £60</option>
+            </select>
+          </div>
 
-            <p className="text-xs text-gray-600 mb-6 border-t border-gray-300 pt-6">
-              <span className="font-semibold block mb-2">*All camera hires must include our camera operator @£300 per day</span>
-            </p>
+          {/* Accessories */}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">ACCESSORIES</label>
+            <select
+              {...register("accessories")}
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 1rem center',
+              }}
+            >
+              <option value="">Select Accessories</option>
+              <option value="teleprompter">TELEPROMPTER - £25</option>
+            </select>
+          </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Lens/Filters</label>
-                <select
-                  {...register("lensFilters")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="prime">Prime Lens</option>
-                  <option value="zoom">Zoom Lens</option>
-                  <option value="filter">ND Filter</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Accessories</label>
-                <select
-                  {...register("accessories")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="tripod">Tripod</option>
-                  <option value="slider">Slider</option>
-                  <option value="teleprompter">Teleprompter</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-black font-medium mb-2">Recording & Monitoring</label>
-                <select
-                  {...register("recordingMonitoring")}
-                  className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 1rem center',
-                  }}
-                >
-                  <option value="">Multi Select</option>
-                  <option value="recording">Recording Device</option>
-                  <option value="monitor">Monitor</option>
-                  <option value="storage">Storage</option>
-                </select>
-              </div>
-            </div>
+          {/* Comments */}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">COMMENTS</label>
+            <textarea
+              {...register("comments")}
+              placeholder="Enter any additional comments (optional)"
+              rows={4}
+              className="w-full bg-white border border-gray-300 px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors resize-none"
+            />
           </div>
 
           <div className="text-center">
