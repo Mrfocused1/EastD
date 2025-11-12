@@ -185,37 +185,32 @@ export default function LuxPage() {
             <h2 className="text-5xl font-light text-white">PRICING</h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              { title: "STANDARD", price: "£70", duration: "(Min 2 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "HALF DAY", price: "£200", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "FULL DAY", price: "£400", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] }
-            ].map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="border-2 border-white p-8 text-center text-white"
+          <div className="max-w-2xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="border-2 border-white p-12 text-center text-white"
+            >
+              <h3 className="text-2xl font-light mb-4 text-white">DRY HIRE</h3>
+              <p className="text-5xl font-light mb-2 text-white">£35 <span className="text-2xl">/H</span></p>
+              <p className="text-sm mb-8 text-white">excl. VAT</p>
+
+              <div className="space-y-3 mb-8">
+                <p className="text-sm text-white font-semibold">✓ COMES WITH FREE LIGHTING</p>
+                <p className="text-xs text-white/80 border-t border-white/30 pt-6 mt-6">
+                  <span className="font-semibold block mb-2">MORE EQUIPMENT AVAILABLE UPON BOOKING</span>
+                  Additional equipment including extra lights, cameras, audio equipment, and more can be arranged to suit your production needs.
+                </p>
+              </div>
+              <Link
+                href="/booking?studio=lux"
+                className="inline-block border border-white px-6 py-2 text-xs tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
               >
-                <h3 className="text-2xl font-light mb-4 text-white">{plan.title}</h3>
-                <p className="text-4xl font-light mb-2 text-white">{plan.price}</p>
-                <p className="text-sm mb-2 text-white">excl. VAT</p>
-                <p className="text-sm mb-6 text-white">{plan.duration}</p>
-                <div className="space-y-2 mb-8">
-                  {plan.details.map((detail, i) => (
-                    <p key={i} className="text-sm text-white">- {detail}</p>
-                  ))}
-                </div>
-                <Link
-                  href="/booking?studio=lux"
-                  className="inline-block border border-white px-6 py-2 text-xs tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
-                >
-                  BOOK NOW
-                </Link>
-              </motion.div>
-            ))}
+                BOOK NOW
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
