@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Ruler, Users, Camera, Palette } from "lucide-react";
@@ -31,6 +32,12 @@ const studioFeatures = [
 ];
 
 export default function E16Page() {
+  const gallerySectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: gallerySectionRef,
+    offset: ["start end", "end start"],
+  });
+
   return (
     <>
       <Header />
@@ -157,7 +164,7 @@ export default function E16Page() {
       </section>
 
       {/* Gallery Section */}
-      <section className="pt-24 pb-[300px] bg-white overflow-hidden">
+      <section ref={gallerySectionRef} className="pt-24 pb-[300px] bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -177,30 +184,40 @@ export default function E16Page() {
                   image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
                   translateXPercent: -121.72,
                   translateYPercent: -24.99,
+                  parallaxSpeed: 0.3,
                 },
                 {
                   image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
                   translateXPercent: 0,
                   translateYPercent: -11.91,
+                  parallaxSpeed: 0.5,
                 },
                 {
                   image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
                   translateXPercent: 108.9,
                   translateYPercent: 0,
+                  parallaxSpeed: 0.4,
                 },
                 {
                   image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
                   translateXPercent: 246.43,
                   translateYPercent: -18.5,
+                  parallaxSpeed: 0.6,
                 },
                 {
                   image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
                   translateXPercent: 355.33,
                   translateYPercent: -8.2,
+                  parallaxSpeed: 0.35,
                 },
               ].map((item, index) => {
                 const leftPx = (280 * item.translateXPercent) / 100;
                 const topPx = (340 * item.translateYPercent) / 100;
+                const parallaxX = useTransform(
+                  scrollYProgress,
+                  [0, 1],
+                  [100, -150 * item.parallaxSpeed]
+                );
 
                 return (
                   <motion.div
@@ -213,6 +230,7 @@ export default function E16Page() {
                       position: 'absolute',
                       left: `${leftPx}px`,
                       top: `${topPx}px`,
+                      x: parallaxX,
                     }}
                     className="transition-transform hover:scale-105"
                   >
