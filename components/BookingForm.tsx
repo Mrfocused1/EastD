@@ -10,13 +10,12 @@ const bookingSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  studio: z.enum(["e16", "e20", "lux"], {
-    required_error: "Please select a studio",
-  }),
-  date: z.string().min(1, "Please select a date"),
-  time: z.string().min(1, "Please select a time"),
-  duration: z.string().min(1, "Please select duration"),
-  message: z.string().optional(),
+  bookingDate: z.string().min(1, "Please select a date"),
+  bookingLength: z.string().min(1, "Please select booking length"),
+  cameraLens: z.string().optional(),
+  videoSwitcher: z.string().optional(),
+  accessories: z.string().optional(),
+  comments: z.string().optional(),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -87,7 +86,7 @@ export default function BookingForm() {
               <input
                 {...register("name")}
                 type="text"
-                placeholder="Full Name *"
+                placeholder="NAME *"
                 className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
               />
               {errors.name && (
@@ -99,7 +98,7 @@ export default function BookingForm() {
               <input
                 {...register("email")}
                 type="email"
-                placeholder="Email Address *"
+                placeholder="EMAIL *"
                 className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
               />
               {errors.email && (
@@ -111,7 +110,7 @@ export default function BookingForm() {
               <input
                 {...register("phone")}
                 type="tel"
-                placeholder="Phone Number *"
+                placeholder="NUMBER *"
                 className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
               />
               {errors.phone && (
@@ -120,50 +119,20 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <select
-                {...register("studio")}
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                }}
-              >
-                <option value="" className="bg-[#121316] text-gray-400">Select Studio *</option>
-                <option value="e16" className="bg-[#121316] text-white">E16 SET</option>
-                <option value="e20" className="bg-[#121316] text-white">E20 SET</option>
-                <option value="lux" className="bg-[#121316] text-white">LUX SET</option>
-              </select>
-              {errors.studio && (
-                <p className="text-red-400 text-sm mt-1">{errors.studio.message}</p>
-              )}
-            </div>
-
-            <div>
               <input
-                {...register("date")}
+                {...register("bookingDate")}
                 type="date"
+                placeholder="DATE OF ENQUIRED BOOKING *"
                 className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-white transition-colors"
               />
-              {errors.date && (
-                <p className="text-red-400 text-sm mt-1">{errors.date.message}</p>
-              )}
-            </div>
-
-            <div>
-              <input
-                {...register("time")}
-                type="time"
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-white transition-colors"
-              />
-              {errors.time && (
-                <p className="text-red-400 text-sm mt-1">{errors.time.message}</p>
+              {errors.bookingDate && (
+                <p className="text-red-400 text-sm mt-1">{errors.bookingDate.message}</p>
               )}
             </div>
 
             <div>
               <select
-                {...register("duration")}
+                {...register("bookingLength")}
                 className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
@@ -171,22 +140,68 @@ export default function BookingForm() {
                   backgroundPosition: 'right 1rem center',
                 }}
               >
-                <option value="" className="bg-[#121316] text-gray-400">Duration *</option>
-                <option value="2" className="bg-[#121316] text-white">2 hours</option>
-                <option value="4" className="bg-[#121316] text-white">4 hours</option>
-                <option value="8" className="bg-[#121316] text-white">Full day (8 hours)</option>
-                <option value="custom" className="bg-[#121316] text-white">Custom</option>
+                <option value="" className="bg-[#121316] text-gray-400">BOOKING LENGTH/TYPE *</option>
+                <option value="minimum2hrs" className="bg-[#121316] text-white">MINIMUM 2HRS</option>
+                <option value="halfday4hrs" className="bg-[#121316] text-white">HALF DAY (4HRS)</option>
+                <option value="fullday8hrs" className="bg-[#121316] text-white">FULL DAY (8HRS)</option>
               </select>
-              {errors.duration && (
-                <p className="text-red-400 text-sm mt-1">{errors.duration.message}</p>
+              {errors.bookingLength && (
+                <p className="text-red-400 text-sm mt-1">{errors.bookingLength.message}</p>
               )}
+            </div>
+
+            <div>
+              <select
+                {...register("cameraLens")}
+                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 1rem center',
+                }}
+              >
+                <option value="" className="bg-[#121316] text-gray-400">CAMERA AND LENS (optional)</option>
+                <option value="1camera" className="bg-[#121316] text-white">+1 CAMERA - £30</option>
+                <option value="2camera" className="bg-[#121316] text-white">+2 CAMERAS - £60</option>
+              </select>
+            </div>
+
+            <div>
+              <select
+                {...register("videoSwitcher")}
+                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 1rem center',
+                }}
+              >
+                <option value="" className="bg-[#121316] text-gray-400">VIDEO SWITCHER (optional)</option>
+                <option value="halfday" className="bg-[#121316] text-white">HALF DAY SESSION - £35</option>
+                <option value="fullday" className="bg-[#121316] text-white">FULL DAY - £60</option>
+              </select>
+            </div>
+
+            <div>
+              <select
+                {...register("accessories")}
+                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 1rem center',
+                }}
+              >
+                <option value="" className="bg-[#121316] text-gray-400">ACCESSORIES (optional)</option>
+                <option value="teleprompter" className="bg-[#121316] text-white">TELEPROMPTER - £25</option>
+              </select>
             </div>
           </div>
 
           <div>
             <textarea
-              {...register("message")}
-              placeholder="Additional Information (optional)"
+              {...register("comments")}
+              placeholder="COMMENTS (optional)"
               rows={4}
               className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors resize-none"
             />
