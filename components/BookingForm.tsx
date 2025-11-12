@@ -129,43 +129,58 @@ export default function BookingForm() {
             <h3 className="text-lg font-medium text-black mb-6">Equipment & Dry Hire</h3>
 
             <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Audio</label>
-                <select
-                  {...register("audio")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="microphone">Microphone</option>
-                  <option value="lavalier">Lavalier Mic</option>
-                  <option value="wireless">Wireless System</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="audio-mic" className="mr-2" />
+                    <label htmlFor="audio-mic" className="text-sm text-black">Microphone</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="audio-lavalier" className="mr-2" />
+                    <label htmlFor="audio-lavalier" className="text-sm text-black">Lavalier Mic</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="audio-wireless" className="mr-2" />
+                    <label htmlFor="audio-wireless" className="text-sm text-black">Wireless System</label>
+                  </div>
+                </div>
               </div>
 
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Cameras</label>
-                <select
-                  {...register("cameras")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="4k">4K Camera</option>
-                  <option value="6k">6K Camera</option>
-                  <option value="cinema">Cinema Camera</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="cameras-4k" className="mr-2" />
+                    <label htmlFor="cameras-4k" className="text-sm text-black">4K Camera</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="cameras-6k" className="mr-2" />
+                    <label htmlFor="cameras-6k" className="text-sm text-black">6K Camera</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="cameras-cinema" className="mr-2" />
+                    <label htmlFor="cameras-cinema" className="text-sm text-black">Cinema Camera</label>
+                  </div>
+                </div>
               </div>
 
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Lighting</label>
-                <select
-                  {...register("lighting")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="key">Key Light</option>
-                  <option value="fill">Fill Light</option>
-                  <option value="backlight">Back Light</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lighting-key" className="mr-2" />
+                    <label htmlFor="lighting-key" className="text-sm text-black">Key Light</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lighting-fill" className="mr-2" />
+                    <label htmlFor="lighting-fill" className="text-sm text-black">Fill Light</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lighting-back" className="mr-2" />
+                    <label htmlFor="lighting-back" className="text-sm text-black">Back Light</label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -174,43 +189,58 @@ export default function BookingForm() {
             </p>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Lens/Filters</label>
-                <select
-                  {...register("lensFilters")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="prime">Prime Lens</option>
-                  <option value="zoom">Zoom Lens</option>
-                  <option value="filter">ND Filter</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lens-prime" className="mr-2" />
+                    <label htmlFor="lens-prime" className="text-sm text-black">Prime Lens</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lens-zoom" className="mr-2" />
+                    <label htmlFor="lens-zoom" className="text-sm text-black">Zoom Lens</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="lens-filter" className="mr-2" />
+                    <label htmlFor="lens-filter" className="text-sm text-black">ND Filter</label>
+                  </div>
+                </div>
               </div>
 
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Accessories</label>
-                <select
-                  {...register("accessories")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="tripod">Tripod</option>
-                  <option value="slider">Slider</option>
-                  <option value="teleprompter">Teleprompter</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="acc-tripod" className="mr-2" />
+                    <label htmlFor="acc-tripod" className="text-sm text-black">Tripod</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="acc-slider" className="mr-2" />
+                    <label htmlFor="acc-slider" className="text-sm text-black">Slider</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="acc-teleprompter" className="mr-2" />
+                    <label htmlFor="acc-teleprompter" className="text-sm text-black">Teleprompter</label>
+                  </div>
+                </div>
               </div>
 
-              <div>
+              <div className="border border-gray-300 p-4">
                 <label className="block text-sm text-black font-medium mb-3">Recording & Monitoring</label>
-                <select
-                  {...register("recordingMonitoring")}
-                  multiple
-                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
-                >
-                  <option value="recording">Recording Device</option>
-                  <option value="monitor">Monitor</option>
-                  <option value="storage">Storage</option>
-                </select>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" id="rec-recording" className="mr-2" />
+                    <label htmlFor="rec-recording" className="text-sm text-black">Recording Device</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="rec-monitor" className="mr-2" />
+                    <label htmlFor="rec-monitor" className="text-sm text-black">Monitor</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="rec-storage" className="mr-2" />
+                    <label htmlFor="rec-storage" className="text-sm text-black">Storage</label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
