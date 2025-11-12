@@ -185,9 +185,9 @@ export default function E20Page() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { title: "STANDARD", price: "£70", duration: "(Min 2 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "HALF DAY", price: "£200", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "FULL DAY", price: "£400", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] }
+              { title: "STANDARD", price: "£75", duration: "per hour (Min 2 Hours)", details: ["2x Blackmagic 6K Cameras", "Comes with Setup Engineer", "Professional Lighting", "Upto 4 Mics", "Files sent in 24hours"] },
+              { title: "HALF DAY", price: "£250", duration: "", details: ["2x Blackmagic 6K Cameras", "Comes with Setup Engineer", "Professional Lighting", "Upto 4 Mics", "Files sent in 24hours"] },
+              { title: "FULL DAY", price: "£450", duration: "", details: ["2x Blackmagic 6K Cameras", "Comes with Setup Engineer", "Professional Lighting", "Upto 4 Mics", "Files sent in 48hours"] }
             ].map((plan, index) => (
               <motion.div
                 key={index}
@@ -200,7 +200,7 @@ export default function E20Page() {
                 <h3 className="text-2xl font-light mb-4 text-white">{plan.title}</h3>
                 <p className="text-4xl font-light mb-2 text-white">{plan.price}</p>
                 <p className="text-sm mb-2 text-white">excl. VAT</p>
-                <p className="text-sm mb-6 text-white">{plan.duration}</p>
+                {plan.duration && <p className="text-sm mb-6 text-white">{plan.duration}</p>}
                 <div className="space-y-2 mb-8">
                   {plan.details.map((detail, i) => (
                     <p key={i} className="text-sm text-white">- {detail}</p>
