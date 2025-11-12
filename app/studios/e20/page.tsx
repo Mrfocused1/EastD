@@ -3,29 +3,24 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Ruler, Users, Camera, Palette } from "lucide-react";
+import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const studioFeatures = [
   {
-    icon: Ruler,
-    title: "25ft x 22ft Studio",
-    description: "Expansive space for larger productions"
-  },
-  {
     icon: Users,
-    title: "2-6 Person Layout",
-    description: "Flexible seating for any group size"
+    title: "1 - 4 Layout Possible",
+    description: "WHITE SOFA AVAILABLE"
   },
   {
     icon: Camera,
-    title: "3-5 Camera Set-Up",
-    description: "Multi-angle filming capabilities"
+    title: "1 - 4 Camera Setup",
+    description: "Professional multi-angle filming capabilities"
   },
   {
     icon: Palette,
-    title: "Customisable Backdrop",
+    title: "Customisable Set/Backdrop",
     description: "Create your perfect aesthetic"
   }
 ];
@@ -100,7 +95,7 @@ export default function E20Page() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {studioFeatures.map((feature, index) => (
               <motion.div
                 key={index}
