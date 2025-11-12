@@ -157,7 +157,7 @@ export default function E16Page() {
       </section>
 
       {/* Gallery Section */}
-      <section className="py-24 bg-white overflow-hidden">
+      <section className="pt-24 pb-[300px] bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
