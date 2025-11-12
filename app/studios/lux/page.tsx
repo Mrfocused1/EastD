@@ -3,30 +3,25 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Ruler, Users, Camera, Palette } from "lucide-react";
+import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const studioFeatures = [
   {
-    icon: Ruler,
-    title: "30ft x 25ft Studio",
-    description: "Premium luxury studio space"
-  },
-  {
     icon: Users,
-    title: "4-8 Person Layout",
-    description: "Spacious setting for larger groups"
+    title: "1 - 4 Person Layout",
+    description: "Flexible seating for intimate to small group productions"
   },
   {
     icon: Camera,
-    title: "4-6 Camera Set-Up",
-    description: "Advanced multi-camera production"
+    title: "1 - 4 Camera Setup",
+    description: "Professional multi-angle filming capabilities"
   },
   {
     icon: Palette,
-    title: "Customisable Backdrop",
-    description: "Unlimited creative possibilities"
+    title: "2X Unique Luxury Backgrounds Available",
+    description: "Premium backdrop options for upscale productions"
   }
 ];
 
@@ -100,7 +95,7 @@ export default function LuxPage() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {studioFeatures.map((feature, index) => (
               <motion.div
                 key={index}
