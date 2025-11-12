@@ -216,7 +216,7 @@ export default function LuxPage() {
       </section>
 
       {/* Gallery Section */}
-      <section ref={gallerySectionRef} className="pt-24 pb-[300px] bg-white overflow-hidden">
+      <section ref={gallerySectionRef} className="pt-24 pb-12 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
