@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BookingForm from "@/components/BookingForm";
 
 const studioFeatures = [
   {
@@ -354,6 +355,8 @@ export default function E20Page() {
           </div>
         </div>
       </section>
+
+      <BookingForm />
       </main>
       <Footer />
     </>
