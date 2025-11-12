@@ -4,30 +4,25 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Ruler, Users, Camera, Palette } from "lucide-react";
+import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const studioFeatures = [
   {
-    icon: Ruler,
-    title: "22ft x 20ft Studio",
-    description: "Spacious layout perfect for any production"
-  },
-  {
     icon: Users,
-    title: "1-4 Person Layout",
-    description: "Intimate setting for focused shoots"
+    title: "1 - 6 Layout Possible",
+    description: "Flexible seating arrangements for any setup"
   },
   {
     icon: Camera,
-    title: "2-4 Camera Set-Up",
-    description: "Professional multi-cam capabilities"
+    title: "1 - 4 Camera Setup",
+    description: "Professional multi-angle filming capabilities"
   },
   {
     icon: Palette,
-    title: "Customisable Backdrop",
-    description: "Tailor the set to your vision"
+    title: "Customisable Set/Backdrop",
+    description: "Tailor the environment to your vision"
   }
 ];
 
@@ -89,7 +84,7 @@ export default function E16Page() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {studioFeatures.map((feature, index) => (
               <motion.div
                 key={index}
