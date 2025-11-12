@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
@@ -45,6 +46,12 @@ const inclusiveFeatures = [
 ];
 
 export default function LuxPage() {
+  const gallerySectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: gallerySectionRef,
+    offset: ["start end", "end start"],
+  });
+
   return (
     <>
       <Header />
@@ -209,6 +216,93 @@ export default function LuxPage() {
                 </Link>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section */}
+      <section ref={gallerySectionRef} className="pt-24 pb-[300px] bg-white overflow-hidden">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-0"
+          >
+            <h2 className="text-5xl font-light text-black">Gallery</h2>
+          </motion.div>
+
+          {/* Scrolling Gallery Cards */}
+          <div className="relative h-[450px] flex items-center justify-center -mt-32">
+            <div className="relative w-[1200px]" style={{ left: '100px' }}>
+              {[
+                {
+                  image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  translateXPercent: -121.72,
+                  translateYPercent: -24.99,
+                  parallaxSpeed: 0.3,
+                },
+                {
+                  image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  translateXPercent: 0,
+                  translateYPercent: -11.91,
+                  parallaxSpeed: 0.5,
+                },
+                {
+                  image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  translateXPercent: 108.9,
+                  translateYPercent: 0,
+                  parallaxSpeed: 0.4,
+                },
+                {
+                  image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  translateXPercent: 246.43,
+                  translateYPercent: -18.5,
+                  parallaxSpeed: 0.6,
+                },
+                {
+                  image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  translateXPercent: 355.33,
+                  translateYPercent: -8.2,
+                  parallaxSpeed: 0.35,
+                },
+              ].map((item, index) => {
+                const leftPx = (280 * item.translateXPercent) / 100;
+                const topPx = (340 * item.translateYPercent) / 100;
+                const parallaxX = useTransform(
+                  scrollYProgress,
+                  [0, 1],
+                  [100, -150 * item.parallaxSpeed]
+                );
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    style={{
+                      position: 'absolute',
+                      left: `${leftPx}px`,
+                      top: `${topPx}px`,
+                      x: parallaxX,
+                    }}
+                    className="transition-transform hover:scale-105"
+                  >
+                    <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
+                      <Image
+                        src={item.image}
+                        alt={`Gallery image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
