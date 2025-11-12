@@ -7,15 +7,14 @@ import * as z from "zod";
 import { useState } from "react";
 
 const bookingSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  bookingDate: z.string().min(1, "Please select a date"),
-  bookingLength: z.string().min(1, "Please select booking length"),
-  cameraLens: z.string().optional(),
-  videoSwitcher: z.string().optional(),
-  accessories: z.string().optional(),
-  comments: z.string().optional(),
+  studio: z.string().min(1, "Please select a studio"),
+  bookingType: z.string().min(1, "Please select a booking type"),
+  audio: z.array(z.string()).optional(),
+  cameras: z.array(z.string()).optional(),
+  lighting: z.array(z.string()).optional(),
+  lensFilters: z.array(z.string()).optional(),
+  accessories: z.array(z.string()).optional(),
+  recordingMonitoring: z.array(z.string()).optional(),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -60,8 +59,8 @@ export default function BookingForm() {
   };
 
   return (
-    <section id="booking" className="py-24 bg-[#121316] text-white">
-      <div className="container mx-auto px-6 max-w-4xl">
+    <section id="booking" className="py-24 bg-[#fdfbf8]">
+      <div className="container mx-auto px-6 max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -69,8 +68,7 @@ export default function BookingForm() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl font-light mb-4">Get In Touch</h2>
-          <p className="text-gray-400">Book your studio session today</p>
+          <h2 className="text-5xl font-light mb-4 text-black">Booking Request</h2>
         </motion.div>
 
         <motion.form
@@ -79,139 +77,149 @@ export default function BookingForm() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
+          className="space-y-8"
         >
+          {/* Studio and Booking Type */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <input
-                {...register("name")}
-                type="text"
-                placeholder="NAME *"
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
-              />
-              {errors.name && (
-                <p className="text-red-400 text-sm mt-1">{errors.name.message}</p>
-              )}
-            </div>
-
-            <div>
-              <input
-                {...register("email")}
-                type="email"
-                placeholder="EMAIL *"
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
-              />
-              {errors.email && (
-                <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div>
-              <input
-                {...register("phone")}
-                type="tel"
-                placeholder="NUMBER *"
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors"
-              />
-              {errors.phone && (
-                <p className="text-red-400 text-sm mt-1">{errors.phone.message}</p>
-              )}
-            </div>
-
-            <div>
-              <input
-                {...register("bookingDate")}
-                type="date"
-                placeholder="DATE OF ENQUIRED BOOKING *"
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-white transition-colors"
-              />
-              {errors.bookingDate && (
-                <p className="text-red-400 text-sm mt-1">{errors.bookingDate.message}</p>
-              )}
-            </div>
-
-            <div>
+              <label className="block text-sm text-black font-medium mb-2">Studios *</label>
               <select
-                {...register("bookingLength")}
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
+                {...register("studio")}
+                className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
                 style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 1rem center',
                 }}
               >
-                <option value="" className="bg-[#121316] text-gray-400">BOOKING LENGTH/TYPE *</option>
-                <option value="minimum2hrs" className="bg-[#121316] text-white">MINIMUM 2HRS</option>
-                <option value="halfday4hrs" className="bg-[#121316] text-white">HALF DAY (4HRS)</option>
-                <option value="fullday8hrs" className="bg-[#121316] text-white">FULL DAY (8HRS)</option>
+                <option value="">Select Studio</option>
+                <option value="e16">E16 SET</option>
+                <option value="e20">E20 SET</option>
+                <option value="lux">LUX SET</option>
               </select>
-              {errors.bookingLength && (
-                <p className="text-red-400 text-sm mt-1">{errors.bookingLength.message}</p>
+              {errors.studio && (
+                <p className="text-red-600 text-sm mt-1">{errors.studio.message}</p>
               )}
             </div>
 
             <div>
+              <label className="block text-sm text-black font-medium mb-2">Booking Types *</label>
               <select
-                {...register("cameraLens")}
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
+                {...register("bookingType")}
+                className="w-full bg-white border border-gray-300 px-4 py-3 text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
                 style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='black' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 1rem center',
                 }}
               >
-                <option value="" className="bg-[#121316] text-gray-400">CAMERA AND LENS (optional)</option>
-                <option value="1camera" className="bg-[#121316] text-white">+1 CAMERA - £30</option>
-                <option value="2camera" className="bg-[#121316] text-white">+2 CAMERAS - £60</option>
+                <option value="">Select</option>
+                <option value="minimum2hrs">Minimum 2 Hours</option>
+                <option value="halfday">Half Day (4 Hours)</option>
+                <option value="fullday">Full Day (8 Hours)</option>
               </select>
-            </div>
-
-            <div>
-              <select
-                {...register("videoSwitcher")}
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                }}
-              >
-                <option value="" className="bg-[#121316] text-gray-400">VIDEO SWITCHER (optional)</option>
-                <option value="halfday" className="bg-[#121316] text-white">HALF DAY SESSION - £35</option>
-                <option value="fullday" className="bg-[#121316] text-white">FULL DAY - £60</option>
-              </select>
-            </div>
-
-            <div>
-              <select
-                {...register("accessories")}
-                className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                }}
-              >
-                <option value="" className="bg-[#121316] text-gray-400">ACCESSORIES (optional)</option>
-                <option value="teleprompter" className="bg-[#121316] text-white">TELEPROMPTER - £25</option>
-              </select>
+              {errors.bookingType && (
+                <p className="text-red-600 text-sm mt-1">{errors.bookingType.message}</p>
+              )}
             </div>
           </div>
 
+          {/* Equipment & Dry Hire Section */}
           <div>
-            <textarea
-              {...register("comments")}
-              placeholder="COMMENTS (optional)"
-              rows={4}
-              className="w-full bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:border-white transition-colors resize-none"
-            />
+            <h3 className="text-lg font-medium text-black mb-6">Equipment & Dry Hire</h3>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Audio</label>
+                <select
+                  {...register("audio")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="microphone">Microphone</option>
+                  <option value="lavalier">Lavalier Mic</option>
+                  <option value="wireless">Wireless System</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Cameras</label>
+                <select
+                  {...register("cameras")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="4k">4K Camera</option>
+                  <option value="6k">6K Camera</option>
+                  <option value="cinema">Cinema Camera</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Lighting</label>
+                <select
+                  {...register("lighting")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="key">Key Light</option>
+                  <option value="fill">Fill Light</option>
+                  <option value="backlight">Back Light</option>
+                </select>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-600 mb-6 border-t border-gray-300 pt-6">
+              <span className="font-semibold block mb-2">*All camera hires must include our camera operator @£300 per day</span>
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Lens/Filters</label>
+                <select
+                  {...register("lensFilters")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="prime">Prime Lens</option>
+                  <option value="zoom">Zoom Lens</option>
+                  <option value="filter">ND Filter</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Accessories</label>
+                <select
+                  {...register("accessories")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="tripod">Tripod</option>
+                  <option value="slider">Slider</option>
+                  <option value="teleprompter">Teleprompter</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-black font-medium mb-3">Recording & Monitoring</label>
+                <select
+                  {...register("recordingMonitoring")}
+                  multiple
+                  className="w-full bg-white border border-gray-300 px-4 py-8 text-black focus:outline-none focus:border-black transition-colors"
+                >
+                  <option value="recording">Recording Device</option>
+                  <option value="monitor">Monitor</option>
+                  <option value="storage">Storage</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div className="text-center">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-white text-black px-12 py-4 text-sm tracking-widest hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-black text-white px-12 py-4 text-sm tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "SUBMITTING..." : "SUBMIT BOOKING REQUEST"}
             </button>
@@ -221,7 +229,7 @@ export default function BookingForm() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center text-green-400"
+              className="text-center text-green-600"
             >
               Thank you! We'll be in touch shortly.
             </motion.p>
@@ -231,7 +239,7 @@ export default function BookingForm() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center text-red-400"
+              className="text-center text-red-600"
             >
               Something went wrong. Please try again.
             </motion.p>
