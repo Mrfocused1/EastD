@@ -164,7 +164,7 @@ export default function E16Page() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-2"
+            className="text-center mb-1"
           >
             <h2 className="text-5xl font-light text-black">Gallery</h2>
           </motion.div>
