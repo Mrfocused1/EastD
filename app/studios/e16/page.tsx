@@ -170,7 +170,7 @@ export default function E16Page() {
           </motion.div>
 
           {/* Scrolling Gallery Cards */}
-          <div className="relative h-[450px] flex items-center justify-center">
+          <div className="relative h-[450px] flex items-center justify-center -mt-12">
             <div className="relative w-[1200px]" style={{ left: '100px' }}>
               {[
                 {
