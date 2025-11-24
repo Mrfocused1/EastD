@@ -36,8 +36,8 @@ export default function Home() {
         </div>
       </section>
 
-      <Studios />
       <Experience />
+      <Studios />
       <MembersSection />
       <Contact />
       <Footer />
