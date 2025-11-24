@@ -132,12 +132,11 @@ export default function MembersSection() {
           transition={{ duration: 0.6 }}
           className="text-center -mb-16"
         >
-          <p className="text-sm text-black mb-3">
-            Our Clients
-          </p>
-          <h2 className="text-5xl font-light text-black">
-            The creatives who make EAST DOCK STUDIOS their production home.
+          <p className="text-sm text-black tracking-widest mb-2">OUR CLIENTS</p>
+          <h2 className="text-5xl font-light text-black mb-6">
+            THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.
           </h2>
+          <div className="w-24 h-px bg-black/30 mx-auto"></div>
         </motion.div>
 
         {/* Scrolling Members with individual parallax */}

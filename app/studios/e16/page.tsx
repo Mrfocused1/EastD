@@ -40,7 +40,7 @@ export default function E16Page() {
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
         <Image
-          src="https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          src="/BLACKPR X WANNI115.JPG"
           alt="E16 SET"
           fill
           className="object-cover"
@@ -106,7 +106,7 @@ export default function E16Page() {
       {/* Pricing Section */}
       <section className="relative py-24 overflow-hidden">
         <Image
-          src="https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          src="/BLACKPR%20X%20WANNI133.JPG"
           alt="Pricing"
           fill
           className="object-cover"
@@ -159,7 +159,7 @@ export default function E16Page() {
       </section>
 
       {/* Gallery Section */}
-      <section ref={gallerySectionRef} className="pt-24 pb-12 bg-white overflow-hidden">
+      <section ref={gallerySectionRef} className="pt-24 pb-32 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -172,35 +172,35 @@ export default function E16Page() {
           </motion.div>
 
           {/* Scrolling Gallery Cards */}
-          <div className="relative h-[450px] flex items-center justify-center -mt-32">
+          <div className="relative h-[550px] flex items-center justify-center -mt-32">
             <div className="relative w-[1200px]" style={{ left: '100px' }}>
               {[
                 {
-                  image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/gallery/BLACKPR%20X%20WANNI111.JPG",
                   translateXPercent: -121.72,
                   translateYPercent: -24.99,
                   parallaxSpeed: 0.3,
                 },
                 {
-                  image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/gallery/BLACKPR%20X%20WANNI116.JPG",
                   translateXPercent: 0,
                   translateYPercent: -11.91,
                   parallaxSpeed: 0.5,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/gallery/BLACKPR%20X%20WANNI117.JPG",
                   translateXPercent: 108.9,
                   translateYPercent: 0,
                   parallaxSpeed: 0.4,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/gallery/BLACKPR%20X%20WANNI122.JPG",
                   translateXPercent: 246.43,
                   translateYPercent: -18.5,
                   parallaxSpeed: 0.6,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/gallery/BLACKPR%20X%20WANNI128.JPG",
                   translateXPercent: 355.33,
                   translateYPercent: -8.2,
                   parallaxSpeed: 0.35,
