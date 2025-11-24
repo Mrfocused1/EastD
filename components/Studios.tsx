@@ -9,14 +9,14 @@ const studios = [
     id: "e16",
     title: "E16 SET",
     subtitle: "Studio 1",
-    image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "/BLACKPR X WANNI121.JPG",
     description: "Professional studio space in East London",
   },
   {
     id: "e20",
     title: "E20 SET",
     subtitle: "Studio 2",
-    image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "/BLACKPR X WANNI174.JPG",
     description: "State-of-the-art recording facility",
   },
   {
