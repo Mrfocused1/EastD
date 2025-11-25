@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, ArrowLeft } from "lucide-react";
+import { Eye, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
 import ImageUpload from "@/components/admin/ImageUpload";
 import SaveButton from "@/components/admin/SaveButton";
+import { supabase } from "@/lib/supabase";
 
 export default function AboutEditor() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // Hero section
   const [heroImage, setHeroImage] = useState("https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920");
   const [heroSubtitle, setHeroSubtitle] = useState("EASTDOC STUDIOS");
@@ -36,10 +39,98 @@ export default function AboutEditor() {
 
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Load content from Supabase on mount
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'about');
+
+        if (error) {
+          console.error('Error loading content:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            const { section, key, value } = item;
+
+            // Hero section
+            if (section === 'hero' && key === 'image') setHeroImage(value);
+            if (section === 'hero' && key === 'subtitle') setHeroSubtitle(value);
+            if (section === 'hero' && key === 'title') setHeroTitle(value);
+
+            // About section
+            if (section === 'about' && key === 'title') setAboutTitle(value);
+            if (section === 'about' && key === 'text') setAboutText(value);
+
+            // Mission section
+            if (section === 'mission' && key === 'title') setMissionTitle(value);
+            if (section === 'mission' && key === 'text') setMissionText(value);
+
+            // Values section
+            if (section === 'values' && key === 'items') {
+              try {
+                setValues(JSON.parse(value));
+              } catch (e) {
+                console.error('Error parsing values:', e);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadContent();
+  }, []);
+
   const handleSave = async () => {
-    console.log("Saving About content...");
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setHasChanges(false);
+    const contentToSave = [
+      // Hero
+      { page: 'about', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      { page: 'about', section: 'hero', key: 'subtitle', value: heroSubtitle, type: 'text' },
+      { page: 'about', section: 'hero', key: 'title', value: heroTitle, type: 'text' },
+      // About
+      { page: 'about', section: 'about', key: 'title', value: aboutTitle, type: 'text' },
+      { page: 'about', section: 'about', key: 'text', value: aboutText, type: 'text' },
+      // Mission
+      { page: 'about', section: 'mission', key: 'title', value: missionTitle, type: 'text' },
+      { page: 'about', section: 'mission', key: 'text', value: missionText, type: 'text' },
+      // Values
+      { page: 'about', section: 'values', key: 'items', value: JSON.stringify(values), type: 'array' },
+    ];
+
+    try {
+      for (const item of contentToSave) {
+        const { error } = await supabase
+          .from('site_content')
+          .upsert(
+            {
+              ...item,
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'page,section,key',
+            }
+          );
+
+        if (error) {
+          console.error('Error saving:', error);
+          throw error;
+        }
+      }
+      setHasChanges(false);
+    } catch (err) {
+      console.error('Save failed:', err);
+      throw err;
+    }
   };
 
   const markChanged = () => setHasChanges(true);
@@ -50,6 +141,14 @@ export default function AboutEditor() {
     setValues(newValues);
     markChanged();
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-black/40" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto">

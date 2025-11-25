@@ -72,12 +72,23 @@ export default function ImageUpload({
       {/* Preview */}
       {currentImage && (
         <div className="relative w-full h-48 bg-black/5 rounded-lg overflow-hidden">
-          <Image
-            src={currentImage}
-            alt="Preview"
-            fill
-            className="object-cover"
-          />
+          {/* Use img tag for blob URLs and data URLs, Next Image for regular URLs */}
+          {currentImage.startsWith('data:') || currentImage.startsWith('blob:') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={currentImage}
+              alt="Preview"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              src={currentImage}
+              alt="Preview"
+              fill
+              className="object-cover"
+              unoptimized={currentImage.startsWith('/')}
+            />
+          )}
           <button
             onClick={clearImage}
             className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black transition-colors"
