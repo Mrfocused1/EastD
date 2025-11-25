@@ -131,6 +131,14 @@ export default function E20Page() {
     { translateXPercent: 355.33, translateYPercent: -8.2, parallaxSpeed: 0.35 },
   ];
 
+  // Create parallax transforms at component level (hooks must be called unconditionally)
+  const parallaxX0 = useTransform(scrollYProgress, [0, 1], [100, -150 * galleryPositions[0].parallaxSpeed]);
+  const parallaxX1 = useTransform(scrollYProgress, [0, 1], [100, -150 * galleryPositions[1].parallaxSpeed]);
+  const parallaxX2 = useTransform(scrollYProgress, [0, 1], [100, -150 * galleryPositions[2].parallaxSpeed]);
+  const parallaxX3 = useTransform(scrollYProgress, [0, 1], [100, -150 * galleryPositions[3].parallaxSpeed]);
+  const parallaxX4 = useTransform(scrollYProgress, [0, 1], [100, -150 * galleryPositions[4].parallaxSpeed]);
+  const parallaxTransforms = [parallaxX0, parallaxX1, parallaxX2, parallaxX3, parallaxX4];
+
   return (
     <>
       <PageLoader isLoading={isLoading} />
@@ -249,7 +257,7 @@ export default function E20Page() {
                 const position = galleryPositions[index] || galleryPositions[0];
                 const leftPx = (280 * position.translateXPercent) / 100;
                 const topPx = (340 * position.translateYPercent) / 100;
-                const parallaxX = useTransform(scrollYProgress, [0, 1], [100, -150 * position.parallaxSpeed]);
+                const parallaxX = parallaxTransforms[index] || parallaxTransforms[0];
 
                 return (
                   <motion.div key={index} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
