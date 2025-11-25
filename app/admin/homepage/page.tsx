@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, ArrowLeft } from "lucide-react";
+import { Eye, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
 import ImageUpload from "@/components/admin/ImageUpload";
 import SaveButton from "@/components/admin/SaveButton";
+import { supabase } from "@/lib/supabase";
 
 export default function HomepageEditor() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // Hero section state
   const [heroImage, setHeroImage] = useState("/BLACKPR%20X%20WANNI171.JPG");
   const [heroTagline, setHeroTagline] = useState("BESPOKE STUDIO HIRE");
@@ -44,15 +47,126 @@ export default function HomepageEditor() {
 
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Load content from Supabase on mount
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'homepage');
+
+        if (error) {
+          console.error('Error loading content:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            const { section, key, value } = item;
+
+            // Hero section
+            if (section === 'hero' && key === 'image') setHeroImage(value);
+            if (section === 'hero' && key === 'tagline') setHeroTagline(value);
+
+            // Welcome section
+            if (section === 'welcome' && key === 'subtitle') setWelcomeSubtitle(value);
+            if (section === 'welcome' && key === 'title') setWelcomeTitle(value);
+            if (section === 'welcome' && key === 'text') setWelcomeText(value);
+
+            // Experience section
+            if (section === 'experience' && key === 'subtitle') setExperienceSubtitle(value);
+            if (section === 'experience' && key === 'title') setExperienceTitle(value);
+            if (section === 'experience' && key === 'text') setExperienceText(value);
+
+            // Studios section
+            if (section === 'studios' && key === 'subtitle') setStudiosSubtitle(value);
+            if (section === 'studios' && key === 'title') setStudiosTitle(value);
+            if (section === 'studios' && key === 'studio1_image') setStudio1Image(value);
+            if (section === 'studios' && key === 'studio1_title') setStudio1Title(value);
+            if (section === 'studios' && key === 'studio2_image') setStudio2Image(value);
+            if (section === 'studios' && key === 'studio2_title') setStudio2Title(value);
+            if (section === 'studios' && key === 'studio3_image') setStudio3Image(value);
+            if (section === 'studios' && key === 'studio3_title') setStudio3Title(value);
+
+            // Clients section
+            if (section === 'clients' && key === 'subtitle') setClientsSubtitle(value);
+            if (section === 'clients' && key === 'title') setClientsTitle(value);
+          });
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadContent();
+  }, []);
+
   const handleSave = async () => {
-    // TODO: Save to Supabase
-    console.log("Saving homepage content...");
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setHasChanges(false);
+    const contentToSave = [
+      // Hero
+      { page: 'homepage', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'tagline', value: heroTagline, type: 'text' },
+      // Welcome
+      { page: 'homepage', section: 'welcome', key: 'subtitle', value: welcomeSubtitle, type: 'text' },
+      { page: 'homepage', section: 'welcome', key: 'title', value: welcomeTitle, type: 'text' },
+      { page: 'homepage', section: 'welcome', key: 'text', value: welcomeText, type: 'text' },
+      // Experience
+      { page: 'homepage', section: 'experience', key: 'subtitle', value: experienceSubtitle, type: 'text' },
+      { page: 'homepage', section: 'experience', key: 'title', value: experienceTitle, type: 'text' },
+      { page: 'homepage', section: 'experience', key: 'text', value: experienceText, type: 'text' },
+      // Studios
+      { page: 'homepage', section: 'studios', key: 'subtitle', value: studiosSubtitle, type: 'text' },
+      { page: 'homepage', section: 'studios', key: 'title', value: studiosTitle, type: 'text' },
+      { page: 'homepage', section: 'studios', key: 'studio1_image', value: studio1Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio1_title', value: studio1Title, type: 'text' },
+      { page: 'homepage', section: 'studios', key: 'studio2_image', value: studio2Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio2_title', value: studio2Title, type: 'text' },
+      { page: 'homepage', section: 'studios', key: 'studio3_image', value: studio3Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio3_title', value: studio3Title, type: 'text' },
+      // Clients
+      { page: 'homepage', section: 'clients', key: 'subtitle', value: clientsSubtitle, type: 'text' },
+      { page: 'homepage', section: 'clients', key: 'title', value: clientsTitle, type: 'text' },
+    ];
+
+    try {
+      for (const item of contentToSave) {
+        const { error } = await supabase
+          .from('site_content')
+          .upsert(
+            {
+              ...item,
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'page,section,key',
+            }
+          );
+
+        if (error) {
+          console.error('Error saving:', error);
+          throw error;
+        }
+      }
+      setHasChanges(false);
+    } catch (err) {
+      console.error('Save failed:', err);
+      throw err;
+    }
   };
 
   const markChanged = () => setHasChanges(true);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-black/40" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
