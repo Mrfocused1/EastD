@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageLoader from "@/components/PageLoader";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
 const services = [
@@ -56,6 +58,20 @@ export default function AboutPage() {
     missionTitle: "Our Mission",
     missionText: "To empower creators by providing exceptional studio spaces and professional support that bring their visions to life.",
   });
+  const [contentLoaded, setContentLoaded] = useState(false);
+
+  // Collect all images to preload
+  const imagesToPreload = useMemo(() => {
+    const images = [
+      content.heroImage,
+      "https://images.pexels.com/photos/7991319/pexels-photo-7991319.jpeg?auto=compress&cs=tinysrgb&w=1920",
+      ...services.map(s => s.image)
+    ];
+    return images.filter(Boolean);
+  }, [content.heroImage]);
+
+  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
+  const isLoading = !contentLoaded || imagesLoading;
 
   useEffect(() => {
     async function loadContent() {
@@ -67,6 +83,7 @@ export default function AboutPage() {
 
         if (error) {
           console.error('Error loading about content:', error);
+          setContentLoaded(true);
           return;
         }
 
@@ -83,8 +100,10 @@ export default function AboutPage() {
           });
           setContent(newContent);
         }
+        setContentLoaded(true);
       } catch (err) {
         console.error('Error:', err);
+        setContentLoaded(true);
       }
     }
 
@@ -93,6 +112,7 @@ export default function AboutPage() {
 
   return (
     <>
+      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-white">
         {/* Hero Section */}

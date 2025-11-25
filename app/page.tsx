@@ -8,7 +8,16 @@ import Experience from "@/components/Experience";
 import MembersSection from "@/components/MembersSection";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import PageLoader from "@/components/PageLoader";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
+
+// Main homepage images to preload
+const homepageImages = [
+  "/BLACKPR X WANNI171.JPG",
+  "/BLACKPR X WANNI115.JPG",
+  "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
+];
 
 interface WelcomeContent {
   subtitle: string;
@@ -22,6 +31,10 @@ export default function Home() {
     title: "WELCOME",
     text: "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach.",
   });
+  const [contentLoaded, setContentLoaded] = useState(false);
+
+  const imagesLoading = useImagePreloader(homepageImages);
+  const isLoading = !contentLoaded || imagesLoading;
 
   useEffect(() => {
     async function loadContent() {
@@ -34,6 +47,7 @@ export default function Home() {
 
         if (error) {
           console.error('Error loading welcome content:', error);
+          setContentLoaded(true);
           return;
         }
 
@@ -46,8 +60,10 @@ export default function Home() {
           });
           setWelcomeContent(newContent);
         }
+        setContentLoaded(true);
       } catch (err) {
         console.error('Error:', err);
+        setContentLoaded(true);
       }
     }
 
@@ -56,6 +72,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
+      <PageLoader isLoading={isLoading} />
       <Header />
       <Hero />
 

@@ -1,12 +1,14 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageLoader from "@/components/PageLoader";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
 const iconMap: { [key: number]: typeof Users } = {
@@ -34,6 +36,7 @@ export default function E20Page() {
     offset: ["start end", "end start"],
   });
 
+  const [contentLoaded, setContentLoaded] = useState(false);
   const [content, setContent] = useState<E20Content>({
     heroImage: "/BLACKPR%20X%20WANNI171.JPG",
     studioSubtitle: "THE STUDIO",
@@ -65,6 +68,14 @@ export default function E20Page() {
     ],
   });
 
+  // Collect all images to preload
+  const imagesToPreload = useMemo(() => {
+    return [content.heroImage, content.pricingImage, ...content.galleryImages].filter(Boolean);
+  }, [content.heroImage, content.pricingImage, content.galleryImages]);
+
+  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
+  const isLoading = !contentLoaded || imagesLoading;
+
   useEffect(() => {
     async function loadContent() {
       try {
@@ -75,6 +86,7 @@ export default function E20Page() {
 
         if (error) {
           console.error('Error loading E20 content:', error);
+          setContentLoaded(true);
           return;
         }
 
@@ -101,8 +113,10 @@ export default function E20Page() {
           });
           setContent(newContent);
         }
+        setContentLoaded(true);
       } catch (err) {
         console.error('Error:', err);
+        setContentLoaded(true);
       }
     }
 
@@ -119,6 +133,7 @@ export default function E20Page() {
 
   return (
     <>
+      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
