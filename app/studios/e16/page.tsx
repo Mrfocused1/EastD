@@ -125,9 +125,9 @@ export default function E16Page() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { title: "STANDARD", price: "£70", duration: "(Min 2 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "HALF DAY", price: "£200", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "FULL DAY", price: "£400", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] }
+              { title: "STANDARD", price: "£140", duration: "(Min 2 Hours)", details: ["£70/hr", "Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
+              { title: "HALF DAY", price: "£220", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
+              { title: "FULL DAY", price: "£450", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] }
             ].map((plan, index) => (
               <motion.div
                 key={index}

@@ -59,7 +59,7 @@ export default function E20Page() {
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
         <Image
-          src="https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          src="/BLACKPR%20X%20WANNI171.JPG"
           alt="E20 SET"
           fill
           className="object-cover"
@@ -221,7 +221,7 @@ export default function E20Page() {
       </section>
 
       {/* Gallery Section */}
-      <section ref={gallerySectionRef} className="pt-24 pb-12 bg-white overflow-hidden">
+      <section ref={gallerySectionRef} className="pt-24 pb-32 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -234,35 +234,35 @@ export default function E20Page() {
           </motion.div>
 
           {/* Scrolling Gallery Cards */}
-          <div className="relative h-[450px] flex items-center justify-center -mt-32">
+          <div className="relative h-[550px] flex items-center justify-center -mt-32">
             <div className="relative w-[1200px]" style={{ left: '100px' }}>
               {[
                 {
-                  image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/Gallery%202/BLACKPR%20X%20WANNI161.JPG",
                   translateXPercent: -121.72,
                   translateYPercent: -24.99,
                   parallaxSpeed: 0.3,
                 },
                 {
-                  image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/Gallery%202/BLACKPR%20X%20WANNI163.JPG",
                   translateXPercent: 0,
                   translateYPercent: -11.91,
                   parallaxSpeed: 0.5,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/Gallery%202/BLACKPR%20X%20WANNI164.JPG",
                   translateXPercent: 108.9,
                   translateYPercent: 0,
                   parallaxSpeed: 0.4,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/Gallery%202/BLACKPR%20X%20WANNI166.JPG",
                   translateXPercent: 246.43,
                   translateYPercent: -18.5,
                   parallaxSpeed: 0.6,
                 },
                 {
-                  image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+                  image: "/Gallery%202/BLACKPR%20X%20WANNI168.JPG",
                   translateXPercent: 355.33,
                   translateYPercent: -8.2,
                   parallaxSpeed: 0.35,
