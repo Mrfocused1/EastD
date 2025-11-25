@@ -1,9 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create a dummy client for build time when env vars are not available
+const createSupabaseClient = (): SupabaseClient => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Return a mock client for build time
+    return {
+      from: () => ({
+        select: () => ({ eq: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) }),
+        upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
+      }),
+      storage: {
+        from: () => ({
+          upload: () => Promise.resolve({ data: null, error: null }),
+          remove: () => Promise.resolve({ error: null }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        }),
+      },
+    } as unknown as SupabaseClient;
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
+
+export const supabase = createSupabaseClient();
 
 // Types for site content
 export interface SiteContent {
