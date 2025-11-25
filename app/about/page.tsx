@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabase";
 
 const services = [
   {
@@ -34,7 +36,61 @@ const services = [
   }
 ];
 
+interface AboutContent {
+  heroImage: string;
+  heroSubtitle: string;
+  heroTitle: string;
+  aboutTitle: string;
+  aboutText: string;
+  missionTitle: string;
+  missionText: string;
+}
+
 export default function AboutPage() {
+  const [content, setContent] = useState<AboutContent>({
+    heroImage: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    heroSubtitle: "EASTDOC STUDIOS",
+    heroTitle: "ABOUT US",
+    aboutTitle: "CAPABILITIES",
+    aboutText: "Within our studio, creativity knows no bounds. Whether crafting podcasts, advertising campaigns, voiceovers, or conducting riveting interviews, our venue is an elegant experience for artistic expression. We have a full range of in-house resources and talents to meet any client's requirement.",
+    missionTitle: "Our Mission",
+    missionText: "To empower creators by providing exceptional studio spaces and professional support that bring their visions to life.",
+  });
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value, section')
+          .eq('page', 'about');
+
+        if (error) {
+          console.error('Error loading about content:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newContent = { ...content };
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            if (item.section === 'hero' && item.key === 'image') newContent.heroImage = item.value;
+            if (item.section === 'hero' && item.key === 'subtitle') newContent.heroSubtitle = item.value;
+            if (item.section === 'hero' && item.key === 'title') newContent.heroTitle = item.value;
+            if (item.section === 'about' && item.key === 'title') newContent.aboutTitle = item.value;
+            if (item.section === 'about' && item.key === 'text') newContent.aboutText = item.value;
+            if (item.section === 'mission' && item.key === 'title') newContent.missionTitle = item.value;
+            if (item.section === 'mission' && item.key === 'text') newContent.missionText = item.value;
+          });
+          setContent(newContent);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadContent();
+  }, []);
+
   return (
     <>
       <Header />
@@ -42,7 +98,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="relative h-[70vh] overflow-hidden">
           <Image
-            src="https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920"
+            src={content.heroImage}
             alt="About EASTDOC STUDIOS"
             fill
             className="object-cover"
@@ -55,8 +111,8 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="text-center text-white"
             >
-              <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOC STUDIOS</p>
-              <h1 className="text-7xl font-light tracking-wider mb-8 text-white">ABOUT</h1>
+              <p className="text-sm tracking-[0.3em] mb-4 text-white">{content.heroSubtitle}</p>
+              <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.heroTitle}</h1>
             </motion.div>
           </div>
         </section>
@@ -72,10 +128,10 @@ export default function AboutPage() {
               className="text-center max-w-4xl mx-auto"
             >
               <p className="text-sm tracking-[0.3em] text-gray-400 mb-4">EASTDOC STUDIOS</p>
-              <h2 className="text-5xl font-light text-black mb-6">CAPABILITIES</h2>
+              <h2 className="text-5xl font-light text-black mb-6">{content.aboutTitle}</h2>
               <div className="w-24 h-px bg-gray-300 mx-auto mb-12"></div>
               <p className="text-base text-gray-600 leading-relaxed mb-12">
-                Within our studio, creativity knows no bounds. Whether crafting podcasts, advertising campaigns, voiceovers, or conducting riveting interviews, our venue is an elegant experience for artistic expression. We have a full range of in-house resources and talents to meet any client's requirement.
+                {content.aboutText}
               </p>
 
               {/* Social Media Icons */}
