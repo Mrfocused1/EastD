@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 
 const members = [
   {
@@ -114,12 +115,52 @@ function MemberCard({ member, index, scrollYProgress }: { member: typeof members
   );
 }
 
+interface ClientsContent {
+  subtitle: string;
+  title: string;
+}
+
 export default function MembersSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
   });
+
+  const [content, setContent] = useState<ClientsContent>({
+    subtitle: "OUR CLIENTS",
+    title: "THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.",
+  });
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'homepage')
+          .eq('section', 'clients');
+
+        if (error) {
+          console.error('Error loading clients content:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newContent = { ...content };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'subtitle') newContent.subtitle = item.value;
+            if (item.key === 'title') newContent.title = item.value;
+          });
+          setContent(newContent);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadContent();
+  }, []);
 
   return (
     <section ref={sectionRef} className="pt-32 pb-48 bg-white overflow-hidden">
@@ -132,9 +173,9 @@ export default function MembersSection() {
           transition={{ duration: 0.6 }}
           className="text-center -mb-16"
         >
-          <p className="text-sm text-black tracking-widest mb-2">OUR CLIENTS</p>
+          <p className="text-sm text-black tracking-widest mb-2">{content.subtitle}</p>
           <h2 className="text-5xl font-light text-black mb-6">
-            THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.
+            {content.title}
           </h2>
           <div className="w-24 h-px bg-black/30 mx-auto"></div>
         </motion.div>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Studios from "@/components/Studios";
@@ -5,8 +8,52 @@ import Experience from "@/components/Experience";
 import MembersSection from "@/components/MembersSection";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabase";
+
+interface WelcomeContent {
+  subtitle: string;
+  title: string;
+  text: string;
+}
 
 export default function Home() {
+  const [welcomeContent, setWelcomeContent] = useState<WelcomeContent>({
+    subtitle: "EASTDOC STUDIOS",
+    title: "WELCOME",
+    text: "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach.",
+  });
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'homepage')
+          .eq('section', 'welcome');
+
+        if (error) {
+          console.error('Error loading welcome content:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newContent = { ...welcomeContent };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'subtitle') newContent.subtitle = item.value;
+            if (item.key === 'title') newContent.title = item.value;
+            if (item.key === 'text') newContent.text = item.value;
+          });
+          setWelcomeContent(newContent);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadContent();
+  }, []);
+
   return (
     <main className="min-h-screen">
       <Header />
@@ -15,11 +62,11 @@ export default function Home() {
       {/* Welcome Section */}
       <section id="welcome" className="py-24 bg-white">
         <div className="container mx-auto px-6 max-w-4xl text-center">
-          <p className="text-sm text-black tracking-widest mb-2">EASTDOC STUDIOS</p>
-          <h2 className="text-5xl font-light text-black mb-8">WELCOME</h2>
+          <p className="text-sm text-black tracking-widest mb-2">{welcomeContent.subtitle}</p>
+          <h2 className="text-5xl font-light text-black mb-8">{welcomeContent.title}</h2>
           <div className="w-24 h-px bg-black/30 mx-auto mb-12"></div>
           <p className="text-lg text-black leading-relaxed italic mb-8">
-            "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach."
+            "{welcomeContent.text}"
           </p>
           <div className="flex gap-4 justify-center mt-8">
             <a href="#" className="w-10 h-10 border border-black/30 flex items-center justify-center hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C] transition-all duration-300">

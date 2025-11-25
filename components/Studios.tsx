@@ -3,32 +3,89 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-const studios = [
-  {
-    id: "e16",
-    title: "E16 SET",
-    subtitle: "Studio 1",
-    image: "/BLACKPR X WANNI121.JPG",
-    description: "Professional studio space in East London",
-  },
-  {
-    id: "e20",
-    title: "E20 SET",
-    subtitle: "Studio 2",
-    image: "/BLACKPR X WANNI174.JPG",
-    description: "State-of-the-art recording facility",
-  },
-  {
-    id: "lux",
-    title: "LUX SET",
-    subtitle: "Studio 3",
-    image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    description: "Premium luxury studio experience",
-  },
-];
+interface StudiosContent {
+  subtitle: string;
+  title: string;
+  studio1_image: string;
+  studio1_title: string;
+  studio2_image: string;
+  studio2_title: string;
+  studio3_image: string;
+  studio3_title: string;
+}
 
 export default function Studios() {
+  const [content, setContent] = useState<StudiosContent>({
+    subtitle: "EASTDOC STUDIOS",
+    title: "OUR STUDIOS",
+    studio1_image: "/BLACKPR X WANNI121.JPG",
+    studio1_title: "E16 SET",
+    studio2_image: "/BLACKPR X WANNI174.JPG",
+    studio2_title: "E20 SET",
+    studio3_image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studio3_title: "LUX SET",
+  });
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'homepage')
+          .eq('section', 'studios');
+
+        if (error) {
+          console.error('Error loading studios content:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newContent = { ...content };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'subtitle') newContent.subtitle = item.value;
+            if (item.key === 'title') newContent.title = item.value;
+            if (item.key === 'studio1_image') newContent.studio1_image = item.value;
+            if (item.key === 'studio1_title') newContent.studio1_title = item.value;
+            if (item.key === 'studio2_image') newContent.studio2_image = item.value;
+            if (item.key === 'studio2_title') newContent.studio2_title = item.value;
+            if (item.key === 'studio3_image') newContent.studio3_image = item.value;
+            if (item.key === 'studio3_title') newContent.studio3_title = item.value;
+          });
+          setContent(newContent);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadContent();
+  }, []);
+
+  const studios = [
+    {
+      id: "e16",
+      title: content.studio1_title,
+      subtitle: "Studio 1",
+      image: content.studio1_image,
+    },
+    {
+      id: "e20",
+      title: content.studio2_title,
+      subtitle: "Studio 2",
+      image: content.studio2_image,
+    },
+    {
+      id: "lux",
+      title: content.studio3_title,
+      subtitle: "Studio 3",
+      image: content.studio3_image,
+    },
+  ];
+
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-6">
@@ -40,8 +97,8 @@ export default function Studios() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <p className="text-sm text-black tracking-widest mb-2">EASTDOC STUDIOS</p>
-          <h2 className="text-5xl font-light text-black mb-6">OUR STUDIOS</h2>
+          <p className="text-sm text-black tracking-widest mb-2">{content.subtitle}</p>
+          <h2 className="text-5xl font-light text-black mb-6">{content.title}</h2>
           <div className="w-24 h-px bg-black/30 mx-auto"></div>
         </motion.div>
 
