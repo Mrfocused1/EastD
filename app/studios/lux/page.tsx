@@ -241,13 +241,13 @@ export default function LuxPage() {
       </section>
 
       {/* Gallery Section */}
-      <section ref={gallerySectionRef} className="pt-24 pb-12 bg-white overflow-hidden">
+      <section ref={gallerySectionRef} className="pt-24 pb-32 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-0">
             <h2 className="text-5xl font-light text-black">Gallery</h2>
           </motion.div>
 
-          <div className="relative h-[450px] flex items-center justify-center -mt-32">
+          <div className="relative h-[550px] flex items-center justify-center -mt-32">
             <div className="relative w-[1200px]" style={{ left: '100px' }}>
               {content.galleryImages.map((image, index) => {
                 const position = galleryPositions[index] || galleryPositions[0];
