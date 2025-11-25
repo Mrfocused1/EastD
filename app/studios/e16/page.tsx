@@ -1,30 +1,30 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabase";
 
-const studioFeatures = [
-  {
-    icon: Users,
-    title: "1 - 6 Layout Possible",
-    description: "Flexible seating arrangements for any setup"
-  },
-  {
-    icon: Camera,
-    title: "1 - 4 Camera Setup",
-    description: "Professional multi-angle filming capabilities"
-  },
-  {
-    icon: Palette,
-    title: "Customisable Set/Backdrop",
-    description: "Tailor the environment to your vision"
-  }
-];
+const iconMap: { [key: number]: typeof Users } = {
+  0: Users,
+  1: Camera,
+  2: Palette,
+};
+
+interface E16Content {
+  heroImage: string;
+  studioSubtitle: string;
+  studioTitle: string;
+  studioDescription: string;
+  features: { title: string; description: string }[];
+  pricingImage: string;
+  pricingPlans: { title: string; price: string; duration: string; details: string[] }[];
+  galleryImages: string[];
+}
 
 export default function E16Page() {
   const gallerySectionRef = useRef<HTMLElement>(null);
@@ -33,6 +33,80 @@ export default function E16Page() {
     offset: ["start end", "end start"],
   });
 
+  const [content, setContent] = useState<E16Content>({
+    heroImage: "/BLACKPR X WANNI115.JPG",
+    studioSubtitle: "THE STUDIO",
+    studioTitle: "E16 SET",
+    studioDescription: "A vintage leather sofa in a lush, deep green color creates an ambiance reminiscent of an exclusive lounge. The large sofa can accommodate up to four guests. Enhance the atmosphere with your choice of art décor or vintage industrial-inspired lighting.",
+    features: [
+      { title: "1 - 6 Layout Possible", description: "Flexible seating arrangements for any setup" },
+      { title: "1 - 4 Camera Setup", description: "Professional multi-angle filming capabilities" },
+      { title: "Customisable Set/Backdrop", description: "Tailor the environment to your vision" },
+    ],
+    pricingImage: "/BLACKPR%20X%20WANNI133.JPG",
+    pricingPlans: [
+      { title: "STANDARD", price: "£140", duration: "(Min 2 Hours)", details: ["£70/hr", "Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
+      { title: "HALF DAY", price: "£220", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
+      { title: "FULL DAY", price: "£450", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] },
+    ],
+    galleryImages: [
+      "/gallery/BLACKPR%20X%20WANNI111.JPG",
+      "/gallery/BLACKPR%20X%20WANNI116.JPG",
+      "/gallery/BLACKPR%20X%20WANNI117.JPG",
+      "/gallery/BLACKPR%20X%20WANNI122.JPG",
+      "/gallery/BLACKPR%20X%20WANNI128.JPG",
+    ],
+  });
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('section, key, value')
+          .eq('page', 'e16');
+
+        if (error) {
+          console.error('Error loading E16 content:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newContent = { ...content };
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            if (item.section === 'hero' && item.key === 'image') newContent.heroImage = item.value;
+            if (item.section === 'studio' && item.key === 'subtitle') newContent.studioSubtitle = item.value;
+            if (item.section === 'studio' && item.key === 'title') newContent.studioTitle = item.value;
+            if (item.section === 'studio' && item.key === 'description') newContent.studioDescription = item.value;
+            if (item.section === 'features' && item.key === 'items') {
+              try { newContent.features = JSON.parse(item.value); } catch (e) { console.error('Error parsing features:', e); }
+            }
+            if (item.section === 'pricing' && item.key === 'image') newContent.pricingImage = item.value;
+            if (item.section === 'pricing' && item.key === 'plans') {
+              try { newContent.pricingPlans = JSON.parse(item.value); } catch (e) { console.error('Error parsing pricing:', e); }
+            }
+            if (item.section === 'gallery' && item.key === 'images') {
+              try { newContent.galleryImages = JSON.parse(item.value); } catch (e) { console.error('Error parsing gallery:', e); }
+            }
+          });
+          setContent(newContent);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadContent();
+  }, []);
+
+  const galleryPositions = [
+    { translateXPercent: -121.72, translateYPercent: -24.99, parallaxSpeed: 0.3 },
+    { translateXPercent: 0, translateYPercent: -11.91, parallaxSpeed: 0.5 },
+    { translateXPercent: 108.9, translateYPercent: 0, parallaxSpeed: 0.4 },
+    { translateXPercent: 246.43, translateYPercent: -18.5, parallaxSpeed: 0.6 },
+    { translateXPercent: 355.33, translateYPercent: -8.2, parallaxSpeed: 0.35 },
+  ];
+
   return (
     <>
       <Header />
@@ -40,7 +114,7 @@ export default function E16Page() {
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
         <Image
-          src="/BLACKPR X WANNI115.JPG"
+          src={content.heroImage}
           alt="E16 SET"
           fill
           className="object-cover"
@@ -54,7 +128,7 @@ export default function E16Page() {
             className="text-center text-white"
           >
             <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOC STUDIOS</p>
-            <h1 className="text-7xl font-light tracking-wider mb-8 text-white">E16 SET</h1>
+            <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link
               href="/booking?studio=e16"
               className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
@@ -74,31 +148,32 @@ export default function E16Page() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <p className="text-sm tracking-[0.3em] text-black mb-4">THE STUDIO</p>
-            <h2 className="text-5xl font-light text-black mb-6">E16 SET</h2>
+            <p className="text-sm tracking-[0.3em] text-black mb-4">{content.studioSubtitle}</p>
+            <h2 className="text-5xl font-light text-black mb-6">{content.studioTitle}</h2>
             <div className="w-24 h-px bg-black/30 mx-auto mb-8"></div>
             <p className="max-w-3xl mx-auto text-black leading-relaxed">
-              A vintage leather sofa in a lush, deep green color creates an ambiance reminiscent of an
-              exclusive lounge. The large sofa can accommodate up to four guests. Enhance the atmosphere
-              with your choice of art décor or vintage industrial-inspired lighting.
+              {content.studioDescription}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {studioFeatures.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white p-8 text-center border border-black/10"
-              >
-                <feature.icon className="w-12 h-12 mx-auto mb-4 text-black" strokeWidth={1} />
-                <h3 className="text-lg font-medium mb-2 text-black">{feature.title}</h3>
-                <p className="text-sm text-black">{feature.description}</p>
-              </motion.div>
-            ))}
+            {content.features.map((feature, index) => {
+              const Icon = iconMap[index] || Users;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white p-8 text-center border border-black/10"
+                >
+                  <Icon className="w-12 h-12 mx-auto mb-4 text-black" strokeWidth={1} />
+                  <h3 className="text-lg font-medium mb-2 text-black">{feature.title}</h3>
+                  <p className="text-sm text-black">{feature.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -106,7 +181,7 @@ export default function E16Page() {
       {/* Pricing Section */}
       <section className="relative py-24 overflow-hidden">
         <Image
-          src="/BLACKPR%20X%20WANNI133.JPG"
+          src={content.pricingImage}
           alt="Pricing"
           fill
           className="object-cover"
@@ -124,11 +199,7 @@ export default function E16Page() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              { title: "STANDARD", price: "£140", duration: "(Min 2 Hours)", details: ["£70/hr", "Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "HALF DAY", price: "£220", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
-              { title: "FULL DAY", price: "£450", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] }
-            ].map((plan, index) => (
+            {content.pricingPlans.map((plan, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -174,44 +245,14 @@ export default function E16Page() {
           {/* Scrolling Gallery Cards */}
           <div className="relative h-[550px] flex items-center justify-center -mt-32">
             <div className="relative w-[1200px]" style={{ left: '100px' }}>
-              {[
-                {
-                  image: "/gallery/BLACKPR%20X%20WANNI111.JPG",
-                  translateXPercent: -121.72,
-                  translateYPercent: -24.99,
-                  parallaxSpeed: 0.3,
-                },
-                {
-                  image: "/gallery/BLACKPR%20X%20WANNI116.JPG",
-                  translateXPercent: 0,
-                  translateYPercent: -11.91,
-                  parallaxSpeed: 0.5,
-                },
-                {
-                  image: "/gallery/BLACKPR%20X%20WANNI117.JPG",
-                  translateXPercent: 108.9,
-                  translateYPercent: 0,
-                  parallaxSpeed: 0.4,
-                },
-                {
-                  image: "/gallery/BLACKPR%20X%20WANNI122.JPG",
-                  translateXPercent: 246.43,
-                  translateYPercent: -18.5,
-                  parallaxSpeed: 0.6,
-                },
-                {
-                  image: "/gallery/BLACKPR%20X%20WANNI128.JPG",
-                  translateXPercent: 355.33,
-                  translateYPercent: -8.2,
-                  parallaxSpeed: 0.35,
-                },
-              ].map((item, index) => {
-                const leftPx = (280 * item.translateXPercent) / 100;
-                const topPx = (340 * item.translateYPercent) / 100;
+              {content.galleryImages.map((image, index) => {
+                const position = galleryPositions[index] || galleryPositions[0];
+                const leftPx = (280 * position.translateXPercent) / 100;
+                const topPx = (340 * position.translateYPercent) / 100;
                 const parallaxX = useTransform(
                   scrollYProgress,
                   [0, 1],
-                  [100, -150 * item.parallaxSpeed]
+                  [100, -150 * position.parallaxSpeed]
                 );
 
                 return (
@@ -231,7 +272,7 @@ export default function E16Page() {
                   >
                     <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
                       <Image
-                        src={item.image}
+                        src={image}
                         alt={`Gallery image ${index + 1}`}
                         fill
                         className="object-cover"

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Eye, ArrowLeft, Plus, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
 import ImageUpload from "@/components/admin/ImageUpload";
 import SaveButton from "@/components/admin/SaveButton";
 import PricingEditor from "@/components/admin/PricingEditor";
+import { supabase } from "@/lib/supabase";
 
 export default function E16Editor() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // Hero section
   const [heroImage, setHeroImage] = useState("/BLACKPR%20X%20WANNI115.JPG");
 
@@ -47,10 +50,101 @@ export default function E16Editor() {
 
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Load content from Supabase on mount
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'e16');
+
+        if (error) {
+          console.error('Error loading content:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            const { section, key, value } = item;
+
+            // Hero section
+            if (section === 'hero' && key === 'image') setHeroImage(value);
+
+            // Studio info
+            if (section === 'studio' && key === 'subtitle') setStudioSubtitle(value);
+            if (section === 'studio' && key === 'title') setStudioTitle(value);
+            if (section === 'studio' && key === 'description') setStudioDescription(value);
+
+            // Features
+            if (section === 'features' && key === 'items') {
+              try { setFeatures(JSON.parse(value)); } catch (e) { console.error('Error parsing features:', e); }
+            }
+
+            // Pricing
+            if (section === 'pricing' && key === 'image') setPricingImage(value);
+            if (section === 'pricing' && key === 'plans') {
+              try { setPricingPlans(JSON.parse(value)); } catch (e) { console.error('Error parsing pricing:', e); }
+            }
+
+            // Gallery
+            if (section === 'gallery' && key === 'images') {
+              try { setGalleryImages(JSON.parse(value)); } catch (e) { console.error('Error parsing gallery:', e); }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadContent();
+  }, []);
+
   const handleSave = async () => {
-    console.log("Saving E16 content...");
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setHasChanges(false);
+    const contentToSave = [
+      // Hero
+      { page: 'e16', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      // Studio info
+      { page: 'e16', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
+      { page: 'e16', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
+      { page: 'e16', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
+      // Features
+      { page: 'e16', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
+      // Pricing
+      { page: 'e16', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
+      { page: 'e16', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
+      // Gallery
+      { page: 'e16', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
+    ];
+
+    try {
+      for (const item of contentToSave) {
+        const { error } = await supabase
+          .from('site_content')
+          .upsert(
+            {
+              ...item,
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'page,section,key',
+            }
+          );
+
+        if (error) {
+          console.error('Error saving:', error);
+          throw error;
+        }
+      }
+      setHasChanges(false);
+    } catch (err) {
+      console.error('Save failed:', err);
+      throw err;
+    }
   };
 
   const markChanged = () => setHasChanges(true);
@@ -78,6 +172,14 @@ export default function E16Editor() {
     setGalleryImages(galleryImages.filter((_, i) => i !== index));
     markChanged();
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-black/40" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
