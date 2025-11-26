@@ -252,7 +252,7 @@ export default function E20Page() {
           </motion.div>
 
           <div className="relative h-[550px] flex items-center justify-center -mt-32">
-            <div className="relative w-[1200px]" style={{ left: '100px' }}>
+            <div className="relative w-[1200px]" style={{ left: '200px' }}>
               {content.galleryImages.map((image, index) => {
                 const position = galleryPositions[index] || galleryPositions[0];
                 const leftPx = (280 * position.translateXPercent) / 100;

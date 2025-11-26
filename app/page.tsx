@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Studios from "@/components/Studios";
@@ -12,17 +12,17 @@ import PageLoader from "@/components/PageLoader";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
-// Main homepage images to preload
-const homepageImages = [
-  "/BLACKPR X WANNI171.JPG",
-  "/BLACKPR X WANNI115.JPG",
-  "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
-];
-
 interface WelcomeContent {
   subtitle: string;
   title: string;
   text: string;
+}
+
+interface HomepageImages {
+  heroImage: string;
+  studio1Image: string;
+  studio2Image: string;
+  studio3Image: string;
 }
 
 export default function Home() {
@@ -31,34 +31,72 @@ export default function Home() {
     title: "WELCOME",
     text: "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach.",
   });
+  const [images, setImages] = useState<HomepageImages>({
+    heroImage: "",
+    studio1Image: "",
+    studio2Image: "",
+    studio3Image: "",
+  });
   const [contentLoaded, setContentLoaded] = useState(false);
 
-  const imagesLoading = useImagePreloader(homepageImages);
+  // Build dynamic image preload array from loaded content
+  const imagesToPreload = useMemo(() => {
+    const imageList = [
+      images.heroImage,
+      images.studio1Image,
+      images.studio2Image,
+      images.studio3Image,
+    ].filter(Boolean); // Filter out empty strings
+    return imageList;
+  }, [images.heroImage, images.studio1Image, images.studio2Image, images.studio3Image]);
+
+  // Only start preloading after content is loaded
+  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
   const isLoading = !contentLoaded || imagesLoading;
 
   useEffect(() => {
     async function loadContent() {
       try {
+        // Load all homepage content (welcome section + images)
         const { data, error } = await supabase
           .from('site_content')
-          .select('key, value')
+          .select('section, key, value')
           .eq('page', 'homepage')
-          .eq('section', 'welcome');
+          .in('section', ['welcome', 'hero', 'studios']);
 
         if (error) {
-          console.error('Error loading welcome content:', error);
+          console.error('Error loading homepage content:', error);
           setContentLoaded(true);
           return;
         }
 
         if (data && data.length > 0) {
-          const newContent = { ...welcomeContent };
-          data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'subtitle') newContent.subtitle = item.value;
-            if (item.key === 'title') newContent.title = item.value;
-            if (item.key === 'text') newContent.text = item.value;
+          const newWelcomeContent = { ...welcomeContent };
+          const newImages = { ...images };
+
+          data.forEach((item: { section: string; key: string; value: string }) => {
+            // Welcome section
+            if (item.section === 'welcome') {
+              if (item.key === 'subtitle') newWelcomeContent.subtitle = item.value;
+              if (item.key === 'title') newWelcomeContent.title = item.value;
+              if (item.key === 'text') newWelcomeContent.text = item.value;
+            }
+
+            // Hero section
+            if (item.section === 'hero' && item.key === 'image') {
+              newImages.heroImage = item.value;
+            }
+
+            // Studios section
+            if (item.section === 'studios') {
+              if (item.key === 'studio1_image') newImages.studio1Image = item.value;
+              if (item.key === 'studio2_image') newImages.studio2Image = item.value;
+              if (item.key === 'studio3_image') newImages.studio3Image = item.value;
+            }
           });
-          setWelcomeContent(newContent);
+
+          setWelcomeContent(newWelcomeContent);
+          setImages(newImages);
         }
         setContentLoaded(true);
       } catch (err) {
