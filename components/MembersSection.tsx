@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 // Default members as fallback
 const defaultMembers = [
   {
+    id: "member-1",
     name: "Sarah Chen",
     role: "Content Creator",
     color: "#8b5a4a",
@@ -19,6 +20,7 @@ const defaultMembers = [
     zIndex: 5,
   },
   {
+    id: "member-2",
     name: "Marcus Williams",
     role: "Director / Producer",
     color: "#c45d4a",
@@ -30,6 +32,7 @@ const defaultMembers = [
     zIndex: 4,
   },
   {
+    id: "member-3",
     name: "Emma Rodriguez",
     role: "Photographer",
     color: "#2d2d2d",
@@ -41,6 +44,7 @@ const defaultMembers = [
     zIndex: 3,
   },
   {
+    id: "member-4",
     name: "David Park",
     role: "Brand Strategist",
     color: "#d4a574",
@@ -52,6 +56,7 @@ const defaultMembers = [
     zIndex: 2,
   },
   {
+    id: "member-5",
     name: "Alex Thompson",
     role: "Filmmaker",
     color: "#6b8e7f",
@@ -64,7 +69,7 @@ const defaultMembers = [
   },
 ];
 
-function MemberCard({ member, index, scrollYProgress }: { member: typeof defaultMembers[0]; index: number; scrollYProgress: any }) {
+function MemberCard({ member, index, scrollYProgress }: { member: typeof defaultMembers[0]; index: number; scrollYProgress: MotionValue<number> }) {
   const parallaxX = useTransform(
     scrollYProgress,
     [0, 1],
@@ -150,10 +155,10 @@ export default function MembersSection() {
         }
 
         if (data && data.length > 0) {
-          const newContent = { ...content };
+          const newContentData: { subtitle?: string; title?: string } = {};
           data.forEach((item: { key: string; value: string; type?: string }) => {
-            if (item.key === 'subtitle') newContent.subtitle = item.value;
-            if (item.key === 'title') newContent.title = item.value;
+            if (item.key === 'subtitle') newContentData.subtitle = item.value;
+            if (item.key === 'title') newContentData.title = item.value;
 
             // Load members array from database
             if (item.key === 'members' && item.type === 'array') {
@@ -167,7 +172,13 @@ export default function MembersSection() {
               }
             }
           });
-          setContent(newContent);
+
+          if (newContentData.subtitle || newContentData.title) {
+            setContent({
+              subtitle: newContentData.subtitle || content.subtitle,
+              title: newContentData.title || content.title,
+            });
+          }
         }
       } catch (err) {
         console.error('Error:', err);
@@ -175,6 +186,7 @@ export default function MembersSection() {
     }
 
     loadContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -199,7 +211,7 @@ export default function MembersSection() {
         <div className="relative h-[450px] flex items-center justify-center">
           <div className="relative w-[1200px]" style={{ left: '100px' }}>
             {members.map((member, index) => (
-              <MemberCard key={index} member={member} index={index} scrollYProgress={scrollYProgress} />
+              <MemberCard key={member.id || `member-${index}`} member={member} index={index} scrollYProgress={scrollYProgress} />
             ))}
           </div>
         </div>

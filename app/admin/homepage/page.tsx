@@ -48,6 +48,7 @@ export default function HomepageEditor() {
   // Members state (scrolling images)
   const [members, setMembers] = useState([
     {
+      id: "member-1",
       name: "Sarah Chen",
       role: "Content Creator",
       color: "#8b5a4a",
@@ -59,6 +60,7 @@ export default function HomepageEditor() {
       zIndex: 5,
     },
     {
+      id: "member-2",
       name: "Marcus Williams",
       role: "Director / Producer",
       color: "#c45d4a",
@@ -70,6 +72,7 @@ export default function HomepageEditor() {
       zIndex: 4,
     },
     {
+      id: "member-3",
       name: "Emma Rodriguez",
       role: "Photographer",
       color: "#2d2d2d",
@@ -81,6 +84,7 @@ export default function HomepageEditor() {
       zIndex: 3,
     },
     {
+      id: "member-4",
       name: "David Park",
       role: "Brand Strategist",
       color: "#d4a574",
@@ -92,6 +96,7 @@ export default function HomepageEditor() {
       zIndex: 2,
     },
     {
+      id: "member-5",
       name: "Alex Thompson",
       role: "Filmmaker",
       color: "#6b8e7f",
@@ -447,7 +452,7 @@ export default function HomepageEditor() {
           <Section title="Scrolling Member Cards" description="Edit the scrolling member images and details">
             <div className="space-y-6">
               {members.map((member, index) => (
-                <div key={index} className="p-6 bg-black/5 border border-black/10 rounded-lg space-y-4">
+                <div key={member.id || `member-${index}`} className="p-6 bg-black/5 border border-black/10 rounded-lg space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-black text-lg">Member {index + 1}</h4>
                     <span className="text-sm text-black/50">z-index: {member.zIndex}</span>

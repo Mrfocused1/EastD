@@ -31,7 +31,7 @@ export default function Header() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { ...studioTitles };
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') newTitles.e16 = item.value;
             if (item.key === 'e20_title') newTitles.e20 = item.value;
@@ -45,6 +45,7 @@ export default function Header() {
     }
 
     loadStudioTitles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
