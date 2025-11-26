@@ -26,13 +26,13 @@ export default function TextInput({
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setLocalValue(e.target.value);
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    onChange(newValue); // Call onChange immediately on every keystroke
   };
 
   const handleBlur = () => {
-    if (localValue !== value) {
-      onChange(localValue);
-    }
+    // Optional: can do additional validation on blur if needed
   };
 
   const inputClasses = `
