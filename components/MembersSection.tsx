@@ -5,7 +5,8 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
-const members = [
+// Default members as fallback
+const defaultMembers = [
   {
     name: "Sarah Chen",
     role: "Content Creator",
@@ -63,7 +64,7 @@ const members = [
   },
 ];
 
-function MemberCard({ member, index, scrollYProgress }: { member: typeof members[0]; index: number; scrollYProgress: any }) {
+function MemberCard({ member, index, scrollYProgress }: { member: typeof defaultMembers[0]; index: number; scrollYProgress: any }) {
   const parallaxX = useTransform(
     scrollYProgress,
     [0, 1],
@@ -132,12 +133,14 @@ export default function MembersSection() {
     title: "THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.",
   });
 
+  const [members, setMembers] = useState(defaultMembers);
+
   useEffect(() => {
     async function loadContent() {
       try {
         const { data, error } = await supabase
           .from('site_content')
-          .select('key, value')
+          .select('key, value, type')
           .eq('page', 'homepage')
           .eq('section', 'clients');
 
@@ -148,9 +151,21 @@ export default function MembersSection() {
 
         if (data && data.length > 0) {
           const newContent = { ...content };
-          data.forEach((item: { key: string; value: string }) => {
+          data.forEach((item: { key: string; value: string; type?: string }) => {
             if (item.key === 'subtitle') newContent.subtitle = item.value;
             if (item.key === 'title') newContent.title = item.value;
+
+            // Load members array from database
+            if (item.key === 'members' && item.type === 'array') {
+              try {
+                const membersData = JSON.parse(item.value);
+                if (Array.isArray(membersData) && membersData.length > 0) {
+                  setMembers(membersData);
+                }
+              } catch (err) {
+                console.error('Error parsing members data:', err);
+              }
+            }
           });
           setContent(newContent);
         }

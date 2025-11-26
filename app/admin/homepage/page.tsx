@@ -45,6 +45,65 @@ export default function HomepageEditor() {
   const [clientsSubtitle, setClientsSubtitle] = useState("OUR CLIENTS");
   const [clientsTitle, setClientsTitle] = useState("THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.");
 
+  // Members state (scrolling images)
+  const [members, setMembers] = useState([
+    {
+      name: "Sarah Chen",
+      role: "Content Creator",
+      color: "#8b5a4a",
+      image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      translateXPercent: -121.72,
+      translateYPercent: -24.99,
+      rotation: 0,
+      parallaxSpeed: 0.3,
+      zIndex: 5,
+    },
+    {
+      name: "Marcus Williams",
+      role: "Director / Producer",
+      color: "#c45d4a",
+      image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      translateXPercent: 0,
+      translateYPercent: -11.91,
+      rotation: 0,
+      parallaxSpeed: 0.5,
+      zIndex: 4,
+    },
+    {
+      name: "Emma Rodriguez",
+      role: "Photographer",
+      color: "#2d2d2d",
+      image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      translateXPercent: 108.9,
+      translateYPercent: 0,
+      rotation: 0,
+      parallaxSpeed: 0.4,
+      zIndex: 3,
+    },
+    {
+      name: "David Park",
+      role: "Brand Strategist",
+      color: "#d4a574",
+      image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      translateXPercent: 246.43,
+      translateYPercent: -18.5,
+      rotation: 0,
+      parallaxSpeed: 0.6,
+      zIndex: 2,
+    },
+    {
+      name: "Alex Thompson",
+      role: "Filmmaker",
+      color: "#6b8e7f",
+      image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      translateXPercent: 355.33,
+      translateYPercent: -8.2,
+      rotation: 0,
+      parallaxSpeed: 0.35,
+      zIndex: 1,
+    },
+  ]);
+
   const [hasChanges, setHasChanges] = useState(false);
 
   // Load content from Supabase on mount
@@ -93,6 +152,18 @@ export default function HomepageEditor() {
             // Clients section
             if (section === 'clients' && key === 'subtitle') setClientsSubtitle(value);
             if (section === 'clients' && key === 'title') setClientsTitle(value);
+
+            // Members data
+            if (section === 'clients' && key === 'members') {
+              try {
+                const parsedMembers = JSON.parse(value);
+                if (Array.isArray(parsedMembers)) {
+                  setMembers(parsedMembers);
+                }
+              } catch (err) {
+                console.error('Error parsing members:', err);
+              }
+            }
           });
         }
       } catch (err) {
@@ -130,6 +201,7 @@ export default function HomepageEditor() {
       // Clients
       { page: 'homepage', section: 'clients', key: 'subtitle', value: clientsSubtitle, type: 'text' },
       { page: 'homepage', section: 'clients', key: 'title', value: clientsTitle, type: 'text' },
+      { page: 'homepage', section: 'clients', key: 'members', value: JSON.stringify(members), type: 'array' },
     ];
 
     try {
@@ -363,6 +435,75 @@ export default function HomepageEditor() {
               value={clientsTitle}
               onChange={(v) => { setClientsTitle(v); markChanged(); }}
             />
+          </Section>
+        </motion.div>
+
+        {/* Members Section (Scrolling Images) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+        >
+          <Section title="Scrolling Member Cards" description="Edit the scrolling member images and details">
+            <div className="space-y-6">
+              {members.map((member, index) => (
+                <div key={index} className="p-6 bg-black/5 border border-black/10 rounded-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-black text-lg">Member {index + 1}</h4>
+                    <span className="text-sm text-black/50">z-index: {member.zIndex}</span>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <ImageUpload
+                      label="Image"
+                      value={member.image}
+                      onChange={(v) => {
+                        const newMembers = [...members];
+                        newMembers[index].image = v;
+                        setMembers(newMembers);
+                        markChanged();
+                      }}
+                    />
+                    <div className="space-y-4">
+                      <TextInput
+                        label="Name"
+                        value={member.name}
+                        onChange={(v) => {
+                          const newMembers = [...members];
+                          newMembers[index].name = v;
+                          setMembers(newMembers);
+                          markChanged();
+                        }}
+                      />
+                      <TextInput
+                        label="Role"
+                        value={member.role}
+                        onChange={(v) => {
+                          const newMembers = [...members];
+                          newMembers[index].role = v;
+                          setMembers(newMembers);
+                          markChanged();
+                        }}
+                      />
+                      <div>
+                        <label className="block text-sm text-black/60 mb-2">Card Color</label>
+                        <input
+                          type="color"
+                          value={member.color}
+                          onChange={(e) => {
+                            const newMembers = [...members];
+                            newMembers[index].color = e.target.value;
+                            setMembers(newMembers);
+                            markChanged();
+                          }}
+                          className="h-10 w-full border border-black/20 rounded cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Section>
         </motion.div>
       </div>
