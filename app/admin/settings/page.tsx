@@ -92,8 +92,9 @@ export default function SettingsPage() {
     ];
 
     try {
-      for (const item of settingsToSave) {
-        const { error } = await supabase
+      // Use Promise.all for parallel saves
+      const savePromises = settingsToSave.map(item =>
+        supabase
           .from('site_content')
           .upsert(
             {
@@ -103,13 +104,18 @@ export default function SettingsPage() {
             {
               onConflict: 'page,section,key',
             }
-          );
+          )
+      );
 
-        if (error) {
-          console.error('Error saving:', error);
-          throw error;
-        }
+      const results = await Promise.all(savePromises);
+
+      // Check for any errors
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        console.error('Save errors:', errors);
+        throw new Error(`Failed to save ${errors.length} item(s)`);
       }
+
       setHasChanges(false);
     } catch (err) {
       console.error('Save failed:', err);

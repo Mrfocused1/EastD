@@ -271,7 +271,7 @@ export default function E16Editor() {
           <Section title="Features" description="Studio feature cards">
             <div className="grid md:grid-cols-3 gap-6">
               {features.map((feature, index) => (
-                <div key={index} className="bg-black/5 p-4 space-y-4">
+                <div key={`feature-${feature.title}-${index}`} className="bg-black/5 p-4 space-y-4">
                   <TextInput
                     label="Feature Title"
                     value={feature.title}
@@ -321,7 +321,7 @@ export default function E16Editor() {
           <Section title="Gallery" description="Gallery images">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {galleryImages.map((image, index) => (
-                <div key={index} className="relative">
+                <div key={`gallery-image-${index}`} className="relative">
                   <ImageUpload
                     label={`Image ${index + 1}`}
                     value={image}

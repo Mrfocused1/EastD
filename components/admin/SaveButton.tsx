@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
+import { useToast } from "@/components/Toast";
 
 interface SaveButtonProps {
   onSave: () => Promise<void>;
@@ -11,6 +12,7 @@ interface SaveButtonProps {
 export default function SaveButton({ onSave, hasChanges = true }: SaveButtonProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const toast = useToast();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -18,9 +20,12 @@ export default function SaveButton({ onSave, hasChanges = true }: SaveButtonProp
     try {
       await onSave();
       setSaved(true);
+      toast.success("Changes saved successfully!");
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error('Save failed:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save changes";
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }

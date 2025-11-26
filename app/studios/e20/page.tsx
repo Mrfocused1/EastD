@@ -173,7 +173,7 @@ export default function E20Page() {
             {content.features.map((feature, index) => {
               const Icon = iconMap[index] || Users;
               return (
-                <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
+                <motion.div key={`e20-feature-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
                   <Icon className="w-12 h-12 mx-auto mb-4 text-black" strokeWidth={1} />
                   <h3 className="text-lg font-medium mb-2 text-black">{feature.title}</h3>
                   <p className="text-sm text-black">{feature.description}</p>
@@ -198,7 +198,7 @@ export default function E20Page() {
 
           <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {content.inclusiveFeatures.map((feature, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
+              <motion.div key={`e20-inclusive-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
                 <h3 className="text-lg font-medium mb-4 text-black">{feature.title}</h3>
                 <p className="text-sm text-black leading-relaxed">{feature.description}</p>
               </motion.div>
@@ -225,14 +225,14 @@ export default function E20Page() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {content.pricingPlans.map((plan, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="border-2 border-white p-8 text-center text-white">
+              <motion.div key={`e20-plan-${plan.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="border-2 border-white p-8 text-center text-white">
                 <h3 className="text-2xl font-light mb-4 text-white">{plan.title}</h3>
                 <p className="text-4xl font-light mb-2 text-white">{plan.price}</p>
                 <p className="text-sm mb-2 text-white">excl. VAT</p>
                 {plan.duration && <p className="text-sm mb-6 text-white">{plan.duration}</p>}
                 <div className="space-y-2 mb-8">
                   {plan.details.map((detail, i) => (
-                    <p key={i} className="text-sm text-white">- {detail}</p>
+                    <p key={`e20-detail-${plan.title}-${i}`} className="text-sm text-white">- {detail}</p>
                   ))}
                 </div>
                 <Link href="/booking?studio=e20" className="inline-block border border-white px-6 py-2 text-xs tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
@@ -260,7 +260,7 @@ export default function E20Page() {
                 const parallaxX = parallaxTransforms[index] || parallaxTransforms[0];
 
                 return (
-                  <motion.div key={index} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
+                  <motion.div key={`e20-gallery-${index}`} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
                     <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
                       <Image src={image} alt={`Gallery image ${index + 1}`} fill className="object-cover" />
                     </div>
@@ -286,7 +286,7 @@ export default function E20Page() {
               { name: "E16 SET", slug: "e16", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200" },
               { name: "LUX SET", slug: "lux", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200" }
             ].map((studio, index) => (
-              <Link key={index} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
+              <Link key={`e20-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
                 <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">

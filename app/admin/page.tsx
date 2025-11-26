@@ -86,7 +86,7 @@ export default function AdminDashboard() {
       >
         {stats.map((stat, index) => (
           <div
-            key={index}
+            key={`stat-${stat.label}-${index}`}
             className="bg-white p-6 border border-black/10 text-center"
           >
             <p className="text-4xl font-light text-black mb-2">{stat.value}</p>

@@ -182,7 +182,7 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {services.map((service, index) => (
                 <motion.div
-                  key={index}
+                  key={`service-${service.title}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}

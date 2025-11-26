@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Lora, Roboto, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ToastProvider } from "@/components/Toast";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -41,9 +42,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable} ${lora.variable} ${roboto.variable} ${greatVibes.variable}`}>
       <body className="antialiased">
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+        <ToastProvider>
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </ToastProvider>
       </body>
     </html>
   );

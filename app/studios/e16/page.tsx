@@ -184,7 +184,7 @@ export default function E16Page() {
               const Icon = iconMap[index] || Users;
               return (
                 <motion.div
-                  key={index}
+                  key={`e16-feature-${feature.title}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -224,7 +224,7 @@ export default function E16Page() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {content.pricingPlans.map((plan, index) => (
               <motion.div
-                key={index}
+                key={`e16-plan-${plan.title}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -237,7 +237,7 @@ export default function E16Page() {
                 <p className="text-sm mb-6 text-white">{plan.duration}</p>
                 <div className="space-y-2 mb-8">
                   {plan.details.map((detail, i) => (
-                    <p key={i} className="text-sm text-white">- {detail}</p>
+                    <p key={`e16-detail-${plan.title}-${i}`} className="text-sm text-white">- {detail}</p>
                   ))}
                 </div>
                 <Link
@@ -276,7 +276,7 @@ export default function E16Page() {
 
                 return (
                   <motion.div
-                    key={index}
+                    key={`e16-gallery-${index}`}
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}

@@ -169,7 +169,7 @@ export default function LuxPage() {
             {content.features.map((feature, index) => {
               const Icon = iconMap[index] || Users;
               return (
-                <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
+                <motion.div key={`lux-feature-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
                   <Icon className="w-12 h-12 mx-auto mb-4 text-black" strokeWidth={1} />
                   <h3 className="text-lg font-medium mb-2 text-black">{feature.title}</h3>
                   <p className="text-sm text-black">{feature.description}</p>
@@ -194,7 +194,7 @@ export default function LuxPage() {
 
           <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {inclusiveFeatures.map((feature, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
+              <motion.div key={`lux-inclusive-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
                 <h3 className="text-lg font-medium mb-4 text-black">{feature.title}</h3>
                 <p className="text-sm text-black leading-relaxed">{feature.description}</p>
               </motion.div>
@@ -256,7 +256,7 @@ export default function LuxPage() {
                 const parallaxX = parallaxTransforms[index] || parallaxTransforms[0];
 
                 return (
-                  <motion.div key={index} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
+                  <motion.div key={`lux-gallery-${index}`} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
                     <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
                       <Image src={image} alt={`Gallery image ${index + 1}`} fill className="object-cover" />
                     </div>
@@ -282,7 +282,7 @@ export default function LuxPage() {
               { name: "E16 SET", slug: "e16", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200" },
               { name: "E20 SET", slug: "e20", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200" }
             ].map((studio, index) => (
-              <Link key={index} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
+              <Link key={`lux-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
                 <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">

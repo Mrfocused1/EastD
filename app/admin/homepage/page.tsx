@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Eye, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -210,8 +210,9 @@ export default function HomepageEditor() {
     ];
 
     try {
-      for (const item of contentToSave) {
-        const { error } = await supabase
+      // Use Promise.all for parallel saves - much faster!
+      const savePromises = contentToSave.map(item =>
+        supabase
           .from('site_content')
           .upsert(
             {
@@ -221,13 +222,18 @@ export default function HomepageEditor() {
             {
               onConflict: 'page,section,key',
             }
-          );
+          )
+      );
 
-        if (error) {
-          console.error('Error saving:', error);
-          throw error;
-        }
+      const results = await Promise.all(savePromises);
+
+      // Check for any errors
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        console.error('Save errors:', errors);
+        throw new Error(`Failed to save ${errors.length} item(s)`);
       }
+
       setHasChanges(false);
     } catch (err) {
       console.error('Save failed:', err);
@@ -236,6 +242,16 @@ export default function HomepageEditor() {
   };
 
   const markChanged = () => setHasChanges(true);
+
+  // Memoized member update handlers
+  const updateMemberField = useCallback((index: number, field: string, value: string) => {
+    setMembers(prev => {
+      const newMembers = [...prev];
+      newMembers[index] = { ...newMembers[index], [field]: value };
+      return newMembers;
+    });
+    markChanged();
+  }, []);
 
   if (isLoading) {
     return (
@@ -462,45 +478,25 @@ export default function HomepageEditor() {
                     <ImageUpload
                       label="Image"
                       value={member.image}
-                      onChange={(v) => {
-                        const newMembers = [...members];
-                        newMembers[index].image = v;
-                        setMembers(newMembers);
-                        markChanged();
-                      }}
+                      onChange={(v) => updateMemberField(index, 'image', v)}
                     />
                     <div className="space-y-4">
                       <TextInput
                         label="Name"
                         value={member.name}
-                        onChange={(v) => {
-                          const newMembers = [...members];
-                          newMembers[index].name = v;
-                          setMembers(newMembers);
-                          markChanged();
-                        }}
+                        onChange={(v) => updateMemberField(index, 'name', v)}
                       />
                       <TextInput
                         label="Role"
                         value={member.role}
-                        onChange={(v) => {
-                          const newMembers = [...members];
-                          newMembers[index].role = v;
-                          setMembers(newMembers);
-                          markChanged();
-                        }}
+                        onChange={(v) => updateMemberField(index, 'role', v)}
                       />
                       <div>
                         <label className="block text-sm text-black/60 mb-2">Card Color</label>
                         <input
                           type="color"
                           value={member.color}
-                          onChange={(e) => {
-                            const newMembers = [...members];
-                            newMembers[index].color = e.target.value;
-                            setMembers(newMembers);
-                            markChanged();
-                          }}
+                          onChange={(e) => updateMemberField(index, 'color', e.target.value)}
                           className="h-10 w-full border border-black/20 rounded cursor-pointer"
                         />
                       </div>

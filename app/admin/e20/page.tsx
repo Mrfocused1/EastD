@@ -237,7 +237,7 @@ export default function E20Editor() {
           <Section title="Features" description="Studio feature cards">
             <div className="grid md:grid-cols-3 gap-6">
               {features.map((feature, index) => (
-                <div key={index} className="bg-black/5 p-4 space-y-4">
+                <div key={`feature-${feature.title}-${index}`} className="bg-black/5 p-4 space-y-4">
                   <TextInput label="Feature Title" value={feature.title} onChange={(v) => updateFeature(index, 'title', v)} />
                   <TextInput label="Description" value={feature.description} onChange={(v) => updateFeature(index, 'description', v)} />
                 </div>
@@ -251,7 +251,7 @@ export default function E20Editor() {
           <Section title="All Inclusive Features" description="The inclusive features section">
             <div className="grid md:grid-cols-2 gap-6">
               {inclusiveFeatures.map((feature, index) => (
-                <div key={index} className="bg-black/5 p-4 space-y-4">
+                <div key={`inclusive-${feature.title}-${index}`} className="bg-black/5 p-4 space-y-4">
                   <TextInput label="Feature Title" value={feature.title} onChange={(v) => updateInclusiveFeature(index, 'title', v)} />
                   <TextInput label="Description" value={feature.description} onChange={(v) => updateInclusiveFeature(index, 'description', v)} multiline rows={3} />
                 </div>
@@ -276,7 +276,7 @@ export default function E20Editor() {
           <Section title="Gallery" description="Gallery images">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {galleryImages.map((image, index) => (
-                <div key={index} className="relative">
+                <div key={`gallery-image-${index}`} className="relative">
                   <ImageUpload label={`Image ${index + 1}`} value={image} onChange={(v) => updateGalleryImage(index, v)} />
                   <button onClick={() => removeGalleryImage(index)} className="absolute top-0 right-0 p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors">
                     <Trash2 className="w-4 h-4" />

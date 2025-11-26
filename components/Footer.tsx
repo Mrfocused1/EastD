@@ -77,7 +77,7 @@ export default function Footer() {
               <h3 className="text-white font-semibold mb-3 tracking-wider">Nearest DLR / Rail Stations</h3>
               <ul className="space-y-2 text-gray-400">
                 {content.dlrStations.map((station, index) => (
-                  <li key={index}>
+                  <li key={`dlr-${station.name}-${index}`}>
                     <a href={station.link} target="_blank" rel="noopener noreferrer" className="hover:text-[#DC143C] transition-colors">
                       {station.name}
                     </a>
@@ -92,7 +92,7 @@ export default function Footer() {
               <h3 className="text-white font-semibold mb-3 tracking-wider">Nearest Bus Stops & Routes</h3>
               <ul className="space-y-2 text-gray-400">
                 {content.busStops.map((stop, index) => (
-                  <li key={index}>
+                  <li key={`bus-${stop.name}-${index}`}>
                     <a href={stop.link} target="_blank" rel="noopener noreferrer" className="hover:text-[#DC143C] transition-colors">
                       {stop.name}
                     </a>

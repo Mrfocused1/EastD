@@ -22,6 +22,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string>("");
   const [navigation, setNavigation] = useState([
     { name: "Dashboard", href: "/admin", icon: Home },
     { name: "Homepage", href: "/admin/homepage", icon: Layout },
@@ -32,6 +33,16 @@ export default function AdminLayout({
     { name: "Images", href: "/admin/images", icon: ImageIcon },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]);
+
+  // Set date on client side only to avoid hydration mismatch
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }));
+  }, []);
 
   useEffect(() => {
     async function loadStudioTitles() {
@@ -149,14 +160,11 @@ export default function AdminLayout({
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-4">
-              <p className="text-sm text-black/60">
-                {new Date().toLocaleDateString('en-GB', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
+              {currentDate && (
+                <p className="text-sm text-black/60">
+                  {currentDate}
+                </p>
+              )}
             </div>
           </div>
         </header>

@@ -267,7 +267,7 @@ export default function AboutEditor() {
           <Section title="Values" description="Company values">
             <div className="grid md:grid-cols-3 gap-6">
               {values.map((value, index) => (
-                <div key={index} className="bg-black/5 p-4 space-y-4">
+                <div key={`value-${value.title}-${index}`} className="bg-black/5 p-4 space-y-4">
                   <TextInput
                     label="Value Title"
                     value={value.title}

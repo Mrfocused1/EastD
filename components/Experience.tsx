@@ -101,7 +101,7 @@ export default function Experience() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {defaultFeatures.map((feature, index) => (
                 <motion.div
-                  key={index}
+                  key={`feature-${feature.title}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
