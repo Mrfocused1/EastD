@@ -3,11 +3,49 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [studioTitles, setStudioTitles] = useState({
+    e16: "E16 SET",
+    e20: "E20 SET",
+    lux: "LUX SET",
+  });
+
+  useEffect(() => {
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newTitles = { ...studioTitles };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') newTitles.e16 = item.value;
+            if (item.key === 'e20_title') newTitles.e20 = item.value;
+            if (item.key === 'lux_title') newTitles.lux = item.value;
+          });
+          setStudioTitles(newTitles);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
+  }, []);
 
   return (
     <>
@@ -47,19 +85,19 @@ export default function Header() {
               href="/studios/e16"
               className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
             >
-              E16 SET
+              {studioTitles.e16}
             </Link>
             <Link
               href="/studios/e20"
               className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
             >
-              E20 SET
+              {studioTitles.e20}
             </Link>
             <Link
               href="/studios/lux"
               className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
             >
-              LUX SET
+              {studioTitles.lux}
             </Link>
           </nav>
 
@@ -113,21 +151,21 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
               >
-                E16 SET
+                {studioTitles.e16}
               </Link>
               <Link
                 href="/studios/e20"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
               >
-                E20 SET
+                {studioTitles.e20}
               </Link>
               <Link
                 href="/studios/lux"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
               >
-                LUX SET
+                {studioTitles.lux}
               </Link>
               <Link
                 href="/booking"

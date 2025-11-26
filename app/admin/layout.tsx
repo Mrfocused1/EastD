@@ -12,18 +12,8 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { useState } from "react";
-
-const navigation = [
-  { name: "Dashboard", href: "/admin", icon: Home },
-  { name: "Homepage", href: "/admin/homepage", icon: Layout },
-  { name: "E16 Set", href: "/admin/e16", icon: Building2 },
-  { name: "E20 Set", href: "/admin/e20", icon: Building2 },
-  { name: "LUX Set", href: "/admin/lux", icon: Building2 },
-  { name: "About Page", href: "/admin/about", icon: FileText },
-  { name: "Images", href: "/admin/images", icon: ImageIcon },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminLayout({
   children,
@@ -32,6 +22,58 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navigation, setNavigation] = useState([
+    { name: "Dashboard", href: "/admin", icon: Home },
+    { name: "Homepage", href: "/admin/homepage", icon: Layout },
+    { name: "E16 Set", href: "/admin/e16", icon: Building2 },
+    { name: "E20 Set", href: "/admin/e20", icon: Building2 },
+    { name: "LUX Set", href: "/admin/lux", icon: Building2 },
+    { name: "About Page", href: "/admin/about", icon: FileText },
+    { name: "Images", href: "/admin/images", icon: ImageIcon },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
+  ]);
+
+  useEffect(() => {
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const titles: Record<string, string> = {};
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') titles.e16 = item.value;
+            if (item.key === 'e20_title') titles.e20 = item.value;
+            if (item.key === 'lux_title') titles.lux = item.value;
+          });
+
+          setNavigation([
+            { name: "Dashboard", href: "/admin", icon: Home },
+            { name: "Homepage", href: "/admin/homepage", icon: Layout },
+            { name: titles.e16 || "E16 Set", href: "/admin/e16", icon: Building2 },
+            { name: titles.e20 || "E20 Set", href: "/admin/e20", icon: Building2 },
+            { name: titles.lux || "LUX Set", href: "/admin/lux", icon: Building2 },
+            { name: "About Page", href: "/admin/about", icon: FileText },
+            { name: "Images", href: "/admin/images", icon: ImageIcon },
+            { name: "Settings", href: "/admin/settings", icon: Settings },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#fdfbf8]">

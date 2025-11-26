@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const bookingSchema = z.object({
   studio: z.string().min(1, "Please select a studio"),
@@ -24,6 +25,11 @@ type BookingFormData = z.infer<typeof bookingSchema>;
 export default function BookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
+  const [studioTitles, setStudioTitles] = useState({
+    e16: "E16 SET",
+    e20: "E20 SET",
+    lux: "LUX SET",
+  });
 
   const {
     register,
@@ -33,6 +39,38 @@ export default function BookingForm() {
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
   });
+
+  useEffect(() => {
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newTitles = { ...studioTitles };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') newTitles.e16 = item.value;
+            if (item.key === 'e20_title') newTitles.e20 = item.value;
+            if (item.key === 'lux_title') newTitles.lux = item.value;
+          });
+          setStudioTitles(newTitles);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
+  }, []);
 
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
@@ -95,9 +133,9 @@ export default function BookingForm() {
                 }}
               >
                 <option value="">Select Studio</option>
-                <option value="e16">E16 SET</option>
-                <option value="e20">E20 SET</option>
-                <option value="lux">LUX SET</option>
+                <option value="e16">{studioTitles.e16}</option>
+                <option value="e20">{studioTitles.e20}</option>
+                <option value="lux">{studioTitles.lux}</option>
               </select>
               {errors.studio && (
                 <p className="text-red-600 text-sm mt-1">{errors.studio.message}</p>

@@ -3,22 +3,22 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-const studios = [
-  { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
-];
+import { supabase } from "@/lib/supabase";
 
 function BookingContent() {
   const searchParams = useSearchParams();
   const preselectedStudio = searchParams.get("studio");
 
   const [selectedStudio, setSelectedStudio] = useState(preselectedStudio || "");
+  const [studios, setStudios] = useState([
+    { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
+  ]);
   const [formData, setFormData] = useState({
     bookingType: "",
     audio: [] as string[],
@@ -33,6 +33,43 @@ function BookingContent() {
     email: "",
     comments: ""
   });
+
+  useEffect(() => {
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const titles: Record<string, string> = {};
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') titles.e16 = item.value;
+            if (item.key === 'e20_title') titles.e20 = item.value;
+            if (item.key === 'lux_title') titles.lux = item.value;
+          });
+
+          setStudios([
+            { value: "e16", label: titles.e16 || "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "e20", label: titles.e20 || "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "lux", label: titles.lux || "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
+          ]);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
