@@ -48,6 +48,11 @@ export default function LuxPage() {
   });
 
   const [contentLoaded, setContentLoaded] = useState(false);
+  const [studioTitles, setStudioTitles] = useState({
+    e16: "E16 SET",
+    e20: "E20 SET",
+    lux: "LUX SET",
+  });
   const [content, setContent] = useState<LuxContent>({
     heroImage: { url: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
@@ -135,6 +140,37 @@ export default function LuxPage() {
     }
 
     loadContent();
+
+    // Load studio titles for "Other Studios" section
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') newTitles.e16 = item.value;
+            if (item.key === 'e20_title') newTitles.e20 = item.value;
+            if (item.key === 'lux_title') newTitles.lux = item.value;
+          });
+          setStudioTitles(newTitles);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
   }, []);
 
   const galleryPositions = [
@@ -268,8 +304,8 @@ export default function LuxPage() {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {[
-              { name: "E16 SET", slug: "e16", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200" },
-              { name: "E20 SET", slug: "e20", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200" }
+              { name: studioTitles.e16, slug: "e16", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200" },
+              { name: studioTitles.e20, slug: "e20", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200" }
             ].map((studio, index) => (
               <Link key={`lux-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
                 <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />

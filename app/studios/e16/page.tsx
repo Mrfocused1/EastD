@@ -47,6 +47,11 @@ export default function E16Page() {
   });
 
   const [contentLoaded, setContentLoaded] = useState(false);
+  const [studioTitles, setStudioTitles] = useState({
+    e16: "E16 SET",
+    e20: "E20 SET",
+    lux: "LUX SET",
+  });
   const [content, setContent] = useState<E16Content>({
     heroImage: { url: "/BLACKPR X WANNI115.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
@@ -149,6 +154,37 @@ export default function E16Page() {
     }
 
     loadContent();
+
+    // Load studio titles for "Other Studios" section
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') newTitles.e16 = item.value;
+            if (item.key === 'e20_title') newTitles.e20 = item.value;
+            if (item.key === 'lux_title') newTitles.lux = item.value;
+          });
+          setStudioTitles(newTitles);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
   }, []);
 
   const galleryPositions = [
