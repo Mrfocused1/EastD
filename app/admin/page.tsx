@@ -8,7 +8,8 @@ import {
   FileText,
   Image as ImageIcon,
   ArrowRight,
-  Eye
+  Eye,
+  ClipboardList
 } from "lucide-react";
 
 const pages = [
@@ -53,6 +54,13 @@ const pages = [
     icon: ImageIcon,
     description: "Upload and manage all website images",
     preview: null,
+  },
+  {
+    name: "Booking Form",
+    href: "/admin/booking",
+    icon: ClipboardList,
+    description: "Customize booking form fields, dropdowns, and options",
+    preview: "/booking",
   },
 ];
 
