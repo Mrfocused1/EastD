@@ -2,17 +2,33 @@
 
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import { FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
+import FocalPointImage from "./FocalPointImage";
+
+interface Member {
+  id: string;
+  name: string;
+  role: string;
+  color: string;
+  image: string;
+  focalPoints?: FocalPoints;
+  translateXPercent: number;
+  translateYPercent: number;
+  rotation: number;
+  parallaxSpeed: number;
+  zIndex: number;
+}
 
 // Default members as fallback
-const defaultMembers = [
+const defaultMembers: Member[] = [
   {
     id: "member-1",
     name: "Sarah Chen",
     role: "Content Creator",
     color: "#8b5a4a",
     image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: -121.72,
     translateYPercent: -24.99,
     rotation: 0,
@@ -25,6 +41,7 @@ const defaultMembers = [
     role: "Director / Producer",
     color: "#c45d4a",
     image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 0,
     translateYPercent: -11.91,
     rotation: 0,
@@ -37,6 +54,7 @@ const defaultMembers = [
     role: "Photographer",
     color: "#2d2d2d",
     image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 108.9,
     translateYPercent: 0,
     rotation: 0,
@@ -49,6 +67,7 @@ const defaultMembers = [
     role: "Brand Strategist",
     color: "#d4a574",
     image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 246.43,
     translateYPercent: -18.5,
     rotation: 0,
@@ -61,6 +80,7 @@ const defaultMembers = [
     role: "Filmmaker",
     color: "#6b8e7f",
     image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 355.33,
     translateYPercent: -8.2,
     rotation: 0,
@@ -102,11 +122,10 @@ function MemberCard({ member, index, scrollYProgress }: { member: typeof default
           backgroundColor: member.color,
         }}
       >
-        <Image
+        <FocalPointImage
           src={member.image}
           alt={member.name}
-          fill
-          className="object-cover"
+          focalPoints={member.focalPoints || DEFAULT_FOCAL_POINTS}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
         {/* Text positioned inside card at bottom */}

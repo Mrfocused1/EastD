@@ -4,25 +4,35 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import { useFocalPoint, parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
+
+interface ImageWithFocalPoint {
+  url: string;
+  focalPoints: FocalPoints;
+}
 
 interface HeroContent {
-  images: string[];
+  images: ImageWithFocalPoint[];
   tagline: string;
 }
 
-const DEFAULT_IMAGES = [
-  "/BLACKPR%20X%20WANNI171.JPG",
-];
+const DEFAULT_IMAGE: ImageWithFocalPoint = {
+  url: "/BLACKPR%20X%20WANNI171.JPG",
+  focalPoints: DEFAULT_FOCAL_POINTS,
+};
 
 const SLIDE_DURATION = 5000; // 5 seconds per image
 const FADE_DURATION = 1; // 1 second fade transition
 
 export default function Hero() {
   const [content, setContent] = useState<HeroContent>({
-    images: DEFAULT_IMAGES,
+    images: [DEFAULT_IMAGE],
     tagline: "BESPOKE STUDIO HIRE",
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Get the current image's focal point based on screen size
+  const currentFocalPoint = useFocalPoint(content.images[currentIndex]?.focalPoints);
 
   useEffect(() => {
     async function loadContent() {
@@ -39,23 +49,42 @@ export default function Hero() {
         }
 
         if (data && data.length > 0) {
-          const images: string[] = [];
+          const imagesMap: { [key: number]: ImageWithFocalPoint } = {};
           let tagline = "BESPOKE STUDIO HIRE";
 
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'tagline') tagline = item.value;
+
             // Support both old 'image' key and new 'hero_image_X' keys
-            if (item.key === 'image' && item.value) images.push(item.value);
-            if (item.key.startsWith('hero_image_') && item.value) {
+            if (item.key === 'image' && item.value) {
+              imagesMap[0] = { url: item.value, focalPoints: DEFAULT_FOCAL_POINTS };
+            }
+            if (item.key.startsWith('hero_image_') && !item.key.includes('_focal')) {
               const index = parseInt(item.key.replace('hero_image_', '')) - 1;
-              images[index] = item.value;
+              if (!imagesMap[index]) {
+                imagesMap[index] = { url: '', focalPoints: DEFAULT_FOCAL_POINTS };
+              }
+              imagesMap[index].url = item.value;
+            }
+            // Load focal points
+            if (item.key.startsWith('hero_image_') && item.key.endsWith('_focal')) {
+              const index = parseInt(item.key.replace('hero_image_', '').replace('_focal', '')) - 1;
+              if (!imagesMap[index]) {
+                imagesMap[index] = { url: '', focalPoints: DEFAULT_FOCAL_POINTS };
+              }
+              imagesMap[index].focalPoints = parseFocalPoints(item.value);
             }
           });
 
-          // Filter out any empty slots and use defaults if no images
-          const filteredImages = images.filter(Boolean);
+          // Convert map to array and filter out empty URLs
+          const images = Object.keys(imagesMap)
+            .map(k => parseInt(k))
+            .sort((a, b) => a - b)
+            .map(k => imagesMap[k])
+            .filter(img => img.url);
+
           setContent({
-            images: filteredImages.length > 0 ? filteredImages : DEFAULT_IMAGES,
+            images: images.length > 0 ? images : [DEFAULT_IMAGE],
             tagline,
           });
         }
@@ -88,9 +117,10 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: FADE_DURATION, ease: "easeInOut" }}
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover"
           style={{
-            backgroundImage: `url('${content.images[currentIndex]}')`,
+            backgroundImage: `url('${content.images[currentIndex]?.url}')`,
+            backgroundPosition: `${currentFocalPoint.x}% ${currentFocalPoint.y}%`,
           }}
         >
           <div className="absolute inset-0 bg-black/30"></div>

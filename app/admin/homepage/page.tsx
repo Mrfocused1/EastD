@@ -6,20 +6,28 @@ import { Eye, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
-import ImageUpload from "@/components/admin/ImageUpload";
+import ImageUpload, { FocalPoints, DEFAULT_FOCAL_POINTS } from "@/components/admin/ImageUpload";
 import SaveButton from "@/components/admin/SaveButton";
 import { supabase } from "@/lib/supabase";
+import { stringifyFocalPoints, parseFocalPoints } from "@/hooks/useFocalPoint";
 
 export default function HomepageEditor() {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Hero section state - 5 slideshow images
+  // Hero section state - 5 slideshow images with focal points
   const [heroImages, setHeroImages] = useState([
     "/BLACKPR%20X%20WANNI171.JPG",
     "",
     "",
     "",
     "",
+  ]);
+  const [heroImageFocalPoints, setHeroImageFocalPoints] = useState<FocalPoints[]>([
+    DEFAULT_FOCAL_POINTS,
+    DEFAULT_FOCAL_POINTS,
+    DEFAULT_FOCAL_POINTS,
+    DEFAULT_FOCAL_POINTS,
+    DEFAULT_FOCAL_POINTS,
   ]);
   const [heroTagline, setHeroTagline] = useState("BESPOKE STUDIO HIRE");
 
@@ -37,14 +45,17 @@ export default function HomepageEditor() {
     "Our three sets let you film multiple projects in one session. Modular furnishings, expert lighting, and professional equipment make it perfect for live streams, interviews, online shows, talking head shots, beauty content, and photography. Every session is tailor-made to your vision — a polished, flexible space where creativity thrives."
   );
 
-  // Studios section state
+  // Studios section state with focal points
   const [studiosSubtitle, setStudiosSubtitle] = useState("EASTDOC STUDIOS");
   const [studiosTitle, setStudiosTitle] = useState("OUR STUDIOS");
   const [studio1Image, setStudio1Image] = useState("/BLACKPR%20X%20WANNI121.JPG");
+  const [studio1ImageFocal, setStudio1ImageFocal] = useState<FocalPoints>(DEFAULT_FOCAL_POINTS);
   const [studio1Title, setStudio1Title] = useState("E16 SET");
   const [studio2Image, setStudio2Image] = useState("/BLACKPR%20X%20WANNI174.JPG");
+  const [studio2ImageFocal, setStudio2ImageFocal] = useState<FocalPoints>(DEFAULT_FOCAL_POINTS);
   const [studio2Title, setStudio2Title] = useState("E20 SET");
   const [studio3Image, setStudio3Image] = useState("https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const [studio3ImageFocal, setStudio3ImageFocal] = useState<FocalPoints>(DEFAULT_FOCAL_POINTS);
   const [studio3Title, setStudio3Title] = useState("LUX SET");
 
   // Clients section state
@@ -145,12 +156,23 @@ export default function HomepageEditor() {
                 return updated;
               });
             }
-            if (section === 'hero' && key.startsWith('hero_image_')) {
+            if (section === 'hero' && key.startsWith('hero_image_') && !key.endsWith('_focal')) {
               const index = parseInt(key.replace('hero_image_', '')) - 1;
               if (index >= 0 && index < 5) {
                 setHeroImages(prev => {
                   const updated = [...prev];
                   updated[index] = value;
+                  return updated;
+                });
+              }
+            }
+            // Hero focal points
+            if (section === 'hero' && key.startsWith('hero_image_') && key.endsWith('_focal')) {
+              const index = parseInt(key.replace('hero_image_', '').replace('_focal', '')) - 1;
+              if (index >= 0 && index < 5) {
+                setHeroImageFocalPoints(prev => {
+                  const updated = [...prev];
+                  updated[index] = parseFocalPoints(value);
                   return updated;
                 });
               }
@@ -170,10 +192,13 @@ export default function HomepageEditor() {
             if (section === 'studios' && key === 'subtitle') setStudiosSubtitle(value);
             if (section === 'studios' && key === 'title') setStudiosTitle(value);
             if (section === 'studios' && key === 'studio1_image') setStudio1Image(value);
+            if (section === 'studios' && key === 'studio1_image_focal') setStudio1ImageFocal(parseFocalPoints(value));
             if (section === 'studios' && key === 'studio1_title') setStudio1Title(value);
             if (section === 'studios' && key === 'studio2_image') setStudio2Image(value);
+            if (section === 'studios' && key === 'studio2_image_focal') setStudio2ImageFocal(parseFocalPoints(value));
             if (section === 'studios' && key === 'studio2_title') setStudio2Title(value);
             if (section === 'studios' && key === 'studio3_image') setStudio3Image(value);
+            if (section === 'studios' && key === 'studio3_image_focal') setStudio3ImageFocal(parseFocalPoints(value));
             if (section === 'studios' && key === 'studio3_title') setStudio3Title(value);
 
             // Clients section
@@ -205,12 +230,17 @@ export default function HomepageEditor() {
 
   const handleSave = async () => {
     const contentToSave = [
-      // Hero - 5 slideshow images
+      // Hero - 5 slideshow images with focal points
       { page: 'homepage', section: 'hero', key: 'hero_image_1', value: heroImages[0], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_1_focal', value: stringifyFocalPoints(heroImageFocalPoints[0]), type: 'text' },
       { page: 'homepage', section: 'hero', key: 'hero_image_2', value: heroImages[1], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_2_focal', value: stringifyFocalPoints(heroImageFocalPoints[1]), type: 'text' },
       { page: 'homepage', section: 'hero', key: 'hero_image_3', value: heroImages[2], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_3_focal', value: stringifyFocalPoints(heroImageFocalPoints[2]), type: 'text' },
       { page: 'homepage', section: 'hero', key: 'hero_image_4', value: heroImages[3], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_4_focal', value: stringifyFocalPoints(heroImageFocalPoints[3]), type: 'text' },
       { page: 'homepage', section: 'hero', key: 'hero_image_5', value: heroImages[4], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_5_focal', value: stringifyFocalPoints(heroImageFocalPoints[4]), type: 'text' },
       { page: 'homepage', section: 'hero', key: 'tagline', value: heroTagline, type: 'text' },
       // Welcome
       { page: 'homepage', section: 'welcome', key: 'subtitle', value: welcomeSubtitle, type: 'text' },
@@ -220,14 +250,17 @@ export default function HomepageEditor() {
       { page: 'homepage', section: 'experience', key: 'subtitle', value: experienceSubtitle, type: 'text' },
       { page: 'homepage', section: 'experience', key: 'title', value: experienceTitle, type: 'text' },
       { page: 'homepage', section: 'experience', key: 'text', value: experienceText, type: 'text' },
-      // Studios
+      // Studios with focal points
       { page: 'homepage', section: 'studios', key: 'subtitle', value: studiosSubtitle, type: 'text' },
       { page: 'homepage', section: 'studios', key: 'title', value: studiosTitle, type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio1_image', value: studio1Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio1_image_focal', value: stringifyFocalPoints(studio1ImageFocal), type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio1_title', value: studio1Title, type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio2_image', value: studio2Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio2_image_focal', value: stringifyFocalPoints(studio2ImageFocal), type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio2_title', value: studio2Title, type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio3_image', value: studio3Image, type: 'image' },
+      { page: 'homepage', section: 'studios', key: 'studio3_image_focal', value: stringifyFocalPoints(studio3ImageFocal), type: 'text' },
       { page: 'homepage', section: 'studios', key: 'studio3_title', value: studio3Title, type: 'text' },
       // Clients
       { page: 'homepage', section: 'clients', key: 'subtitle', value: clientsSubtitle, type: 'text' },
@@ -348,6 +381,15 @@ export default function HomepageEditor() {
                     });
                     markChanged();
                   }}
+                  focalPoints={heroImageFocalPoints[index]}
+                  onFocalPointsChange={(fp) => {
+                    setHeroImageFocalPoints(prev => {
+                      const updated = [...prev];
+                      updated[index] = fp;
+                      return updated;
+                    });
+                    markChanged();
+                  }}
                 />
               ))}
             </div>
@@ -441,6 +483,8 @@ export default function HomepageEditor() {
                   label="Image"
                   value={studio1Image}
                   onChange={(v) => { setStudio1Image(v); markChanged(); }}
+                  focalPoints={studio1ImageFocal}
+                  onFocalPointsChange={(fp) => { setStudio1ImageFocal(fp); markChanged(); }}
                 />
                 <TextInput
                   label="Title"
@@ -455,6 +499,8 @@ export default function HomepageEditor() {
                   label="Image"
                   value={studio2Image}
                   onChange={(v) => { setStudio2Image(v); markChanged(); }}
+                  focalPoints={studio2ImageFocal}
+                  onFocalPointsChange={(fp) => { setStudio2ImageFocal(fp); markChanged(); }}
                 />
                 <TextInput
                   label="Title"
@@ -469,6 +515,8 @@ export default function HomepageEditor() {
                   label="Image"
                   value={studio3Image}
                   onChange={(v) => { setStudio3Image(v); markChanged(); }}
+                  focalPoints={studio3ImageFocal}
+                  onFocalPointsChange={(fp) => { setStudio3ImageFocal(fp); markChanged(); }}
                 />
                 <TextInput
                   label="Title"

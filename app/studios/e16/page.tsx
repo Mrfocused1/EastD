@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect, useState, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
@@ -10,6 +9,8 @@ import Footer from "@/components/Footer";
 import PageLoader from "@/components/PageLoader";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
+import { parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
+import FocalPointImage from "@/components/FocalPointImage";
 
 const iconMap: { [key: number]: typeof Users } = {
   0: Users,
@@ -17,15 +18,25 @@ const iconMap: { [key: number]: typeof Users } = {
   2: Palette,
 };
 
+interface ImageWithFocalPoints {
+  url: string;
+  focalPoints: FocalPoints;
+}
+
+interface GalleryImage {
+  url: string;
+  focalPoints: FocalPoints;
+}
+
 interface E16Content {
-  heroImage: string;
+  heroImage: ImageWithFocalPoints;
   studioSubtitle: string;
   studioTitle: string;
   studioDescription: string;
   features: { title: string; description: string }[];
-  pricingImage: string;
+  pricingImage: ImageWithFocalPoints;
   pricingPlans: { title: string; price: string; duration: string; details: string[] }[];
-  galleryImages: string[];
+  galleryImages: GalleryImage[];
 }
 
 export default function E16Page() {
@@ -37,7 +48,7 @@ export default function E16Page() {
 
   const [contentLoaded, setContentLoaded] = useState(false);
   const [content, setContent] = useState<E16Content>({
-    heroImage: "/BLACKPR X WANNI115.JPG",
+    heroImage: { url: "/BLACKPR X WANNI115.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
     studioTitle: "E16 SET",
     studioDescription: "A vintage leather sofa in a lush, deep green color creates an ambiance reminiscent of an exclusive lounge. The large sofa can accommodate up to four guests. Enhance the atmosphere with your choice of art décor or vintage industrial-inspired lighting.",
@@ -46,24 +57,24 @@ export default function E16Page() {
       { title: "1 - 4 Camera Setup", description: "Professional multi-angle filming capabilities" },
       { title: "Customisable Set/Backdrop", description: "Tailor the environment to your vision" },
     ],
-    pricingImage: "/BLACKPR%20X%20WANNI133.JPG",
+    pricingImage: { url: "/BLACKPR%20X%20WANNI133.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
     pricingPlans: [
       { title: "STANDARD", price: "£140", duration: "(Min 2 Hours)", details: ["£70/hr", "Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
       { title: "HALF DAY", price: "£220", duration: "(4 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 24hours"] },
       { title: "FULL DAY", price: "£450", duration: "(8 Hours)", details: ["Comes with Setup Engineer", "2x BMPCC 6K Cameras", "Professional Lighting", "Up to 4 Mics", "Files sent in 48hours"] },
     ],
     galleryImages: [
-      "/gallery/BLACKPR%20X%20WANNI111.JPG",
-      "/gallery/BLACKPR%20X%20WANNI116.JPG",
-      "/gallery/BLACKPR%20X%20WANNI117.JPG",
-      "/gallery/BLACKPR%20X%20WANNI122.JPG",
-      "/gallery/BLACKPR%20X%20WANNI128.JPG",
+      { url: "/gallery/BLACKPR%20X%20WANNI111.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "/gallery/BLACKPR%20X%20WANNI116.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "/gallery/BLACKPR%20X%20WANNI117.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "/gallery/BLACKPR%20X%20WANNI122.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "/gallery/BLACKPR%20X%20WANNI128.JPG", focalPoints: DEFAULT_FOCAL_POINTS },
     ],
   });
 
   // Collect all images to preload
   const imagesToPreload = useMemo(() => {
-    return [content.heroImage, content.pricingImage, ...content.galleryImages].filter(Boolean);
+    return [content.heroImage.url, content.pricingImage.url, ...content.galleryImages.map(g => g.url)].filter(Boolean);
   }, [content.heroImage, content.pricingImage, content.galleryImages]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
@@ -86,19 +97,46 @@ export default function E16Page() {
         if (data && data.length > 0) {
           const newContent = { ...content };
           data.forEach((item: { section: string; key: string; value: string }) => {
-            if (item.section === 'hero' && item.key === 'image') newContent.heroImage = item.value;
+            // Hero section
+            if (item.section === 'hero' && item.key === 'image') {
+              newContent.heroImage = { ...newContent.heroImage, url: item.value };
+            }
+            if (item.section === 'hero' && item.key === 'image_focal') {
+              newContent.heroImage = { ...newContent.heroImage, focalPoints: parseFocalPoints(item.value) };
+            }
+            // Studio section
             if (item.section === 'studio' && item.key === 'subtitle') newContent.studioSubtitle = item.value;
             if (item.section === 'studio' && item.key === 'title') newContent.studioTitle = item.value;
             if (item.section === 'studio' && item.key === 'description') newContent.studioDescription = item.value;
             if (item.section === 'features' && item.key === 'items') {
               try { newContent.features = JSON.parse(item.value); } catch (e) { console.error('Error parsing features:', e); }
             }
-            if (item.section === 'pricing' && item.key === 'image') newContent.pricingImage = item.value;
+            // Pricing section
+            if (item.section === 'pricing' && item.key === 'image') {
+              newContent.pricingImage = { ...newContent.pricingImage, url: item.value };
+            }
+            if (item.section === 'pricing' && item.key === 'image_focal') {
+              newContent.pricingImage = { ...newContent.pricingImage, focalPoints: parseFocalPoints(item.value) };
+            }
             if (item.section === 'pricing' && item.key === 'plans') {
               try { newContent.pricingPlans = JSON.parse(item.value); } catch (e) { console.error('Error parsing pricing:', e); }
             }
+            // Gallery section - supports both old string[] and new {url, focalPoints}[] format
             if (item.section === 'gallery' && item.key === 'images') {
-              try { newContent.galleryImages = JSON.parse(item.value); } catch (e) { console.error('Error parsing gallery:', e); }
+              try {
+                const parsed = JSON.parse(item.value);
+                if (Array.isArray(parsed)) {
+                  // Check if it's the old string format or new object format
+                  if (typeof parsed[0] === 'string') {
+                    newContent.galleryImages = parsed.map((url: string) => ({ url, focalPoints: DEFAULT_FOCAL_POINTS }));
+                  } else {
+                    newContent.galleryImages = parsed.map((img: { url?: string; focalPoints?: FocalPoints }) => ({
+                      url: img.url || '',
+                      focalPoints: img.focalPoints || DEFAULT_FOCAL_POINTS,
+                    }));
+                  }
+                }
+              } catch (e) { console.error('Error parsing gallery:', e); }
             }
           });
           setContent(newContent);
@@ -136,11 +174,11 @@ export default function E16Page() {
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
-        <Image
-          src={content.heroImage}
+        <FocalPointImage
+          src={content.heroImage.url}
           alt="E16 SET"
-          fill
-          className="object-cover"
+          focalPoints={content.heroImage.focalPoints}
+          priority
         />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -203,11 +241,10 @@ export default function E16Page() {
 
       {/* Pricing Section */}
       <section className="relative py-24 overflow-hidden">
-        <Image
-          src={content.pricingImage}
+        <FocalPointImage
+          src={content.pricingImage.url}
           alt="Pricing"
-          fill
-          className="object-cover"
+          focalPoints={content.pricingImage.focalPoints}
         />
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative container mx-auto px-6">
@@ -290,11 +327,10 @@ export default function E16Page() {
                     className="transition-transform hover:scale-105"
                   >
                     <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
-                      <Image
-                        src={image}
+                      <FocalPointImage
+                        src={image.url}
                         alt={`Gallery image ${index + 1}`}
-                        fill
-                        className="object-cover"
+                        focalPoints={image.focalPoints}
                       />
                     </div>
                   </motion.div>

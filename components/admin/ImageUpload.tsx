@@ -4,17 +4,29 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { uploadImage } from "@/lib/uploadImage";
+import FocalPointPicker, { FocalPoints, DEFAULT_FOCAL_POINTS } from "./FocalPointPicker";
+
+export interface ImageWithFocalPoints {
+  url: string;
+  focalPoints: FocalPoints;
+}
 
 interface ImageUploadProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  focalPoints?: FocalPoints;
+  onFocalPointsChange?: (focalPoints: FocalPoints) => void;
+  showFocalPointPicker?: boolean;
 }
 
 export default function ImageUpload({
   label,
   value,
   onChange,
+  focalPoints = DEFAULT_FOCAL_POINTS,
+  onFocalPointsChange,
+  showFocalPointPicker = true,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -162,6 +174,18 @@ export default function ImageUpload({
           {isUploading ? 'UPLOADING...' : 'UPLOAD'}
         </button>
       </div>
+
+      {/* Focal Point Picker */}
+      {showFocalPointPicker && currentImage && onFocalPointsChange && (
+        <FocalPointPicker
+          imageUrl={currentImage}
+          focalPoints={focalPoints}
+          onChange={onFocalPointsChange}
+        />
+      )}
     </div>
   );
 }
+
+export { DEFAULT_FOCAL_POINTS };
+export type { FocalPoints };

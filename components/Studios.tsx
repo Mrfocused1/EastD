@@ -1,31 +1,42 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
+import FocalPointImage from "./FocalPointImage";
+
+interface StudioImage {
+  url: string;
+  focalPoints: FocalPoints;
+}
 
 interface StudiosContent {
   subtitle: string;
   title: string;
-  studio1_image: string;
+  studio1_image: StudioImage;
   studio1_title: string;
-  studio2_image: string;
+  studio2_image: StudioImage;
   studio2_title: string;
-  studio3_image: string;
+  studio3_image: StudioImage;
   studio3_title: string;
 }
+
+const defaultImage = (url: string): StudioImage => ({
+  url,
+  focalPoints: DEFAULT_FOCAL_POINTS,
+});
 
 export default function Studios() {
   const [content, setContent] = useState<StudiosContent>({
     subtitle: "EASTDOC STUDIOS",
     title: "OUR STUDIOS",
-    studio1_image: "/BLACKPR X WANNI121.JPG",
+    studio1_image: defaultImage("/BLACKPR X WANNI121.JPG"),
     studio1_title: "E16 SET",
-    studio2_image: "/BLACKPR X WANNI174.JPG",
+    studio2_image: defaultImage("/BLACKPR X WANNI174.JPG"),
     studio2_title: "E20 SET",
-    studio3_image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studio3_image: defaultImage("https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200"),
     studio3_title: "LUX SET",
   });
 
@@ -48,12 +59,17 @@ export default function Studios() {
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'subtitle') newContent.subtitle = item.value;
             if (item.key === 'title') newContent.title = item.value;
-            if (item.key === 'studio1_image') newContent.studio1_image = item.value;
             if (item.key === 'studio1_title') newContent.studio1_title = item.value;
-            if (item.key === 'studio2_image') newContent.studio2_image = item.value;
             if (item.key === 'studio2_title') newContent.studio2_title = item.value;
-            if (item.key === 'studio3_image') newContent.studio3_image = item.value;
             if (item.key === 'studio3_title') newContent.studio3_title = item.value;
+            // Image URLs
+            if (item.key === 'studio1_image') newContent.studio1_image = { ...newContent.studio1_image, url: item.value };
+            if (item.key === 'studio2_image') newContent.studio2_image = { ...newContent.studio2_image, url: item.value };
+            if (item.key === 'studio3_image') newContent.studio3_image = { ...newContent.studio3_image, url: item.value };
+            // Focal points
+            if (item.key === 'studio1_image_focal') newContent.studio1_image = { ...newContent.studio1_image, focalPoints: parseFocalPoints(item.value) };
+            if (item.key === 'studio2_image_focal') newContent.studio2_image = { ...newContent.studio2_image, focalPoints: parseFocalPoints(item.value) };
+            if (item.key === 'studio3_image_focal') newContent.studio3_image = { ...newContent.studio3_image, focalPoints: parseFocalPoints(item.value) };
           });
           setContent(newContent);
         }
@@ -115,11 +131,11 @@ export default function Studios() {
             >
               <div className="relative h-[500px] overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>
-                <Image
-                  src={studio.image}
+                <FocalPointImage
+                  src={studio.image.url}
                   alt={studio.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  focalPoints={studio.image.focalPoints}
+                  className="group-hover:scale-110 transition-transform duration-500"
                 />
 
                 {/* Title and Button Overlay */}

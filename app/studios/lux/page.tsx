@@ -11,6 +11,8 @@ import BookingForm from "@/components/BookingForm";
 import PageLoader from "@/components/PageLoader";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
+import { parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
+import FocalPointImage from "@/components/FocalPointImage";
 
 const iconMap: { [key: number]: typeof Users } = {
   0: Users,
@@ -25,15 +27,25 @@ const inclusiveFeatures = [
   { title: "Customisable Sets", description: "Access to a host of different chairs, tables and background props. Giving you the freedom to make the set as unique as you." }
 ];
 
+interface ImageWithFocalPoints {
+  url: string;
+  focalPoints: FocalPoints;
+}
+
+interface GalleryImage {
+  url: string;
+  focalPoints: FocalPoints;
+}
+
 interface LuxContent {
-  heroImage: string;
+  heroImage: ImageWithFocalPoints;
   studioSubtitle: string;
   studioTitle: string;
   studioDescription: string;
   features: { title: string; description: string }[];
-  pricingImage: string;
+  pricingImage: ImageWithFocalPoints;
   pricingPlans: { title: string; price: string; duration: string; details: string[] }[];
-  galleryImages: string[];
+  galleryImages: GalleryImage[];
 }
 
 export default function LuxPage() {
@@ -45,7 +57,7 @@ export default function LuxPage() {
 
   const [contentLoaded, setContentLoaded] = useState(false);
   const [content, setContent] = useState<LuxContent>({
-    heroImage: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    heroImage: { url: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
     studioTitle: "LUX SET",
     studioDescription: "Elegant modern living room featuring a grand spiral staircase and luxurious decor. Our premium studio space offers the ultimate in sophistication and style for your high-end productions.",
@@ -54,22 +66,22 @@ export default function LuxPage() {
       { title: "1 - 4 Camera Setup", description: "Professional multi-angle filming capabilities" },
       { title: "2X Unique Luxury Backgrounds Available", description: "Premium backdrop options for upscale productions" },
     ],
-    pricingImage: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    pricingImage: { url: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
     pricingPlans: [
       { title: "DRY HIRE", price: "£35", duration: "/H", details: ["COMES WITH FREE LIGHTING"] },
     ],
     galleryImages: [
-      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
-      "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
-      "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
-      "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
-      "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      { url: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500", focalPoints: DEFAULT_FOCAL_POINTS },
+      { url: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500", focalPoints: DEFAULT_FOCAL_POINTS },
     ],
   });
 
   // Collect all images to preload
   const imagesToPreload = useMemo(() => {
-    return [content.heroImage, content.pricingImage, ...content.galleryImages].filter(Boolean);
+    return [content.heroImage.url, content.pricingImage.url, ...content.galleryImages.map(g => g.url)].filter(Boolean);
   }, [content.heroImage, content.pricingImage, content.galleryImages]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
@@ -92,19 +104,33 @@ export default function LuxPage() {
         if (data && data.length > 0) {
           const newContent = { ...content };
           data.forEach((item: { section: string; key: string; value: string }) => {
-            if (item.section === 'hero' && item.key === 'image') newContent.heroImage = item.value;
+            if (item.section === 'hero' && item.key === 'image') newContent.heroImage = { ...newContent.heroImage, url: item.value };
+            if (item.section === 'hero' && item.key === 'image_focal') newContent.heroImage = { ...newContent.heroImage, focalPoints: parseFocalPoints(item.value) };
             if (item.section === 'studio' && item.key === 'subtitle') newContent.studioSubtitle = item.value;
             if (item.section === 'studio' && item.key === 'title') newContent.studioTitle = item.value;
             if (item.section === 'studio' && item.key === 'description') newContent.studioDescription = item.value;
             if (item.section === 'features' && item.key === 'items') {
               try { newContent.features = JSON.parse(item.value); } catch (e) { console.error('Error parsing features:', e); }
             }
-            if (item.section === 'pricing' && item.key === 'image') newContent.pricingImage = item.value;
+            if (item.section === 'pricing' && item.key === 'image') newContent.pricingImage = { ...newContent.pricingImage, url: item.value };
+            if (item.section === 'pricing' && item.key === 'image_focal') newContent.pricingImage = { ...newContent.pricingImage, focalPoints: parseFocalPoints(item.value) };
             if (item.section === 'pricing' && item.key === 'plans') {
               try { newContent.pricingPlans = JSON.parse(item.value); } catch (e) { console.error('Error parsing pricing:', e); }
             }
             if (item.section === 'gallery' && item.key === 'images') {
-              try { newContent.galleryImages = JSON.parse(item.value); } catch (e) { console.error('Error parsing gallery:', e); }
+              try {
+                const parsed = JSON.parse(item.value);
+                if (Array.isArray(parsed)) {
+                  if (typeof parsed[0] === 'string') {
+                    newContent.galleryImages = parsed.map((url: string) => ({ url, focalPoints: DEFAULT_FOCAL_POINTS }));
+                  } else {
+                    newContent.galleryImages = parsed.map((img: { url?: string; focalPoints?: FocalPoints }) => ({
+                      url: img.url || '',
+                      focalPoints: img.focalPoints || DEFAULT_FOCAL_POINTS,
+                    }));
+                  }
+                }
+              } catch (e) { console.error('Error parsing gallery:', e); }
             }
           });
           setContent(newContent);
@@ -142,7 +168,7 @@ export default function LuxPage() {
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
       <section className="relative h-[70vh] overflow-hidden">
-        <Image src={content.heroImage} alt="LUX SET" fill className="object-cover" />
+        <FocalPointImage src={content.heroImage.url} alt="LUX SET" focalPoints={content.heroImage.focalPoints} priority />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center text-white">
@@ -211,7 +237,7 @@ export default function LuxPage() {
 
       {/* Pricing Section */}
       <section className="relative py-24 overflow-hidden">
-        <Image src={content.pricingImage} alt="Pricing" fill className="object-cover" />
+        <FocalPointImage src={content.pricingImage.url} alt="Pricing" focalPoints={content.pricingImage.focalPoints} />
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative container mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
@@ -258,7 +284,7 @@ export default function LuxPage() {
                 return (
                   <motion.div key={`lux-gallery-${index}`} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} style={{ position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, x: parallaxX }} className="transition-transform hover:scale-105">
                     <div className="rounded-xl overflow-hidden w-[280px] h-[340px] shadow-2xl relative">
-                      <Image src={image} alt={`Gallery image ${index + 1}`} fill className="object-cover" />
+                      <FocalPointImage src={image.url} alt={`Gallery image ${index + 1}`} focalPoints={image.focalPoints} />
                     </div>
                   </motion.div>
                 );
