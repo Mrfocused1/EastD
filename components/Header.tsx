@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [studiosDropdownOpen, setStudiosDropdownOpen] = useState(false);
+  const [mobileStudiosOpen, setMobileStudiosOpen] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
     e16: "E16 SET",
     e20: "E20 SET",
@@ -76,24 +78,51 @@ export default function Header() {
             >
               CONTACT
             </Link>
-            <Link
-              href="/studios/e16"
-              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
+
+            {/* Studios Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setStudiosDropdownOpen(true)}
+              onMouseLeave={() => setStudiosDropdownOpen(false)}
             >
-              {studioTitles.e16}
-            </Link>
-            <Link
-              href="/studios/e20"
-              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
-            >
-              {studioTitles.e20}
-            </Link>
-            <Link
-              href="/studios/lux"
-              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
-            >
-              {studioTitles.lux}
-            </Link>
+              <button
+                className="flex items-center gap-1 text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
+              >
+                STUDIOS FOR HIRE
+                <ChevronDown className={`w-4 h-4 transition-transform ${studiosDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {studiosDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 min-w-[180px]"
+                  >
+                    <Link
+                      href="/studios/e16"
+                      className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                    >
+                      {studioTitles.e16}
+                    </Link>
+                    <Link
+                      href="/studios/e20"
+                      className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                    >
+                      {studioTitles.e20}
+                    </Link>
+                    <Link
+                      href="/studios/lux"
+                      className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                    >
+                      {studioTitles.lux}
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Desktop Book Now Button */}
@@ -126,7 +155,7 @@ export default function Header() {
             className="fixed inset-0 z-40 bg-black/95 backdrop-blur-md md:hidden"
             style={{ top: '60px' }}
           >
-            <nav className="flex flex-col items-center justify-center h-full space-y-8 px-6">
+            <nav className="flex flex-col items-center justify-center h-full space-y-6 px-6">
               <Link
                 href="/#contact"
                 onClick={() => setMobileMenuOpen(false)}
@@ -134,31 +163,56 @@ export default function Header() {
               >
                 CONTACT
               </Link>
-              <Link
-                href="/studios/e16"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
-              >
-                {studioTitles.e16}
-              </Link>
-              <Link
-                href="/studios/e20"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
-              >
-                {studioTitles.e20}
-              </Link>
-              <Link
-                href="/studios/lux"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
-              >
-                {studioTitles.lux}
-              </Link>
+
+              {/* Mobile Studios Accordion */}
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={() => setMobileStudiosOpen(!mobileStudiosOpen)}
+                  className="flex items-center gap-2 text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
+                >
+                  STUDIOS FOR HIRE
+                  <ChevronDown className={`w-5 h-5 transition-transform ${mobileStudiosOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {mobileStudiosOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-col items-center space-y-4 mt-4 overflow-hidden"
+                    >
+                      <Link
+                        href="/studios/e16"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                      >
+                        {studioTitles.e16}
+                      </Link>
+                      <Link
+                        href="/studios/e20"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                      >
+                        {studioTitles.e20}
+                      </Link>
+                      <Link
+                        href="/studios/lux"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                      >
+                        {studioTitles.lux}
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <Link
                 href="/booking"
                 onClick={() => setMobileMenuOpen(false)}
-                className="border border-white text-white px-8 py-3 text-sm tracking-widest hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
+                className="border border-white text-white px-8 py-3 text-sm tracking-widest hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300 mt-4"
               >
                 BOOK NOW!
               </Link>
