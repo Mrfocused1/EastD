@@ -137,7 +137,7 @@ export default function Hero() {
         >
           <Image
             src="/10.png"
-            alt="EASTDOC Studios"
+            alt="EASTDOCK Studios"
             width={600}
             height={240}
             className="mx-auto object-contain"

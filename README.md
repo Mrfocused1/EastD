@@ -1,4 +1,4 @@
-# EASTDOC STUDIOS
+# EASTDOCK STUDIOS
 
 A modern, professional studio booking website built with Next.js 14, TypeScript, and Tailwind CSS.
 

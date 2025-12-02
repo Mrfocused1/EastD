@@ -32,7 +32,7 @@ export default function HomepageEditor() {
   const [heroTagline, setHeroTagline] = useState("BESPOKE STUDIO HIRE");
 
   // Welcome section state
-  const [welcomeSubtitle, setWelcomeSubtitle] = useState("EASTDOC STUDIOS");
+  const [welcomeSubtitle, setWelcomeSubtitle] = useState("EASTDOCK STUDIOS");
   const [welcomeTitle, setWelcomeTitle] = useState("WELCOME");
   const [welcomeText, setWelcomeText] = useState(
     "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach."
@@ -46,7 +46,7 @@ export default function HomepageEditor() {
   );
 
   // Studios section state with focal points
-  const [studiosSubtitle, setStudiosSubtitle] = useState("EASTDOC STUDIOS");
+  const [studiosSubtitle, setStudiosSubtitle] = useState("EASTDOCK STUDIOS");
   const [studiosTitle, setStudiosTitle] = useState("OUR STUDIOS");
   const [studio1Image, setStudio1Image] = useState("/BLACKPR%20X%20WANNI121.JPG");
   const [studio1ImageFocal, setStudio1ImageFocal] = useState<FocalPoints>(DEFAULT_FOCAL_POINTS);

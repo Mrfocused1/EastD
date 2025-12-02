@@ -24,8 +24,8 @@ export default function Footer() {
     ],
     bikeParking: "Cyclists are welcome! Secure bike-parking/locking facilities are available near the studio entrance for chaining your bike safely.",
     carParking: "If you're driving: Park on 232-236 Victoria Dock Road, E16 (opposite Royal Victoria DLR Station) — just a short walk over the bridge to the studio entrance. On-street/driveway spaces near Victoria Dock Road start at approximately £1.10 per hour. (justpark.com)",
-    companyInfo: "EASTDOC STUDIOS is a part of the Acumen International Media Family. Acumen is an Award Winning International Film Production and Distribution media group, specialising in crafting stories and sharing insights from the business world, through the power of cinematic visuals.",
-    copyright: "©2024 EASTDOC STUDIOS Copyright All Rights Reserved.",
+    companyInfo: "EASTDOCK STUDIOS is a part of the Acumen International Media Family. Acumen is an Award Winning International Film Production and Distribution media group, specialising in crafting stories and sharing insights from the business world, through the power of cinematic visuals.",
+    copyright: "©2024 EASTDOCK STUDIOS Copyright All Rights Reserved.",
   });
 
   useEffect(() => {

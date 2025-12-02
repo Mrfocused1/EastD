@@ -106,7 +106,7 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="p-6 border-b border-black/10">
             <Link href="/admin" className="block">
-              <h1 className="text-xl font-light tracking-widest text-black">EASTDOC</h1>
+              <h1 className="text-xl font-light tracking-widest text-black">EASTDOCK</h1>
               <p className="text-xs tracking-[0.3em] text-black/60 mt-1">ADMIN PANEL</p>
             </Link>
           </div>

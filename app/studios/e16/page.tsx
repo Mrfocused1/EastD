@@ -188,7 +188,7 @@ export default function E16Page() {
             transition={{ duration: 0.8 }}
             className="text-center text-white"
           >
-            <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOC STUDIOS</p>
+            <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
             <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link
               href="/booking?studio=e16"
@@ -254,7 +254,7 @@ export default function E16Page() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <p className="text-sm tracking-[0.3em] text-white/80 mb-4">EASTDOC STUDIOS</p>
+            <p className="text-sm tracking-[0.3em] text-white/80 mb-4">EASTDOCK STUDIOS</p>
             <h2 className="text-5xl font-light text-white">PRICING</h2>
           </motion.div>
 

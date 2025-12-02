@@ -26,7 +26,7 @@ export default function PageLoader({ isLoading }: PageLoaderProps) {
           >
             <Image
               src="/10.png"
-              alt="EASTDOC Studios"
+              alt="EASTDOCK Studios"
               width={200}
               height={80}
               className="object-contain"

@@ -177,7 +177,7 @@ export default function E20Page() {
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center text-white">
-            <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOC STUDIOS</p>
+            <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
             <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link href="/booking?studio=e20" className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
               BOOK NOW
@@ -217,7 +217,7 @@ export default function E20Page() {
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative container mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-white/80 mb-4">EASTDOC STUDIOS</p>
+            <p className="text-sm tracking-[0.3em] text-white/80 mb-4">EASTDOCK STUDIOS</p>
             <h2 className="text-5xl font-light text-white">PRICING</h2>
           </motion.div>
 
@@ -274,7 +274,7 @@ export default function E20Page() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-black mb-4">EASTDOC STUDIOS</p>
+            <p className="text-sm tracking-[0.3em] text-black mb-4">EASTDOCK STUDIOS</p>
             <h2 className="text-5xl font-light text-black">OTHER STUDIOS</h2>
             <div className="w-24 h-px bg-black/30 mx-auto mt-6"></div>
           </motion.div>

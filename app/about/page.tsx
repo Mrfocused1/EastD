@@ -51,7 +51,7 @@ interface AboutContent {
 export default function AboutPage() {
   const [content, setContent] = useState<AboutContent>({
     heroImage: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    heroSubtitle: "EASTDOC STUDIOS",
+    heroSubtitle: "EASTDOCK STUDIOS",
     heroTitle: "ABOUT US",
     aboutTitle: "CAPABILITIES",
     aboutText: "Within our studio, creativity knows no bounds. Whether crafting podcasts, advertising campaigns, voiceovers, or conducting riveting interviews, our venue is an elegant experience for artistic expression. We have a full range of in-house resources and talents to meet any client's requirement.",
@@ -119,7 +119,7 @@ export default function AboutPage() {
         <section className="relative h-[70vh] overflow-hidden">
           <Image
             src={content.heroImage}
-            alt="About EASTDOC STUDIOS"
+            alt="About EASTDOCK STUDIOS"
             fill
             className="object-cover"
           />
@@ -147,7 +147,7 @@ export default function AboutPage() {
               transition={{ duration: 0.6 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <p className="text-sm tracking-[0.3em] text-gray-400 mb-4">EASTDOC STUDIOS</p>
+              <p className="text-sm tracking-[0.3em] text-gray-400 mb-4">EASTDOCK STUDIOS</p>
               <h2 className="text-5xl font-light text-black mb-6">{content.aboutTitle}</h2>
               <div className="w-24 h-px bg-gray-300 mx-auto mb-12"></div>
               <p className="text-base text-gray-600 leading-relaxed mb-12">

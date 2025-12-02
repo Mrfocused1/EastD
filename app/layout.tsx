@@ -30,7 +30,7 @@ const greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
-  title: "EASTDOC STUDIOS",
+  title: "EASTDOCK STUDIOS",
   description: "Bespoke studio hire in the heart of London",
 };
 

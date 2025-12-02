@@ -15,7 +15,7 @@ export default function AboutEditor() {
 
   // Hero section
   const [heroImage, setHeroImage] = useState("https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920");
-  const [heroSubtitle, setHeroSubtitle] = useState("EASTDOC STUDIOS");
+  const [heroSubtitle, setHeroSubtitle] = useState("EASTDOCK STUDIOS");
   const [heroTitle, setHeroTitle] = useState("ABOUT US");
 
   // Main content

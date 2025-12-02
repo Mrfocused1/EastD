@@ -30,7 +30,7 @@ const defaultImage = (url: string): StudioImage => ({
 
 export default function Studios() {
   const [content, setContent] = useState<StudiosContent>({
-    subtitle: "EASTDOC STUDIOS",
+    subtitle: "EASTDOCK STUDIOS",
     title: "OUR STUDIOS",
     studio1_image: defaultImage("/BLACKPR X WANNI121.JPG"),
     studio1_title: "E16 SET",

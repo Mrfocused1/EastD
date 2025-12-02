@@ -63,7 +63,7 @@ export default function Header() {
           <Link href="/" className="md:-ml-[50px]">
             <Image
               src="/10.png"
-              alt="EASTDOC Studios"
+              alt="EASTDOCK Studios"
               width={150}
               height={60}
               className="object-contain"

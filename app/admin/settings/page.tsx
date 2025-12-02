@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Site Settings
-  const [siteName, setSiteName] = useState("EASTDOC STUDIOS");
+  const [siteName, setSiteName] = useState("EASTDOCK STUDIOS");
   const [siteTagline, setSiteTagline] = useState("BESPOKE STUDIO HIRE");
   const [contactEmail, setContactEmail] = useState("hello@eastdocstudios.com");
   const [contactPhone, setContactPhone] = useState("+44 123 456 7890");

@@ -27,7 +27,7 @@ interface HomepageImages {
 
 export default function Home() {
   const [welcomeContent, setWelcomeContent] = useState<WelcomeContent>({
-    subtitle: "EASTDOC STUDIOS",
+    subtitle: "EASTDOCK STUDIOS",
     title: "WELCOME",
     text: "Welcome to East Dock Studios Premium Studio High where creativity meets craftsmanship. High-end production quality is now within reach.",
   });
