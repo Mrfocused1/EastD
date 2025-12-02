@@ -126,6 +126,12 @@ export default function Header() {
                     >
                       {studioTitles.lux}
                     </Link>
+                    <Link
+                      href="/studios/photography"
+                      className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                    >
+                      PHOTOGRAPHY
+                    </Link>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -218,6 +224,13 @@ export default function Header() {
                         className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
                       >
                         {studioTitles.lux}
+                      </Link>
+                      <Link
+                        href="/studios/photography"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                      >
+                        PHOTOGRAPHY
                       </Link>
                     </motion.div>
                   )}

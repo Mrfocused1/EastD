@@ -9,7 +9,8 @@ import {
   Image as ImageIcon,
   ArrowRight,
   Eye,
-  ClipboardList
+  ClipboardList,
+  Camera
 } from "lucide-react";
 
 const pages = [
@@ -42,6 +43,13 @@ const pages = [
     preview: "/studios/lux",
   },
   {
+    name: "Photography",
+    href: "/admin/photography",
+    icon: Camera,
+    description: "Manage photography studio page content and pricing",
+    preview: "/studios/photography",
+  },
+  {
     name: "About Page",
     href: "/admin/about",
     icon: FileText,
@@ -65,8 +73,8 @@ const pages = [
 ];
 
 const stats = [
-  { label: "Pages", value: "6" },
-  { label: "Sections", value: "24" },
+  { label: "Pages", value: "7" },
+  { label: "Sections", value: "28" },
   { label: "Images", value: "50+" },
 ];
 
