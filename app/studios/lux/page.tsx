@@ -20,13 +20,6 @@ const iconMap: { [key: number]: typeof Users } = {
   2: Palette,
 };
 
-const inclusiveFeatures = [
-  { title: "Free Facilities", description: "Access to our workspace area and Wi-Fi, perfect for your PA or Producer to work whilst you film." },
-  { title: "High End Equipment", description: "Access to our equipment library, with some of the best in industry gear available as well as the experts to use them." },
-  { title: "Central Location", description: "Located in the heart of East London, only 3 minutes walk from the station, the perfect location for all guests traveling." },
-  { title: "Customisable Sets", description: "Access to a host of different chairs, tables and background props. Giving you the freedom to make the set as unique as you." }
-];
-
 interface ImageWithFocalPoints {
   url: string;
   focalPoints: FocalPoints;
@@ -202,35 +195,6 @@ export default function LuxPage() {
                 </motion.div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* All Inclusive Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-black mb-4">THE STUDIO</p>
-            <h2 className="text-5xl font-light text-black mb-6">ALL INCLUSIVE</h2>
-            <div className="w-24 h-px bg-black/30 mx-auto mb-8"></div>
-            <p className="max-w-3xl mx-auto text-black leading-relaxed">
-              Let our team of renowned experts guide you on a journey to elevate your project to new heights of excellence.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {inclusiveFeatures.map((feature, index) => (
-              <motion.div key={`lux-inclusive-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
-                <h3 className="text-lg font-medium mb-4 text-black">{feature.title}</h3>
-                <p className="text-sm text-black leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/booking?studio=lux" className="inline-block border-2 border-black px-8 py-3 text-sm tracking-widest text-black hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C] transition-all duration-300">
-              BOOK NOW!
-            </Link>
           </div>
         </div>
       </section>

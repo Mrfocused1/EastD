@@ -210,35 +210,6 @@ export default function E20Page() {
         </div>
       </section>
 
-      {/* All Inclusive Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-black mb-4">THE STUDIO</p>
-            <h2 className="text-5xl font-light text-black mb-6">ALL INCLUSIVE</h2>
-            <div className="w-24 h-px bg-black/30 mx-auto mb-8"></div>
-            <p className="max-w-3xl mx-auto text-black leading-relaxed">
-              Let our team of renowned experts guide you on a journey to elevate your project to new heights of excellence.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {content.inclusiveFeatures.map((feature, index) => (
-              <motion.div key={`e20-inclusive-${feature.title}-${index}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white p-8 text-center border border-black/10">
-                <h3 className="text-lg font-medium mb-4 text-black">{feature.title}</h3>
-                <p className="text-sm text-black leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/booking?studio=e20" className="inline-block border-2 border-black px-8 py-3 text-sm tracking-widest text-black hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C] transition-all duration-300">
-              BOOK NOW!
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Pricing Section */}
       <section className="relative py-24 overflow-hidden">
         <FocalPointImage src={content.pricingImage.url} alt="Pricing" focalPoints={content.pricingImage.focalPoints} />
