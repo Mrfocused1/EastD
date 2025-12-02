@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Studios from "@/components/Studios";
-import Experience from "@/components/Experience";
+import OurStory from "@/components/OurStory";
 import MembersSection from "@/components/MembersSection";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -138,7 +138,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Experience />
+      <OurStory />
       <Studios />
       <MembersSection />
       <Contact />
