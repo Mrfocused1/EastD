@@ -122,9 +122,6 @@ export default function Footer() {
 
           {/* Company Info */}
           <div className="text-center border-t border-gray-700 pt-8">
-            <p className="text-sm text-gray-400 mb-4">
-              {content.companyInfo}
-            </p>
             <p className="text-xs text-gray-500">
               {content.copyright}
             </p>
