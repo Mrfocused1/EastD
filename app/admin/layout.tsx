@@ -10,7 +10,9 @@ import {
   Layout,
   Building2,
   Menu,
-  X
+  X,
+  Camera,
+  ClipboardList
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -26,11 +28,13 @@ export default function AdminLayout({
   const [navigation, setNavigation] = useState([
     { name: "Dashboard", href: "/admin", icon: Home },
     { name: "Homepage", href: "/admin/homepage", icon: Layout },
-    { name: "E16 Set", href: "/admin/e16", icon: Building2 },
-    { name: "E20 Set", href: "/admin/e20", icon: Building2 },
-    { name: "LUX Set", href: "/admin/lux", icon: Building2 },
+    { name: "Studio Dock One", href: "/admin/e16", icon: Building2 },
+    { name: "Studio Dock Two", href: "/admin/e20", icon: Building2 },
+    { name: "Studio Wharf", href: "/admin/lux", icon: Building2 },
+    { name: "Photography", href: "/admin/photography", icon: Camera },
     { name: "About Page", href: "/admin/about", icon: FileText },
     { name: "Images", href: "/admin/images", icon: ImageIcon },
+    { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]);
 
@@ -70,11 +74,13 @@ export default function AdminLayout({
           setNavigation([
             { name: "Dashboard", href: "/admin", icon: Home },
             { name: "Homepage", href: "/admin/homepage", icon: Layout },
-            { name: titles.e16 || "E16 Set", href: "/admin/e16", icon: Building2 },
-            { name: titles.e20 || "E20 Set", href: "/admin/e20", icon: Building2 },
-            { name: titles.lux || "LUX Set", href: "/admin/lux", icon: Building2 },
+            { name: titles.e16 || "Studio Dock One", href: "/admin/e16", icon: Building2 },
+            { name: titles.e20 || "Studio Dock Two", href: "/admin/e20", icon: Building2 },
+            { name: titles.lux || "Studio Wharf", href: "/admin/lux", icon: Building2 },
+            { name: "Photography", href: "/admin/photography", icon: Camera },
             { name: "About Page", href: "/admin/about", icon: FileText },
             { name: "Images", href: "/admin/images", icon: ImageIcon },
+            { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
             { name: "Settings", href: "/admin/settings", icon: Settings },
           ]);
         }
