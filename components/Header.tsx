@@ -79,6 +79,13 @@ export default function Header() {
               CONTACT
             </Link>
 
+            <Link
+              href="/gallery"
+              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
+            >
+              GALLERY
+            </Link>
+
             {/* Studios Dropdown */}
             <div
               className="relative"
@@ -162,6 +169,14 @@ export default function Header() {
                 className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
               >
                 CONTACT
+              </Link>
+
+              <Link
+                href="/gallery"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
+              >
+                GALLERY
               </Link>
 
               {/* Mobile Studios Accordion */}
