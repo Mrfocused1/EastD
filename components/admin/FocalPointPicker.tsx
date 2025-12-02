@@ -37,7 +37,7 @@ export default function FocalPointPicker({
 
   const currentFocalPoint = focalPoints[activeMode];
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const updateFocalPoint = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -50,15 +50,15 @@ export default function FocalPointPicker({
     });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
-    handleClick(e);
+    updateFocalPoint(e);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    handleClick(e);
+    updateFocalPoint(e);
   };
 
   const handleMouseUp = () => {
