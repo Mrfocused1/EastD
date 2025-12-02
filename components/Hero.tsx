@@ -1,20 +1,28 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 interface HeroContent {
-  image: string;
+  images: string[];
   tagline: string;
 }
 
+const DEFAULT_IMAGES = [
+  "/BLACKPR%20X%20WANNI171.JPG",
+];
+
+const SLIDE_DURATION = 5000; // 5 seconds per image
+const FADE_DURATION = 1; // 1 second fade transition
+
 export default function Hero() {
   const [content, setContent] = useState<HeroContent>({
-    image: "/BLACKPR%20X%20WANNI171.JPG",
+    images: DEFAULT_IMAGES,
     tagline: "BESPOKE STUDIO HIRE",
   });
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     async function loadContent() {
@@ -31,12 +39,25 @@ export default function Hero() {
         }
 
         if (data && data.length > 0) {
-          const newContent = { ...content };
+          const images: string[] = [];
+          let tagline = "BESPOKE STUDIO HIRE";
+
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'image') newContent.image = item.value;
-            if (item.key === 'tagline') newContent.tagline = item.value;
+            if (item.key === 'tagline') tagline = item.value;
+            // Support both old 'image' key and new 'hero_image_X' keys
+            if (item.key === 'image' && item.value) images.push(item.value);
+            if (item.key.startsWith('hero_image_') && item.value) {
+              const index = parseInt(item.key.replace('hero_image_', '')) - 1;
+              images[index] = item.value;
+            }
           });
-          setContent(newContent);
+
+          // Filter out any empty slots and use defaults if no images
+          const filteredImages = images.filter(Boolean);
+          setContent({
+            images: filteredImages.length > 0 ? filteredImages : DEFAULT_IMAGES,
+            tagline,
+          });
         }
       } catch (err) {
         console.error('Error:', err);
@@ -46,17 +67,35 @@ export default function Hero() {
     loadContent();
   }, []);
 
+  // Auto-advance slideshow
+  useEffect(() => {
+    if (content.images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % content.images.length);
+    }, SLIDE_DURATION);
+
+    return () => clearInterval(interval);
+  }, [content.images.length]);
+
   return (
     <section className="relative w-full h-[90vh] bg-[#2d2d2d] overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url('${content.image}')`,
-        }}
-      >
-        <div className="absolute inset-0 bg-black/30"></div>
-      </div>
+      {/* Background Images with Fade Transition */}
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: FADE_DURATION, ease: "easeInOut" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('${content.images[currentIndex]}')`,
+          }}
+        >
+          <div className="absolute inset-0 bg-black/30"></div>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Content */}
       <div className="relative h-full flex flex-col items-center justify-center text-white z-10">

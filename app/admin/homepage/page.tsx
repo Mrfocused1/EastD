@@ -13,8 +13,14 @@ import { supabase } from "@/lib/supabase";
 export default function HomepageEditor() {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Hero section state
-  const [heroImage, setHeroImage] = useState("/BLACKPR%20X%20WANNI171.JPG");
+  // Hero section state - 5 slideshow images
+  const [heroImages, setHeroImages] = useState([
+    "/BLACKPR%20X%20WANNI171.JPG",
+    "",
+    "",
+    "",
+    "",
+  ]);
   const [heroTagline, setHeroTagline] = useState("BESPOKE STUDIO HIRE");
 
   // Welcome section state
@@ -130,9 +136,25 @@ export default function HomepageEditor() {
           data.forEach((item: { section: string; key: string; value: string }) => {
             const { section, key, value } = item;
 
-            // Hero section
-            if (section === 'hero' && key === 'image') setHeroImage(value);
+            // Hero section - support old 'image' key and new hero_image_X keys
             if (section === 'hero' && key === 'tagline') setHeroTagline(value);
+            if (section === 'hero' && key === 'image') {
+              setHeroImages(prev => {
+                const updated = [...prev];
+                updated[0] = value;
+                return updated;
+              });
+            }
+            if (section === 'hero' && key.startsWith('hero_image_')) {
+              const index = parseInt(key.replace('hero_image_', '')) - 1;
+              if (index >= 0 && index < 5) {
+                setHeroImages(prev => {
+                  const updated = [...prev];
+                  updated[index] = value;
+                  return updated;
+                });
+              }
+            }
 
             // Welcome section
             if (section === 'welcome' && key === 'subtitle') setWelcomeSubtitle(value);
@@ -183,8 +205,12 @@ export default function HomepageEditor() {
 
   const handleSave = async () => {
     const contentToSave = [
-      // Hero
-      { page: 'homepage', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      // Hero - 5 slideshow images
+      { page: 'homepage', section: 'hero', key: 'hero_image_1', value: heroImages[0], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_2', value: heroImages[1], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_3', value: heroImages[2], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_4', value: heroImages[3], type: 'image' },
+      { page: 'homepage', section: 'hero', key: 'hero_image_5', value: heroImages[4], type: 'image' },
       { page: 'homepage', section: 'hero', key: 'tagline', value: heroTagline, type: 'text' },
       // Welcome
       { page: 'homepage', section: 'welcome', key: 'subtitle', value: welcomeSubtitle, type: 'text' },
@@ -304,12 +330,27 @@ export default function HomepageEditor() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <Section title="Hero Section" description="Main banner at the top of the page">
-            <ImageUpload
-              label="Background Image"
-              value={heroImage}
-              onChange={(v) => { setHeroImage(v); markChanged(); }}
-            />
+          <Section title="Hero Section" description="Slideshow banner with 5 rotating background images">
+            <p className="text-sm text-black/60 mb-4">
+              Upload up to 5 images that will fade in and out automatically. Images cycle every 5 seconds.
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {heroImages.map((image, index) => (
+                <ImageUpload
+                  key={`hero-image-${index}`}
+                  label={`Slideshow Image ${index + 1}`}
+                  value={image}
+                  onChange={(v) => {
+                    setHeroImages(prev => {
+                      const updated = [...prev];
+                      updated[index] = v;
+                      return updated;
+                    });
+                    markChanged();
+                  }}
+                />
+              ))}
+            </div>
             <TextInput
               label="Tagline"
               value={heroTagline}
