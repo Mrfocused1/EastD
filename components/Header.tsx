@@ -71,12 +71,6 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <Link
-              href="/about"
-              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
-            >
-              ABOUT
-            </Link>
-            <Link
               href="/#contact"
               className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
             >
@@ -133,13 +127,6 @@ export default function Header() {
             style={{ top: '60px' }}
           >
             <nav className="flex flex-col items-center justify-center h-full space-y-8 px-6">
-              <Link
-                href="/about"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
-              >
-                ABOUT
-              </Link>
               <Link
                 href="/#contact"
                 onClick={() => setMobileMenuOpen(false)}
