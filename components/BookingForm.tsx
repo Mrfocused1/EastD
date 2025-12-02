@@ -22,7 +22,11 @@ const bookingSchema = z.object({
 
 type BookingFormData = z.infer<typeof bookingSchema>;
 
-export default function BookingForm() {
+interface BookingFormProps {
+  preselectedStudio?: string;
+}
+
+export default function BookingForm({ preselectedStudio }: BookingFormProps = {}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
   const [studioTitles, setStudioTitles] = useState({
@@ -38,6 +42,9 @@ export default function BookingForm() {
     reset,
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      studio: preselectedStudio || "",
+    },
   });
 
   useEffect(() => {

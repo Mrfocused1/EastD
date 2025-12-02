@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BookingForm from "@/components/BookingForm";
 import PageLoader from "@/components/PageLoader";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
@@ -302,6 +303,8 @@ export default function E20Page() {
           </div>
         </div>
       </section>
+
+      <BookingForm preselectedStudio="e20" />
       </main>
       <Footer />
     </>
