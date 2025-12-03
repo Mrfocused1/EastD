@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
@@ -373,6 +374,45 @@ export default function E16Page() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Other Studios Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <p className="text-sm tracking-[0.3em] text-black mb-4">EASTDOCK STUDIOS</p>
+            <h2 className="text-5xl font-light text-black">OTHER STUDIOS</h2>
+            <div className="w-24 h-px bg-black/30 mx-auto mt-6"></div>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {[
+              { name: studioTitles.e20, slug: "e20", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200" },
+              { name: studioTitles.lux, slug: "lux", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200" }
+            ].map((studio, index) => (
+              <Link key={`e16-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
+                <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <div className="w-12 h-12 border border-white/50 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 3.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-4xl font-light mb-4">{studio.name}</h3>
+                  <button className="border border-white px-6 py-2 text-xs tracking-widest hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
+                    VIEW MORE
+                  </button>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
