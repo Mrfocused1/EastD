@@ -17,36 +17,44 @@ function BookingContent() {
   const [studios, setStudios] = useState([
     { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
     { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
-    { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
+    { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "photography", label: "PHOTOGRAPHY", image: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
   ]);
 
   useEffect(() => {
-    async function loadStudioTitles() {
+    async function loadStudioSettings() {
       try {
         const { data, error } = await supabase
           .from('site_content')
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title', 'e16_thumbnail', 'e20_thumbnail', 'lux_thumbnail', 'photography_thumbnail']);
 
         if (error) {
-          console.error('Error loading studio titles:', error);
+          console.error('Error loading studio settings:', error);
           return;
         }
 
         if (data && data.length > 0) {
           const titles: Record<string, string> = {};
+          const thumbnails: Record<string, string> = {};
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') titles.e16 = item.value;
             if (item.key === 'e20_title') titles.e20 = item.value;
             if (item.key === 'lux_title') titles.lux = item.value;
+            if (item.key === 'photography_title') titles.photography = item.value;
+            if (item.key === 'e16_thumbnail') thumbnails.e16 = item.value;
+            if (item.key === 'e20_thumbnail') thumbnails.e20 = item.value;
+            if (item.key === 'lux_thumbnail') thumbnails.lux = item.value;
+            if (item.key === 'photography_thumbnail') thumbnails.photography = item.value;
           });
 
           setStudios([
-            { value: "e16", label: titles.e16 || "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
-            { value: "e20", label: titles.e20 || "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
-            { value: "lux", label: titles.lux || "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" }
+            { value: "e16", label: titles.e16 || "E16 SET", image: thumbnails.e16 || "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "e20", label: titles.e20 || "E20 SET", image: thumbnails.e20 || "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "lux", label: titles.lux || "LUX SET", image: thumbnails.lux || "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "photography", label: titles.photography || "PHOTOGRAPHY", image: thumbnails.photography || "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
           ]);
         }
       } catch (err) {
@@ -54,7 +62,7 @@ function BookingContent() {
       }
     }
 
-    loadStudioTitles();
+    loadStudioSettings();
   }, []);
 
   return (
@@ -87,7 +95,7 @@ function BookingContent() {
       {/* Studio Selection */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {studios.map((studio) => (
               <motion.div
                 key={studio.value}

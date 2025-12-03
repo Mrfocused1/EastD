@@ -52,6 +52,13 @@ export default function PhotographyPage() {
     e16: "E16 SET",
     e20: "E20 SET",
     lux: "LUX SET",
+    photography: "PHOTOGRAPHY",
+  });
+  const [studioThumbnails, setStudioThumbnails] = useState({
+    e16: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    e20: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    lux: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    photography: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1200",
   });
   const [content, setContent] = useState<PhotographyContent>({
     heroImage: { url: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
@@ -155,36 +162,43 @@ export default function PhotographyPage() {
 
     loadContent();
 
-    // Load studio titles for "Other Studios" section
-    async function loadStudioTitles() {
+    // Load studio titles and thumbnails for "Other Studios" section
+    async function loadStudioSettings() {
       try {
         const { data, error } = await supabase
           .from('site_content')
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title', 'e16_thumbnail', 'e20_thumbnail', 'lux_thumbnail', 'photography_thumbnail']);
 
         if (error) {
-          console.error('Error loading studio titles:', error);
+          console.error('Error loading studio settings:', error);
           return;
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "PHOTOGRAPHY" };
+          const newThumbnails = { ...studioThumbnails };
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') newTitles.e16 = item.value;
             if (item.key === 'e20_title') newTitles.e20 = item.value;
             if (item.key === 'lux_title') newTitles.lux = item.value;
+            if (item.key === 'photography_title') newTitles.photography = item.value;
+            if (item.key === 'e16_thumbnail') newThumbnails.e16 = item.value;
+            if (item.key === 'e20_thumbnail') newThumbnails.e20 = item.value;
+            if (item.key === 'lux_thumbnail') newThumbnails.lux = item.value;
+            if (item.key === 'photography_thumbnail') newThumbnails.photography = item.value;
           });
           setStudioTitles(newTitles);
+          setStudioThumbnails(newThumbnails);
         }
       } catch (err) {
         console.error('Error:', err);
       }
     }
 
-    loadStudioTitles();
+    loadStudioSettings();
   }, []);
 
   const galleryPositions = [
@@ -393,9 +407,9 @@ export default function PhotographyPage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { name: studioTitles.e16, slug: "e16", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200" },
-              { name: studioTitles.e20, slug: "e20", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200" },
-              { name: studioTitles.lux, slug: "lux", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200" }
+              { name: studioTitles.e16, slug: "e16", image: studioThumbnails.e16 },
+              { name: studioTitles.e20, slug: "e20", image: studioThumbnails.e20 },
+              { name: studioTitles.lux, slug: "lux", image: studioThumbnails.lux }
             ].map((studio, index) => (
               <Link key={`photography-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
                 <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />

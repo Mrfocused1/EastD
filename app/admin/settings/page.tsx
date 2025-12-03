@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Database, Shield, Globe, Building2, Loader2 } from "lucide-react";
+import { ArrowLeft, Database, Shield, Globe, Building2, Loader2, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
+import ImageUpload from "@/components/admin/ImageUpload";
 import SaveButton from "@/components/admin/SaveButton";
 import { supabase } from "@/lib/supabase";
 
@@ -26,6 +27,13 @@ export default function SettingsPage() {
   const [e16Title, setE16Title] = useState("E16 SET");
   const [e20Title, setE20Title] = useState("E20 SET");
   const [luxTitle, setLuxTitle] = useState("LUX SET");
+  const [photographyTitle, setPhotographyTitle] = useState("PHOTOGRAPHY");
+
+  // Other Studios Thumbnails
+  const [e16Thumbnail, setE16Thumbnail] = useState("https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const [e20Thumbnail, setE20Thumbnail] = useState("https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const [luxThumbnail, setLuxThumbnail] = useState("https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const [photographyThumbnail, setPhotographyThumbnail] = useState("https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1200");
 
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -63,6 +71,13 @@ export default function SettingsPage() {
             if (key === 'e16_title') setE16Title(value);
             if (key === 'e20_title') setE20Title(value);
             if (key === 'lux_title') setLuxTitle(value);
+            if (key === 'photography_title') setPhotographyTitle(value);
+
+            // Studio Thumbnails
+            if (key === 'e16_thumbnail') setE16Thumbnail(value);
+            if (key === 'e20_thumbnail') setE20Thumbnail(value);
+            if (key === 'lux_thumbnail') setLuxThumbnail(value);
+            if (key === 'photography_thumbnail') setPhotographyThumbnail(value);
           });
         }
       } catch (err) {
@@ -89,6 +104,12 @@ export default function SettingsPage() {
       { page: 'global', section: 'settings', key: 'e16_title', value: e16Title, type: 'text' },
       { page: 'global', section: 'settings', key: 'e20_title', value: e20Title, type: 'text' },
       { page: 'global', section: 'settings', key: 'lux_title', value: luxTitle, type: 'text' },
+      { page: 'global', section: 'settings', key: 'photography_title', value: photographyTitle, type: 'text' },
+      // Studio Thumbnails
+      { page: 'global', section: 'settings', key: 'e16_thumbnail', value: e16Thumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'e20_thumbnail', value: e20Thumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'lux_thumbnail', value: luxThumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'photography_thumbnail', value: photographyThumbnail, type: 'text' },
     ];
 
     try {
@@ -237,24 +258,73 @@ export default function SettingsPage() {
                 <p className="text-sm text-black/60">These titles appear in menus, headers, and throughout the site</p>
               </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <TextInput
-                label="Studio 1 Title"
+                label="Studio Dock 1 Title"
                 value={e16Title}
                 onChange={(v) => { setE16Title(v); markChanged(); }}
                 placeholder="E16 SET"
               />
               <TextInput
-                label="Studio 2 Title"
+                label="Studio Dock 2 Title"
                 value={e20Title}
                 onChange={(v) => { setE20Title(v); markChanged(); }}
                 placeholder="E20 SET"
               />
               <TextInput
-                label="Studio 3 Title"
+                label="Studio Wharf Title"
                 value={luxTitle}
                 onChange={(v) => { setLuxTitle(v); markChanged(); }}
                 placeholder="LUX SET"
+              />
+              <TextInput
+                label="Photography Title"
+                value={photographyTitle}
+                onChange={(v) => { setPhotographyTitle(v); markChanged(); }}
+                placeholder="PHOTOGRAPHY"
+              />
+            </div>
+          </Section>
+        </motion.div>
+
+        {/* Other Studios Thumbnails */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+        >
+          <Section title="Other Studios Thumbnails" description="Images shown in the 'Other Studios' sections across studio pages">
+            <div className="flex items-center gap-3 mb-6 p-4 bg-black/5 rounded-lg">
+              <ImageIcon className="w-8 h-8 text-black/40" />
+              <div>
+                <p className="font-medium text-black">Thumbnail Images</p>
+                <p className="text-sm text-black/60">These images appear when linking to studios from other pages</p>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <ImageUpload
+                label="Studio Dock 1 Thumbnail"
+                value={e16Thumbnail}
+                onChange={(v) => { setE16Thumbnail(v); markChanged(); }}
+                showFocalPointPicker={false}
+              />
+              <ImageUpload
+                label="Studio Dock 2 Thumbnail"
+                value={e20Thumbnail}
+                onChange={(v) => { setE20Thumbnail(v); markChanged(); }}
+                showFocalPointPicker={false}
+              />
+              <ImageUpload
+                label="Studio Wharf Thumbnail"
+                value={luxThumbnail}
+                onChange={(v) => { setLuxThumbnail(v); markChanged(); }}
+                showFocalPointPicker={false}
+              />
+              <ImageUpload
+                label="Photography Thumbnail"
+                value={photographyThumbnail}
+                onChange={(v) => { setPhotographyThumbnail(v); markChanged(); }}
+                showFocalPointPicker={false}
               />
             </div>
           </Section>
