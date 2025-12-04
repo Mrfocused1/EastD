@@ -35,6 +35,7 @@ export default function AdminLayout({
     { name: "About Page", href: "/admin/about", icon: FileText },
     { name: "Images", href: "/admin/images", icon: ImageIcon },
     { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
+    { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]);
 
@@ -81,6 +82,7 @@ export default function AdminLayout({
             { name: "About Page", href: "/admin/about", icon: FileText },
             { name: "Images", href: "/admin/images", icon: ImageIcon },
             { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
+            { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
             { name: "Settings", href: "/admin/settings", icon: Settings },
           ]);
         }

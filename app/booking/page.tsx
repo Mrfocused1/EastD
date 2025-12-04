@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingForm from "@/components/BookingForm";
+import PhotographyBookingForm from "@/components/PhotographyBookingForm";
 import { supabase } from "@/lib/supabase";
 
 function BookingContent() {
@@ -144,7 +145,10 @@ function BookingContent() {
       </section>
 
       {/* Booking Form */}
-      {selectedStudio && (
+      {selectedStudio && selectedStudio === "photography" && (
+        <PhotographyBookingForm />
+      )}
+      {selectedStudio && selectedStudio !== "photography" && (
         <BookingForm preselectedStudio={selectedStudio} />
       )}
       </main>

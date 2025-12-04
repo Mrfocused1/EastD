@@ -8,6 +8,7 @@ import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageLoader from "@/components/PageLoader";
+import PhotographyBookingForm from "@/components/PhotographyBookingForm";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 import { parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
@@ -401,6 +402,9 @@ export default function PhotographyPage() {
           </div>
         </div>
       </section>
+
+      {/* Booking Form Section */}
+      <PhotographyBookingForm />
 
       {/* Other Studios Section */}
       <section className="py-24 bg-white">
