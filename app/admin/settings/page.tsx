@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Database, Shield, Globe, Building2, Loader2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Database, Shield, Globe, Building2, Loader2, Image as ImageIcon, Gift } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
@@ -34,6 +34,15 @@ export default function SettingsPage() {
   const [e20Thumbnail, setE20Thumbnail] = useState("https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200");
   const [luxThumbnail, setLuxThumbnail] = useState("https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200");
   const [photographyThumbnail, setPhotographyThumbnail] = useState("https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1200");
+
+  // Promo Popup Settings
+  const [promoEnabled, setPromoEnabled] = useState(true);
+  const [promoHeadline, setPromoHeadline] = useState("Welcome to East Dock Studios!");
+  const [promoSubheadline, setPromoSubheadline] = useState("Get 30% off all bookings");
+  const [promoDescription, setPromoDescription] = useState("As a first-time client, enjoy an exclusive discount on your first studio booking.");
+  const [promoCtaText, setPromoCtaText] = useState("CLAIM OFFER");
+  const [promoCtaLink, setPromoCtaLink] = useState("/booking");
+  const [promoDiscountCode, setPromoDiscountCode] = useState("WELCOME30");
 
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -80,6 +89,26 @@ export default function SettingsPage() {
             if (key === 'photography_thumbnail') setPhotographyThumbnail(value);
           });
         }
+
+        // Load promo popup settings
+        const { data: promoData, error: promoError } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'global')
+          .eq('section', 'promo_popup');
+
+        if (!promoError && promoData && promoData.length > 0) {
+          promoData.forEach((item: { key: string; value: string }) => {
+            const { key, value } = item;
+            if (key === 'enabled') setPromoEnabled(value === 'true');
+            if (key === 'headline') setPromoHeadline(value);
+            if (key === 'subheadline') setPromoSubheadline(value);
+            if (key === 'description') setPromoDescription(value);
+            if (key === 'cta_text') setPromoCtaText(value);
+            if (key === 'cta_link') setPromoCtaLink(value);
+            if (key === 'discount_code') setPromoDiscountCode(value);
+          });
+        }
       } catch (err) {
         console.error('Error:', err);
       } finally {
@@ -110,6 +139,14 @@ export default function SettingsPage() {
       { page: 'global', section: 'settings', key: 'e20_thumbnail', value: e20Thumbnail, type: 'text' },
       { page: 'global', section: 'settings', key: 'lux_thumbnail', value: luxThumbnail, type: 'text' },
       { page: 'global', section: 'settings', key: 'photography_thumbnail', value: photographyThumbnail, type: 'text' },
+      // Promo Popup
+      { page: 'global', section: 'promo_popup', key: 'enabled', value: promoEnabled.toString(), type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'headline', value: promoHeadline, type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'subheadline', value: promoSubheadline, type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'description', value: promoDescription, type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'cta_text', value: promoCtaText, type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'cta_link', value: promoCtaLink, type: 'text' },
+      { page: 'global', section: 'promo_popup', key: 'discount_code', value: promoDiscountCode, type: 'text' },
     ];
 
     try {
@@ -325,6 +362,82 @@ export default function SettingsPage() {
                 value={photographyThumbnail}
                 onChange={(v) => { setPhotographyThumbnail(v); markChanged(); }}
                 showFocalPointPicker={false}
+              />
+            </div>
+          </Section>
+        </motion.div>
+
+        {/* Promo Popup Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <Section title="Promo Popup" description="First-time visitor promotional popup banner">
+            <div className="flex items-center gap-3 mb-6 p-4 bg-black/5 rounded-lg">
+              <Gift className="w-8 h-8 text-black/40" />
+              <div>
+                <p className="font-medium text-black">Welcome Offer</p>
+                <p className="text-sm text-black/60">This popup appears once for first-time visitors</p>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center justify-between p-4 bg-black/5 rounded-lg mb-6">
+              <div>
+                <p className="font-medium text-black">Enable Promo Popup</p>
+                <p className="text-sm text-black/60">Show popup to first-time visitors</p>
+              </div>
+              <button
+                onClick={() => { setPromoEnabled(!promoEnabled); markChanged(); }}
+                className={`relative w-14 h-7 rounded-full transition-colors ${promoEnabled ? 'bg-[#DC143C]' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${promoEnabled ? 'left-8' : 'left-1'}`} />
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <TextInput
+                label="Headline"
+                value={promoHeadline}
+                onChange={(v) => { setPromoHeadline(v); markChanged(); }}
+                placeholder="Welcome to East Dock Studios!"
+              />
+              <TextInput
+                label="Subheadline (Offer)"
+                value={promoSubheadline}
+                onChange={(v) => { setPromoSubheadline(v); markChanged(); }}
+                placeholder="Get 30% off all bookings"
+              />
+            </div>
+            <div className="mt-6">
+              <TextInput
+                label="Description"
+                value={promoDescription}
+                onChange={(v) => { setPromoDescription(v); markChanged(); }}
+                placeholder="As a first-time client, enjoy an exclusive discount..."
+                multiline
+                rows={2}
+              />
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 mt-6">
+              <TextInput
+                label="Button Text"
+                value={promoCtaText}
+                onChange={(v) => { setPromoCtaText(v); markChanged(); }}
+                placeholder="CLAIM OFFER"
+              />
+              <TextInput
+                label="Button Link"
+                value={promoCtaLink}
+                onChange={(v) => { setPromoCtaLink(v); markChanged(); }}
+                placeholder="/booking"
+              />
+              <TextInput
+                label="Discount Code"
+                value={promoDiscountCode}
+                onChange={(v) => { setPromoDiscountCode(v); markChanged(); }}
+                placeholder="WELCOME30"
               />
             </div>
           </Section>

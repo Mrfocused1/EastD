@@ -3,6 +3,7 @@ import { Montserrat, Lora, Roboto, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
+import PromoPopup from "@/components/PromoPopup";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
         <ToastProvider>
           <ErrorBoundary>
             {children}
+            <PromoPopup />
           </ErrorBoundary>
         </ToastProvider>
       </body>
