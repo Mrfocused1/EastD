@@ -44,6 +44,16 @@ export default function SettingsPage() {
   const [promoCtaLink, setPromoCtaLink] = useState("/booking");
   const [promoDiscountCode, setPromoDiscountCode] = useState("WELCOME30");
 
+  // Exit Intent Popup Settings
+  const [exitEnabled, setExitEnabled] = useState(true);
+  const [exitHeadline, setExitHeadline] = useState("Wait! Don't Miss Your Intro Offer");
+  const [exitBody, setExitBody] = useState("Get a personalised membership quote and receive a bonus discount.");
+  const [exitCtaText, setExitCtaText] = useState("Get My Quote");
+  const [exitCtaLink, setExitCtaLink] = useState("/membership#membership-form");
+  const [exitBannerText, setExitBannerText] = useState("Leaving so soon? New members get exclusive first-month perks — don't miss out.");
+  const [exitBannerCtaText, setExitBannerCtaText] = useState("Explore Benefits");
+  const [exitBannerCtaLink, setExitBannerCtaLink] = useState("/membership");
+
   const [hasChanges, setHasChanges] = useState(false);
 
   // Load settings from Supabase
@@ -109,6 +119,27 @@ export default function SettingsPage() {
             if (key === 'discount_code') setPromoDiscountCode(value);
           });
         }
+
+        // Load exit intent popup settings
+        const { data: exitData, error: exitError } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'global')
+          .eq('section', 'exit_intent');
+
+        if (!exitError && exitData && exitData.length > 0) {
+          exitData.forEach((item: { key: string; value: string }) => {
+            const { key, value } = item;
+            if (key === 'enabled') setExitEnabled(value === 'true');
+            if (key === 'headline') setExitHeadline(value);
+            if (key === 'body') setExitBody(value);
+            if (key === 'cta_text') setExitCtaText(value);
+            if (key === 'cta_link') setExitCtaLink(value);
+            if (key === 'banner_text') setExitBannerText(value);
+            if (key === 'banner_cta_text') setExitBannerCtaText(value);
+            if (key === 'banner_cta_link') setExitBannerCtaLink(value);
+          });
+        }
       } catch (err) {
         console.error('Error:', err);
       } finally {
@@ -147,6 +178,15 @@ export default function SettingsPage() {
       { page: 'global', section: 'promo_popup', key: 'cta_text', value: promoCtaText, type: 'text' },
       { page: 'global', section: 'promo_popup', key: 'cta_link', value: promoCtaLink, type: 'text' },
       { page: 'global', section: 'promo_popup', key: 'discount_code', value: promoDiscountCode, type: 'text' },
+      // Exit Intent Popup
+      { page: 'global', section: 'exit_intent', key: 'enabled', value: exitEnabled.toString(), type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'headline', value: exitHeadline, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'body', value: exitBody, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'cta_text', value: exitCtaText, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'cta_link', value: exitCtaLink, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'banner_text', value: exitBannerText, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'banner_cta_text', value: exitBannerCtaText, type: 'text' },
+      { page: 'global', section: 'exit_intent', key: 'banner_cta_link', value: exitBannerCtaLink, type: 'text' },
     ];
 
     try {
@@ -438,6 +478,89 @@ export default function SettingsPage() {
                 value={promoDiscountCode}
                 onChange={(v) => { setPromoDiscountCode(v); markChanged(); }}
                 placeholder="WELCOME30"
+              />
+            </div>
+          </Section>
+        </motion.div>
+
+        {/* Exit Intent Popup Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+        >
+          <Section title="Exit Intent Popup" description="Popup that appears when user tries to leave the page">
+            <div className="flex items-center gap-3 mb-6 p-4 bg-black/5 rounded-lg">
+              <Gift className="w-8 h-8 text-black/40" />
+              <div>
+                <p className="font-medium text-black">Before You Go Offer</p>
+                <p className="text-sm text-black/60">Triggers when user moves mouse to leave (desktop only)</p>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center justify-between p-4 bg-black/5 rounded-lg mb-6">
+              <div>
+                <p className="font-medium text-black">Enable Exit Intent Popup</p>
+                <p className="text-sm text-black/60">Show popup when users try to leave</p>
+              </div>
+              <button
+                onClick={() => { setExitEnabled(!exitEnabled); markChanged(); }}
+                className={`relative w-14 h-7 rounded-full transition-colors ${exitEnabled ? 'bg-[#DC143C]' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${exitEnabled ? 'left-8' : 'left-1'}`} />
+              </button>
+            </div>
+
+            <p className="text-sm font-medium text-black/60 mb-4">POPUP CONTENT</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <TextInput
+                label="Headline"
+                value={exitHeadline}
+                onChange={(v) => { setExitHeadline(v); markChanged(); }}
+                placeholder="Wait! Don't Miss Your Intro Offer"
+              />
+              <TextInput
+                label="Body Text"
+                value={exitBody}
+                onChange={(v) => { setExitBody(v); markChanged(); }}
+                placeholder="Get a personalised membership quote..."
+              />
+              <TextInput
+                label="Button Text"
+                value={exitCtaText}
+                onChange={(v) => { setExitCtaText(v); markChanged(); }}
+                placeholder="Get My Quote"
+              />
+              <TextInput
+                label="Button Link"
+                value={exitCtaLink}
+                onChange={(v) => { setExitCtaLink(v); markChanged(); }}
+                placeholder="/membership#membership-form"
+              />
+            </div>
+
+            <p className="text-sm font-medium text-black/60 mb-4 mt-8">FOLLOW-UP BANNER</p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-3">
+                <TextInput
+                  label="Banner Text"
+                  value={exitBannerText}
+                  onChange={(v) => { setExitBannerText(v); markChanged(); }}
+                  placeholder="Leaving so soon? New members get exclusive first-month perks..."
+                />
+              </div>
+              <TextInput
+                label="Banner Button Text"
+                value={exitBannerCtaText}
+                onChange={(v) => { setExitBannerCtaText(v); markChanged(); }}
+                placeholder="Explore Benefits"
+              />
+              <TextInput
+                label="Banner Button Link"
+                value={exitBannerCtaLink}
+                onChange={(v) => { setExitBannerCtaLink(v); markChanged(); }}
+                placeholder="/membership"
               />
             </div>
           </Section>
