@@ -5,6 +5,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
 import PromoPopup from "@/components/PromoPopup";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
+import SeasonalPopup from "@/components/SeasonalPopup";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
             {children}
             <PromoPopup />
             <ExitIntentPopup />
+            <SeasonalPopup />
           </ErrorBoundary>
         </ToastProvider>
       </body>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Database, Shield, Globe, Building2, Loader2, Image as ImageIcon, Gift } from "lucide-react";
+import { ArrowLeft, Database, Shield, Globe, Building2, Loader2, Image as ImageIcon, Gift, Headphones } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
@@ -53,6 +53,16 @@ export default function SettingsPage() {
   const [exitBannerText, setExitBannerText] = useState("Leaving so soon? New members get exclusive first-month perks — don't miss out.");
   const [exitBannerCtaText, setExitBannerCtaText] = useState("Explore Benefits");
   const [exitBannerCtaLink, setExitBannerCtaLink] = useState("/membership");
+
+  // Seasonal Popup Settings
+  const [seasonalEnabled, setSeasonalEnabled] = useState(true);
+  const [seasonalHeadline, setSeasonalHeadline] = useState("Need Help With Your Next Shoot?");
+  const [seasonalBody, setSeasonalBody] = useState("Our team can support you from basic studio access to full production services. Ask us about tailored memberships.");
+  const [seasonalCtaText, setSeasonalCtaText] = useState("Speak to Us");
+  const [seasonalCtaLink, setSeasonalCtaLink] = useState("/membership#membership-form");
+  const [seasonalBannerText, setSeasonalBannerText] = useState("Create more with less stress. Members enjoy discounted gear, priority slots, and creative support.");
+  const [seasonalBannerCtaText, setSeasonalBannerCtaText] = useState("Become a Member");
+  const [seasonalBannerCtaLink, setSeasonalBannerCtaLink] = useState("/membership");
 
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -140,6 +150,27 @@ export default function SettingsPage() {
             if (key === 'banner_cta_link') setExitBannerCtaLink(value);
           });
         }
+
+        // Load seasonal popup settings
+        const { data: seasonalData, error: seasonalError } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('page', 'global')
+          .eq('section', 'seasonal_popup');
+
+        if (!seasonalError && seasonalData && seasonalData.length > 0) {
+          seasonalData.forEach((item: { key: string; value: string }) => {
+            const { key, value } = item;
+            if (key === 'enabled') setSeasonalEnabled(value === 'true');
+            if (key === 'headline') setSeasonalHeadline(value);
+            if (key === 'body') setSeasonalBody(value);
+            if (key === 'cta_text') setSeasonalCtaText(value);
+            if (key === 'cta_link') setSeasonalCtaLink(value);
+            if (key === 'banner_text') setSeasonalBannerText(value);
+            if (key === 'banner_cta_text') setSeasonalBannerCtaText(value);
+            if (key === 'banner_cta_link') setSeasonalBannerCtaLink(value);
+          });
+        }
       } catch (err) {
         console.error('Error:', err);
       } finally {
@@ -187,6 +218,15 @@ export default function SettingsPage() {
       { page: 'global', section: 'exit_intent', key: 'banner_text', value: exitBannerText, type: 'text' },
       { page: 'global', section: 'exit_intent', key: 'banner_cta_text', value: exitBannerCtaText, type: 'text' },
       { page: 'global', section: 'exit_intent', key: 'banner_cta_link', value: exitBannerCtaLink, type: 'text' },
+      // Seasonal Popup
+      { page: 'global', section: 'seasonal_popup', key: 'enabled', value: seasonalEnabled.toString(), type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'headline', value: seasonalHeadline, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'body', value: seasonalBody, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'cta_text', value: seasonalCtaText, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'cta_link', value: seasonalCtaLink, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'banner_text', value: seasonalBannerText, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'banner_cta_text', value: seasonalBannerCtaText, type: 'text' },
+      { page: 'global', section: 'seasonal_popup', key: 'banner_cta_link', value: seasonalBannerCtaLink, type: 'text' },
     ];
 
     try {
@@ -560,6 +600,91 @@ export default function SettingsPage() {
                 label="Banner Button Link"
                 value={exitBannerCtaLink}
                 onChange={(v) => { setExitBannerCtaLink(v); markChanged(); }}
+                placeholder="/membership"
+              />
+            </div>
+          </Section>
+        </motion.div>
+
+        {/* Seasonal Popup Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Section title="Seasonal Popup" description="Recurring popup that shows on every visit (except first-time visitors)">
+            <div className="flex items-center gap-3 mb-6 p-4 bg-black/5 rounded-lg">
+              <Headphones className="w-8 h-8 text-black/40" />
+              <div>
+                <p className="font-medium text-black">Creator&apos;s Boost</p>
+                <p className="text-sm text-black/60">Shows to returning visitors once per session</p>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center justify-between p-4 bg-black/5 rounded-lg mb-6">
+              <div>
+                <p className="font-medium text-black">Enable Seasonal Popup</p>
+                <p className="text-sm text-black/60">Show popup to returning visitors</p>
+              </div>
+              <button
+                onClick={() => { setSeasonalEnabled(!seasonalEnabled); markChanged(); }}
+                className={`relative w-14 h-7 rounded-full transition-colors ${seasonalEnabled ? 'bg-[#DC143C]' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${seasonalEnabled ? 'left-8' : 'left-1'}`} />
+              </button>
+            </div>
+
+            <p className="text-sm font-medium text-black/60 mb-4">POPUP CONTENT</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <TextInput
+                label="Headline"
+                value={seasonalHeadline}
+                onChange={(v) => { setSeasonalHeadline(v); markChanged(); }}
+                placeholder="Need Help With Your Next Shoot?"
+              />
+              <TextInput
+                label="Body Text"
+                value={seasonalBody}
+                onChange={(v) => { setSeasonalBody(v); markChanged(); }}
+                placeholder="Our team can support you from basic studio access..."
+                multiline
+                rows={2}
+              />
+              <TextInput
+                label="Button Text"
+                value={seasonalCtaText}
+                onChange={(v) => { setSeasonalCtaText(v); markChanged(); }}
+                placeholder="Speak to Us"
+              />
+              <TextInput
+                label="Button Link"
+                value={seasonalCtaLink}
+                onChange={(v) => { setSeasonalCtaLink(v); markChanged(); }}
+                placeholder="/membership#membership-form"
+              />
+            </div>
+
+            <p className="text-sm font-medium text-black/60 mb-4 mt-8">FOLLOW-UP BANNER</p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-3">
+                <TextInput
+                  label="Banner Text"
+                  value={seasonalBannerText}
+                  onChange={(v) => { setSeasonalBannerText(v); markChanged(); }}
+                  placeholder="Create more with less stress. Members enjoy discounted gear..."
+                />
+              </div>
+              <TextInput
+                label="Banner Button Text"
+                value={seasonalBannerCtaText}
+                onChange={(v) => { setSeasonalBannerCtaText(v); markChanged(); }}
+                placeholder="Become a Member"
+              />
+              <TextInput
+                label="Banner Button Link"
+                value={seasonalBannerCtaLink}
+                onChange={(v) => { setSeasonalBannerCtaLink(v); markChanged(); }}
                 placeholder="/membership"
               />
             </div>
