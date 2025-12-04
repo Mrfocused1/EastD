@@ -19,7 +19,7 @@ export default function PhotographyEditor() {
 
   // Studio info
   const [studioSubtitle, setStudioSubtitle] = useState("THE STUDIO");
-  const [studioTitle, setStudioTitle] = useState("PHOTOGRAPHY");
+  const [studioTitle, setStudioTitle] = useState("Photography");
   const [studioDescription, setStudioDescription] = useState(
     "Our photography studio offers the perfect setting for professional photo shoots. With state-of-the-art lighting equipment, versatile backdrops, and ample space, we provide everything you need to capture stunning images for portraits, products, fashion, and more."
   );

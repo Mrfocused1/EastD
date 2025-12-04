@@ -52,7 +52,7 @@ export default function E16Page() {
     e16: "E16 SET",
     e20: "E20 SET",
     lux: "LUX SET",
-    photography: "PHOTOGRAPHY",
+    photography: "Photography",
   });
   const [studioThumbnails, setStudioThumbnails] = useState({
     e16: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
@@ -179,7 +179,7 @@ export default function E16Page() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "PHOTOGRAPHY" };
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
           const newThumbnails = { ...studioThumbnails };
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') newTitles.e16 = item.value;

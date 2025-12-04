@@ -18,7 +18,7 @@ function BookingContent() {
     { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
     { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
     { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
-    { value: "photography", label: "PHOTOGRAPHY", image: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
+    { value: "photography", label: "Photography", image: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
   ]);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ function BookingContent() {
             { value: "e16", label: titles.e16 || "E16 SET", image: thumbnails.e16 || "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
             { value: "e20", label: titles.e20 || "E20 SET", image: thumbnails.e20 || "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
             { value: "lux", label: titles.lux || "LUX SET", image: thumbnails.lux || "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
-            { value: "photography", label: titles.photography || "PHOTOGRAPHY", image: thumbnails.photography || "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
+            { value: "photography", label: titles.photography || "Photography", image: thumbnails.photography || "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
           ]);
         }
       } catch (err) {

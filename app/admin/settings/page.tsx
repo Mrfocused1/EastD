@@ -27,7 +27,7 @@ export default function SettingsPage() {
   const [e16Title, setE16Title] = useState("E16 SET");
   const [e20Title, setE20Title] = useState("E20 SET");
   const [luxTitle, setLuxTitle] = useState("LUX SET");
-  const [photographyTitle, setPhotographyTitle] = useState("PHOTOGRAPHY");
+  const [photographyTitle, setPhotographyTitle] = useState("Photography");
 
   // Other Studios Thumbnails
   const [e16Thumbnail, setE16Thumbnail] = useState("https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200");
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                 label="Photography Title"
                 value={photographyTitle}
                 onChange={(v) => { setPhotographyTitle(v); markChanged(); }}
-                placeholder="PHOTOGRAPHY"
+                placeholder="Photography"
               />
             </div>
           </Section>

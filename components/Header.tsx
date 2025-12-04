@@ -15,6 +15,7 @@ export default function Header() {
     e16: "E16 SET",
     e20: "E20 SET",
     lux: "LUX SET",
+    photography: "Photography",
   });
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function Header() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title']);
 
         if (error) {
           console.error('Error loading studio titles:', error);
@@ -33,11 +34,12 @@ export default function Header() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') newTitles.e16 = item.value;
             if (item.key === 'e20_title') newTitles.e20 = item.value;
             if (item.key === 'lux_title') newTitles.lux = item.value;
+            if (item.key === 'photography_title') newTitles.photography = item.value;
           });
           setStudioTitles(newTitles);
         }
@@ -130,7 +132,7 @@ export default function Header() {
                       href="/studios/photography"
                       className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
                     >
-                      PHOTOGRAPHY
+                      {studioTitles.photography}
                     </Link>
                   </motion.div>
                 )}
@@ -230,7 +232,7 @@ export default function Header() {
                         onClick={() => setMobileMenuOpen(false)}
                         className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
                       >
-                        PHOTOGRAPHY
+                        {studioTitles.photography}
                       </Link>
                     </motion.div>
                   )}

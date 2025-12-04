@@ -52,7 +52,7 @@ export default function PhotographyPage() {
     e16: "E16 SET",
     e20: "E20 SET",
     lux: "LUX SET",
-    photography: "PHOTOGRAPHY",
+    photography: "Photography",
   });
   const [studioThumbnails, setStudioThumbnails] = useState({
     e16: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
@@ -63,7 +63,7 @@ export default function PhotographyPage() {
   const [content, setContent] = useState<PhotographyContent>({
     heroImage: { url: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
-    studioTitle: "PHOTOGRAPHY",
+    studioTitle: "Photography",
     studioDescription: "Our photography studio offers the perfect setting for professional photo shoots. With state-of-the-art lighting equipment, versatile backdrops, and ample space, we provide everything you need to capture stunning images for portraits, products, fashion, and more.",
     features: [
       { title: "Professional Lighting", description: "Full range of studio lighting equipment" },
@@ -178,7 +178,7 @@ export default function PhotographyPage() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "PHOTOGRAPHY" };
+          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
           const newThumbnails = { ...studioThumbnails };
           data.forEach((item: { key: string; value: string }) => {
             if (item.key === 'e16_title') newTitles.e16 = item.value;
