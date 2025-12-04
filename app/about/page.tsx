@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageLoader from "@/components/PageLoader";
@@ -49,6 +49,15 @@ interface AboutContent {
 }
 
 export default function AboutPage() {
+  const heroRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
+
   const [content, setContent] = useState<AboutContent>({
     heroImage: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920",
     heroSubtitle: "EASTDOCK STUDIOS",
@@ -116,13 +125,15 @@ export default function AboutPage() {
       <Header />
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative h-[70vh] overflow-hidden">
-          <Image
-            src={content.heroImage}
-            alt="About EASTDOCK STUDIOS"
-            fill
-            className="object-cover"
-          />
+        <section ref={heroRef} className="relative h-[70vh] overflow-hidden">
+          <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
+            <Image
+              src={content.heroImage}
+              alt="About EASTDOCK STUDIOS"
+              fill
+              className="object-cover"
+            />
+          </motion.div>
           <div className="absolute inset-0 bg-black/40"></div>
           <div className="absolute inset-0 flex items-center justify-center">
             <motion.div

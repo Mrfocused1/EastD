@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,8 +10,16 @@ import BookingForm from "@/components/BookingForm";
 import { supabase } from "@/lib/supabase";
 
 function BookingContent() {
+  const heroRef = useRef<HTMLElement>(null);
   const searchParams = useSearchParams();
   const preselectedStudio = searchParams.get("studio");
+
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
 
   const [selectedStudio, setSelectedStudio] = useState(preselectedStudio || "");
   const [studios, setStudios] = useState([
@@ -70,13 +78,15 @@ function BookingContent() {
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
-      <section className="relative h-[50vh] overflow-hidden">
-        <Image
-          src="https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920"
-          alt="Booking"
-          fill
-          className="object-cover"
-        />
+      <section ref={heroRef} className="relative h-[50vh] overflow-hidden">
+        <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
+          <Image
+            src="https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920"
+            alt="Booking"
+            fill
+            className="object-cover"
+          />
+        </motion.div>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div

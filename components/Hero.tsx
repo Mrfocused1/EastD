@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useFocalPoint, parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
@@ -25,6 +25,15 @@ const SLIDE_DURATION = 5000; // 5 seconds per image
 const FADE_DURATION = 1; // 1 second fade transition
 
 export default function Hero() {
+  const heroRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+
   const [content, setContent] = useState<HeroContent>({
     images: [DEFAULT_IMAGE],
     tagline: "BESPOKE STUDIO HIRE",
@@ -108,24 +117,26 @@ export default function Hero() {
   }, [content.images.length]);
 
   return (
-    <section className="relative w-full h-[90vh] bg-[#2d2d2d] overflow-hidden">
-      {/* Background Images with Fade Transition */}
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: FADE_DURATION, ease: "easeInOut" }}
-          className="absolute inset-0 bg-cover"
-          style={{
-            backgroundImage: `url('${content.images[currentIndex]?.url}')`,
-            backgroundPosition: `${currentFocalPoint.x}% ${currentFocalPoint.y}%`,
-          }}
-        >
-          <div className="absolute inset-0 bg-black/30"></div>
-        </motion.div>
-      </AnimatePresence>
+    <section ref={heroRef} className="relative w-full h-[90vh] bg-[#2d2d2d] overflow-hidden">
+      {/* Background Images with Fade Transition and Parallax */}
+      <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: FADE_DURATION, ease: "easeInOut" }}
+            className="absolute inset-0 bg-cover"
+            style={{
+              backgroundImage: `url('${content.images[currentIndex]?.url}')`,
+              backgroundPosition: `${currentFocalPoint.x}% ${currentFocalPoint.y}%`,
+            }}
+          >
+            <div className="absolute inset-0 bg-black/30"></div>
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
 
       {/* Content */}
       <div className="relative h-full flex flex-col items-center justify-center text-white z-10">

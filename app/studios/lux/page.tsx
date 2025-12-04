@@ -41,7 +41,16 @@ interface LuxContent {
 }
 
 export default function LuxPage() {
+  const heroRef = useRef<HTMLElement>(null);
   const gallerySectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
+
   const { scrollYProgress } = useScroll({
     target: gallerySectionRef,
     offset: ["start end", "end start"],
@@ -209,8 +218,10 @@ export default function LuxPage() {
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
-      <section className="relative h-[70vh] overflow-hidden">
-        <FocalPointImage src={content.heroImage.url} alt="LUX SET" focalPoints={content.heroImage.focalPoints} priority />
+      <section ref={heroRef} className="relative h-[70vh] overflow-hidden">
+        <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
+          <FocalPointImage src={content.heroImage.url} alt="LUX SET" focalPoints={content.heroImage.focalPoints} priority />
+        </motion.div>
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center text-white">
