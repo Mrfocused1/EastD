@@ -1,14 +1,40 @@
 import Stripe from 'stripe';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe as StripeJS } from '@stripe/stripe-js';
 
-// Server-side Stripe instance
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-11-17.clover',
-});
+// Lazy-loaded server-side Stripe instance (only created when needed)
+let stripeInstance: Stripe | null = null;
 
-// Client-side Stripe promise
+export const getServerStripe = (): Stripe => {
+  if (!stripeInstance) {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    stripeInstance = new Stripe(secretKey, {
+      apiVersion: '2025-11-17.clover',
+    });
+  }
+  return stripeInstance;
+};
+
+// For backwards compatibility - but only use in server-side code!
+export const stripe = typeof window === 'undefined'
+  ? getServerStripe()
+  : (null as unknown as Stripe);
+
+// Client-side Stripe promise (lazy loaded)
+let stripePromise: Promise<StripeJS | null> | null = null;
+
 export const getStripe = () => {
-  return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  if (!stripePromise) {
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!publishableKey) {
+      console.warn('STRIPE_PUBLISHABLE_KEY not configured');
+      return Promise.resolve(null);
+    }
+    stripePromise = loadStripe(publishableKey);
+  }
+  return stripePromise;
 };
 
 // Types for pricing
