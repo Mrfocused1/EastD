@@ -62,6 +62,16 @@ export default function HomepageEditor() {
   const [clientsSubtitle, setClientsSubtitle] = useState("OUR CLIENTS");
   const [clientsTitle, setClientsTitle] = useState("THE CREATIVES WHO MAKE EAST DOCK STUDIOS THEIR PRODUCTION HOME.");
 
+  // Services/Capabilities section
+  const [services, setServices] = useState([
+    { title: "PODCASTS", image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { title: "VOICEOVERS", image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { title: "COMMERCIALS", image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { title: "INTERVIEWS", image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { title: "DOCUMENTARIES", image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { title: "ROUND TABLES", image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  ]);
+
   // Members state (scrolling images)
   const [members, setMembers] = useState([
     {
@@ -216,6 +226,18 @@ export default function HomepageEditor() {
                 console.error('Error parsing members:', err);
               }
             }
+
+            // Services data
+            if (section === 'services' && key === 'items') {
+              try {
+                const parsedServices = JSON.parse(value);
+                if (Array.isArray(parsedServices)) {
+                  setServices(parsedServices);
+                }
+              } catch (err) {
+                console.error('Error parsing services:', err);
+              }
+            }
           });
         }
       } catch (err) {
@@ -266,6 +288,8 @@ export default function HomepageEditor() {
       { page: 'homepage', section: 'clients', key: 'subtitle', value: clientsSubtitle, type: 'text' },
       { page: 'homepage', section: 'clients', key: 'title', value: clientsTitle, type: 'text' },
       { page: 'homepage', section: 'clients', key: 'members', value: JSON.stringify(members), type: 'array' },
+      // Services/Capabilities
+      { page: 'homepage', section: 'services', key: 'items', value: JSON.stringify(services), type: 'array' },
     ];
 
     try {
@@ -308,6 +332,16 @@ export default function HomepageEditor() {
       const newMembers = [...prev];
       newMembers[index] = { ...newMembers[index], [field]: value };
       return newMembers;
+    });
+    markChanged();
+  }, []);
+
+  // Service update handler
+  const updateServiceField = useCallback((index: number, field: 'title' | 'image', value: string) => {
+    setServices(prev => {
+      const newServices = [...prev];
+      newServices[index] = { ...newServices[index], [field]: value };
+      return newServices;
     });
     markChanged();
   }, []);
@@ -528,11 +562,41 @@ export default function HomepageEditor() {
           </Section>
         </motion.div>
 
-        {/* Clients Section */}
+        {/* Services/Capabilities Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <Section title="Services/Capabilities" description="Service cards shown on homepage and about page">
+            <p className="text-sm text-black/60 mb-4">
+              These service cards appear in the capabilities section. Edit titles and images for each service type.
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {services.map((service, index) => (
+                <div key={`service-${index}`} className="p-4 bg-black/5 border border-black/10 rounded-lg space-y-4">
+                  <TextInput
+                    label="Service Title"
+                    value={service.title}
+                    onChange={(v) => updateServiceField(index, 'title', v)}
+                  />
+                  <ImageUpload
+                    label="Service Image"
+                    value={service.image}
+                    onChange={(v) => updateServiceField(index, 'image', v)}
+                    showFocalPointPicker={false}
+                  />
+                </div>
+              ))}
+            </div>
+          </Section>
+        </motion.div>
+
+        {/* Clients Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
         >
           <Section title="Our Clients Section" description="Client showcase section">
             <TextInput

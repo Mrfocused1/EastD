@@ -11,31 +11,13 @@ import PageLoader from "@/components/PageLoader";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
-const services = [
-  {
-    title: "PODCASTS",
-    image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "VOICEOVERS",
-    image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "COMMERCIALS",
-    image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "INTERVIEWS",
-    image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "DOCUMENTARIES",
-    image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "ROUND TABLES",
-    image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800"
-  }
+const defaultServices = [
+  { title: "PODCASTS", image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "VOICEOVERS", image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "COMMERCIALS", image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "INTERVIEWS", image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "DOCUMENTARIES", image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "ROUND TABLES", image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800" },
 ];
 
 interface AboutContent {
@@ -88,6 +70,7 @@ export default function AboutPage() {
     facebookUrl: "",
     linkedinUrl: "",
   });
+  const [services, setServices] = useState(defaultServices);
   const [contentLoaded, setContentLoaded] = useState(false);
 
   // Collect all images to preload
@@ -98,7 +81,7 @@ export default function AboutPage() {
       ...services.map(s => s.image)
     ];
     return images.filter(Boolean);
-  }, [content.heroImage]);
+  }, [content.heroImage, services]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
   const isLoading = !contentLoaded || imagesLoading;
@@ -151,6 +134,26 @@ export default function AboutPage() {
             if (item.key === 'linkedin_url') newContactInfo.linkedinUrl = item.value;
           });
           setContactInfo(newContactInfo);
+        }
+
+        // Load services from homepage section
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('site_content')
+          .select('value')
+          .eq('page', 'homepage')
+          .eq('section', 'services')
+          .eq('key', 'items')
+          .single();
+
+        if (!servicesError && servicesData) {
+          try {
+            const parsed = JSON.parse(servicesData.value);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setServices(parsed);
+            }
+          } catch (e) {
+            console.error('Error parsing services:', e);
+          }
         }
 
         setContentLoaded(true);

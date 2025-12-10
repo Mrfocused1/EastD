@@ -3,35 +3,49 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
-const services = [
-  {
-    title: "PODCASTS",
-    image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "VOICEOVERS",
-    image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "COMMERCIALS",
-    image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "INTERVIEWS",
-    image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "DOCUMENTARIES",
-    image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800"
-  },
-  {
-    title: "ROUND TABLES",
-    image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800"
-  }
+const defaultServices = [
+  { title: "PODCASTS", image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "VOICEOVERS", image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "COMMERCIALS", image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "INTERVIEWS", image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "DOCUMENTARIES", image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800" },
+  { title: "ROUND TABLES", image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800" },
 ];
 
 export default function OurStory() {
+  const [services, setServices] = useState(defaultServices);
+
+  useEffect(() => {
+    async function loadServices() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'homepage')
+          .eq('section', 'services')
+          .eq('key', 'items')
+          .single();
+
+        if (!error && data) {
+          try {
+            const parsed = JSON.parse(data.value);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setServices(parsed);
+            }
+          } catch (e) {
+            console.error('Error parsing services:', e);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading services:', err);
+      }
+    }
+
+    loadServices();
+  }, []);
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-6">

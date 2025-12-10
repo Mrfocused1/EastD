@@ -4,12 +4,6 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'llstudios.co.uk',
-        port: '',
-        pathname: '/wp-content/uploads/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'images.pexels.com',
         port: '',
         pathname: '/photos/**',
@@ -19,6 +13,12 @@ const nextConfig = {
         hostname: 'fhgvnjwiasusjfevimcw.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'eastdockstudios.site',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

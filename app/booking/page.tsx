@@ -24,6 +24,11 @@ function BookingContent() {
   const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
 
   const [selectedStudio, setSelectedStudio] = useState(preselectedStudio || "");
+  const [heroContent, setHeroContent] = useState({
+    image: "https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    subtitle: "REQUEST BOOKING",
+    title: "SELECT A STUDIO",
+  });
   const [studios, setStudios] = useState([
     { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
     { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
@@ -34,6 +39,24 @@ function BookingContent() {
   useEffect(() => {
     async function loadStudioSettings() {
       try {
+        // Load hero content
+        const { data: heroData } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'booking')
+          .eq('section', 'hero');
+
+        if (heroData && heroData.length > 0) {
+          const heroUpdates: Partial<typeof heroContent> = {};
+          heroData.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'image') heroUpdates.image = item.value;
+            if (item.key === 'subtitle') heroUpdates.subtitle = item.value;
+            if (item.key === 'title') heroUpdates.title = item.value;
+          });
+          setHeroContent(prev => ({ ...prev, ...heroUpdates }));
+        }
+
+        // Load studio settings
         const { data, error } = await supabase
           .from('site_content')
           .select('key, value')
@@ -103,7 +126,7 @@ function BookingContent() {
       <section ref={heroRef} className="relative h-[50vh] overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
           <Image
-            src="https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920"
+            src={heroContent.image}
             alt="Booking"
             fill
             className="object-cover"
@@ -117,8 +140,8 @@ function BookingContent() {
             transition={{ duration: 0.8 }}
             className="text-center text-white"
           >
-            <p className="text-sm tracking-[0.3em] mb-4">REQUEST BOOKING</p>
-            <h1 className="text-6xl font-light tracking-wider">SELECT A STUDIO</h1>
+            <p className="text-sm tracking-[0.3em] mb-4">{heroContent.subtitle}</p>
+            <h1 className="text-6xl font-light tracking-wider">{heroContent.title}</h1>
             <div className="w-24 h-px bg-white mx-auto mt-6"></div>
           </motion.div>
         </div>

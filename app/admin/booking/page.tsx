@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { Plus, Trash2, GripVertical, Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import Section from "@/components/admin/Section";
+import TextInput from "@/components/admin/TextInput";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface DropdownOption {
   value: string;
@@ -136,9 +139,40 @@ export default function BookingFormAdmin() {
   const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Hero section state
+  const [heroImage, setHeroImage] = useState("https://images.pexels.com/photos/6794963/pexels-photo-6794963.jpeg?auto=compress&cs=tinysrgb&w=1920");
+  const [heroSubtitle, setHeroSubtitle] = useState("REQUEST BOOKING");
+  const [heroTitle, setHeroTitle] = useState("SELECT A STUDIO");
+
   useEffect(() => {
     loadFormConfig();
+    loadHeroContent();
   }, []);
+
+  async function loadHeroContent() {
+    try {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("key, value")
+        .eq("page", "booking")
+        .eq("section", "hero");
+
+      if (error) {
+        console.error("Error loading hero content:", error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key === "image") setHeroImage(item.value);
+          if (item.key === "subtitle") setHeroSubtitle(item.value);
+          if (item.key === "title") setHeroTitle(item.value);
+        });
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  }
 
   async function loadFormConfig() {
     try {
@@ -173,7 +207,8 @@ export default function BookingFormAdmin() {
     setSaveStatus(null);
 
     try {
-      const { error } = await supabase.from("site_content").upsert(
+      // Save form fields
+      const { error: fieldsError } = await supabase.from("site_content").upsert(
         {
           page: "booking",
           section: "form",
@@ -183,14 +218,33 @@ export default function BookingFormAdmin() {
         { onConflict: "page,section,key" }
       );
 
-      if (error) {
-        console.error("Error saving form config:", error);
+      if (fieldsError) {
+        console.error("Error saving form config:", fieldsError);
         setSaveStatus("error");
-      } else {
-        setSaveStatus("success");
-        setHasChanges(false);
-        setTimeout(() => setSaveStatus(null), 3000);
+        return;
       }
+
+      // Save hero content
+      const heroItems = [
+        { page: "booking", section: "hero", key: "image", value: heroImage },
+        { page: "booking", section: "hero", key: "subtitle", value: heroSubtitle },
+        { page: "booking", section: "hero", key: "title", value: heroTitle },
+      ];
+
+      for (const item of heroItems) {
+        const { error } = await supabase.from("site_content").upsert(item, {
+          onConflict: "page,section,key",
+        });
+        if (error) {
+          console.error("Error saving hero content:", error);
+          setSaveStatus("error");
+          return;
+        }
+      }
+
+      setSaveStatus("success");
+      setHasChanges(false);
+      setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       console.error("Error:", err);
       setSaveStatus("error");
@@ -326,6 +380,37 @@ export default function BookingFormAdmin() {
         {saveStatus === "error" && (
           <p className="text-red-600 mt-2">Error saving changes. Please try again.</p>
         )}
+      </motion.div>
+
+      {/* Hero Section Editor */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.05 }}
+        className="mb-8"
+      >
+        <Section title="Hero Section" description="Background image and text for the booking page header">
+          <ImageUpload
+            label="Background Image"
+            value={heroImage}
+            onChange={(v) => { setHeroImage(v); setHasChanges(true); }}
+            showFocalPointPicker={false}
+          />
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            <TextInput
+              label="Subtitle"
+              value={heroSubtitle}
+              onChange={(v) => { setHeroSubtitle(v); setHasChanges(true); }}
+              placeholder="REQUEST BOOKING"
+            />
+            <TextInput
+              label="Title"
+              value={heroTitle}
+              onChange={(v) => { setHeroTitle(v); setHasChanges(true); }}
+              placeholder="SELECT A STUDIO"
+            />
+          </div>
+        </Section>
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-8">
