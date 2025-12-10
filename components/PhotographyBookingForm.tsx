@@ -21,6 +21,22 @@ interface FormField {
   order: number;
 }
 
+// Photography pricing in pence
+const PHOTOGRAPHY_PRICING = {
+  bookingLength: {
+    "1hr": { label: "1 Hour", price: 7500 },
+    "2hrs": { label: "2 Hours", price: 12500 },
+    "halfday": { label: "Half Day (4 Hours)", price: 20000 },
+    "fullday": { label: "Full Day (8 Hours)", price: 35000 },
+  },
+  equipment: {
+    "none": { label: "No additional equipment needed", price: 0 },
+    "lighting": { label: "Additional Lighting", price: 2500 },
+    "backdrops": { label: "Extra Backdrops", price: 1500 },
+    "props": { label: "Props Package", price: 3000 },
+  },
+};
+
 const defaultFields: FormField[] = [
   {
     id: "name",
@@ -80,10 +96,10 @@ const defaultFields: FormField[] = [
     type: "select",
     required: true,
     options: [
-      { value: "1hr", label: "1 Hour" },
-      { value: "2hrs", label: "2 Hours" },
-      { value: "halfday", label: "Half Day (4 Hours)" },
-      { value: "fullday", label: "Full Day (8 Hours)" },
+      { value: "1hr", label: "1 Hour - £75" },
+      { value: "2hrs", label: "2 Hours - £125" },
+      { value: "halfday", label: "Half Day (4 Hours) - £200" },
+      { value: "fullday", label: "Full Day (8 Hours) - £350" },
     ],
     order: 6,
   },
@@ -425,6 +441,27 @@ export default function PhotographyBookingForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Calculate total price
+  const calculateTotal = () => {
+    let total = 0;
+
+    if (formData.bookingLength) {
+      const lengthPrice = PHOTOGRAPHY_PRICING.bookingLength[formData.bookingLength as keyof typeof PHOTOGRAPHY_PRICING.bookingLength];
+      if (lengthPrice) total += lengthPrice.price;
+    }
+
+    if (formData.equipmentNeeds && formData.equipmentNeeds !== "none") {
+      const equipPrice = PHOTOGRAPHY_PRICING.equipment[formData.equipmentNeeds as keyof typeof PHOTOGRAPHY_PRICING.equipment];
+      if (equipPrice) total += equipPrice.price;
+    }
+
+    return total;
+  };
+
+  const formatPrice = (priceInPence: number) => {
+    return `£${(priceInPence / 100).toFixed(2)}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -434,7 +471,7 @@ export default function PhotographyBookingForm() {
     setSubmitStatus(null);
 
     try {
-      const response = await fetch("/api/photography-booking", {
+      const response = await fetch("/api/photography-checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -442,9 +479,10 @@ export default function PhotographyBookingForm() {
         body: JSON.stringify({ ...formData, formType: "photography" }),
       });
 
-      if (response.ok) {
-        setSubmitStatus("success");
-        setFormData({});
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         setSubmitStatus("error");
       }
@@ -608,13 +646,26 @@ export default function PhotographyBookingForm() {
             return renderField(field);
           })}
 
+          {/* Price Summary */}
+          {calculateTotal() > 0 && (
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-lg font-medium">Total</span>
+                <span className="text-2xl font-semibold">{formatPrice(calculateTotal())}</span>
+              </div>
+              <p className="text-sm text-gray-600">
+                You will be redirected to our secure payment page to complete your booking.
+              </p>
+            </div>
+          )}
+
           <div className="text-center">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || calculateTotal() === 0}
               className="bg-black text-white px-12 py-4 text-sm tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "SUBMITTING..." : "SUBMIT BOOKING REQUEST"}
+              {isSubmitting ? "PROCESSING..." : calculateTotal() > 0 ? `PAY ${formatPrice(calculateTotal())} & BOOK` : "SELECT OPTIONS TO CONTINUE"}
             </button>
           </div>
 
