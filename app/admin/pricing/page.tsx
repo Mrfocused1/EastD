@@ -204,12 +204,16 @@ export default function PricingEditor() {
     markChanged();
   };
 
-  const updateAddon = (index: number, field: keyof AddonPricing, value: string | number) => {
+  const updateAddon = (index: number, field: keyof AddonPricing, value: string) => {
     const newAddons = [...addons];
     if (field === "price") {
-      newAddons[index].price = parsePriceInput(value as string);
-    } else {
-      (newAddons[index] as Record<string, string | number>)[field] = value;
+      newAddons[index].price = parsePriceInput(value);
+    } else if (field === "label") {
+      newAddons[index].label = value;
+    } else if (field === "category") {
+      newAddons[index].category = value;
+    } else if (field === "id") {
+      newAddons[index].id = value;
     }
     setAddons(newAddons);
     markChanged();
