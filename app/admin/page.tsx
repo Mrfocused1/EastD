@@ -10,7 +10,9 @@ import {
   ArrowRight,
   Eye,
   ClipboardList,
-  Camera
+  Camera,
+  Briefcase,
+  Users
 } from "lucide-react";
 
 const pages = [
@@ -70,11 +72,25 @@ const pages = [
     description: "Customize booking form fields, dropdowns, and options",
     preview: "/booking",
   },
+  {
+    name: "Services",
+    href: "/admin/services",
+    icon: Briefcase,
+    description: "Manage services offered and their descriptions",
+    preview: "/services",
+  },
+  {
+    name: "Membership",
+    href: "/admin/membership",
+    icon: Users,
+    description: "Edit membership page content and benefits",
+    preview: "/membership",
+  },
 ];
 
 const stats = [
-  { label: "Pages", value: "7" },
-  { label: "Sections", value: "28" },
+  { label: "Pages", value: "10" },
+  { label: "Sections", value: "35" },
   { label: "Images", value: "50+" },
 ];
 

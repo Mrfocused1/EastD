@@ -13,7 +13,8 @@ import {
   X,
   Camera,
   ClipboardList,
-  Users
+  Users,
+  Briefcase
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -33,6 +34,7 @@ export default function AdminLayout({
     { name: "Studio Dock Two", href: "/admin/e20", icon: Building2 },
     { name: "Studio Wharf", href: "/admin/lux", icon: Building2 },
     { name: "Photography", href: "/admin/photography", icon: Camera },
+    { name: "Services", href: "/admin/services", icon: Briefcase },
     { name: "Membership", href: "/admin/membership", icon: Users },
     { name: "About Page", href: "/admin/about", icon: FileText },
     { name: "Images", href: "/admin/images", icon: ImageIcon },
@@ -81,6 +83,7 @@ export default function AdminLayout({
             { name: titles.e20 || "Studio Dock Two", href: "/admin/e20", icon: Building2 },
             { name: titles.lux || "Studio Wharf", href: "/admin/lux", icon: Building2 },
             { name: "Photography", href: "/admin/photography", icon: Camera },
+            { name: "Services", href: "/admin/services", icon: Briefcase },
             { name: "Membership", href: "/admin/membership", icon: Users },
             { name: "About Page", href: "/admin/about", icon: FileText },
             { name: "Images", href: "/admin/images", icon: ImageIcon },

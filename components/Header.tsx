@@ -133,6 +133,13 @@ export default function Header() {
             </Link>
 
             <Link
+              href="/services"
+              className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
+            >
+              SERVICES
+            </Link>
+
+            <Link
               href="/membership"
               className="text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
             >
@@ -236,6 +243,14 @@ export default function Header() {
                 className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
               >
                 GALLERY
+              </Link>
+
+              <Link
+                href="/services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors"
+              >
+                SERVICES
               </Link>
 
               <Link

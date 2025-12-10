@@ -7,9 +7,17 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseUrl || !supabaseAnonKey) {
     // Return a mock client for build time
+    const mockQuery = () => ({
+      eq: mockQuery,
+      in: mockQuery,
+      select: mockQuery,
+      order: mockQuery,
+      then: (resolve: (value: { data: never[]; error: null }) => void) => resolve({ data: [], error: null }),
+      ...Promise.resolve({ data: [], error: null }),
+    });
     return {
       from: () => ({
-        select: () => ({ eq: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) }),
+        select: mockQuery,
         upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
       }),
       storage: {
