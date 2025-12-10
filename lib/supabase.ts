@@ -40,9 +40,25 @@ const createSupabaseClient = (): SupabaseClient => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Check if we're in a browser environment and env vars are missing
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase environment variables not found, using mock client');
+  // Check if env vars are missing or empty
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.trim() === '' || supabaseAnonKey.trim() === '') {
+    if (typeof window !== 'undefined') {
+      console.warn('Supabase environment variables not found, using mock client');
+    }
+    return createMockClient();
+  }
+
+  // Validate URL format before creating client
+  try {
+    new URL(supabaseUrl);
+  } catch {
+    console.warn('Invalid Supabase URL format, using mock client');
+    return createMockClient();
+  }
+
+  // Validate API key format (should be a JWT)
+  if (!supabaseAnonKey.includes('.') || supabaseAnonKey.split('.').length !== 3) {
+    console.warn('Invalid Supabase API key format, using mock client');
     return createMockClient();
   }
 
