@@ -7,22 +7,23 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseUrl || !supabaseAnonKey) {
     // Return a mock client for build time
-    const mockResult = Promise.resolve({ data: [], error: null });
-    const mockQuery = (): typeof mockQuery & Promise<{ data: never[]; error: null }> => {
-      const fn = mockQuery as typeof mockQuery & Promise<{ data: never[]; error: null }>;
-      return Object.assign(fn, {
-        eq: mockQuery,
-        in: mockQuery,
-        select: mockQuery,
-        order: mockQuery,
-        then: mockResult.then.bind(mockResult),
-        catch: mockResult.catch.bind(mockResult),
-        finally: mockResult.finally.bind(mockResult),
-      });
+    const mockResult = { data: [], error: null };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createMockQuery = (): any => {
+      const query = {
+        eq: () => createMockQuery(),
+        in: () => createMockQuery(),
+        select: () => createMockQuery(),
+        order: () => createMockQuery(),
+        then: (resolve: (value: typeof mockResult) => void) => Promise.resolve(mockResult).then(resolve),
+        catch: () => Promise.resolve(mockResult),
+        finally: () => Promise.resolve(mockResult),
+      };
+      return query;
     };
     return {
       from: () => ({
-        select: mockQuery,
+        select: createMockQuery,
         upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
       }),
       storage: {
