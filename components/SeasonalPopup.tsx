@@ -197,22 +197,22 @@ export default function SeasonalPopup() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="fixed bottom-0 left-0 right-0 z-[90] bg-gradient-to-r from-[#DC143C] to-[#8B0000] text-white"
+            className="fixed bottom-0 left-0 right-0 z-[90] bg-white border-t border-gray-200 shadow-lg"
           >
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 {/* Close button */}
                 <button
                   onClick={handleCloseBanner}
-                  className="absolute top-2 right-2 md:static md:order-3 text-white/60 hover:text-white transition-colors"
+                  className="absolute top-2 right-2 md:static md:order-3 text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label="Close banner"
                 >
                   <X className="w-5 h-5" />
                 </button>
 
                 {/* Text */}
-                <p className="text-sm md:text-base text-center md:text-left flex-1 pr-8 md:pr-0">
-                  <span className="font-medium">Creator&apos;s Boost:</span>{" "}
+                <p className="text-sm md:text-base text-center md:text-left flex-1 pr-8 md:pr-0 text-gray-700">
+                  <span className="font-medium text-black">Creator&apos;s Boost:</span>{" "}
                   {content.bannerText}
                 </p>
 
@@ -220,7 +220,7 @@ export default function SeasonalPopup() {
                 <Link
                   href={content.bannerCtaLink}
                   onClick={handleCloseBanner}
-                  className="whitespace-nowrap bg-white text-[#DC143C] px-6 py-2 text-xs tracking-widest font-medium hover:bg-white/90 transition-all duration-300"
+                  className="whitespace-nowrap bg-black text-white px-6 py-2 text-xs tracking-widest font-medium hover:bg-[#DC143C] transition-all duration-300"
                 >
                   {content.bannerCtaText}
                 </Link>
