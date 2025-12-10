@@ -36,9 +36,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url });
   } catch (error: unknown) {
     console.error("Sample checkout error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    let errorDetails = "Unknown error";
+    let errorType = "unknown";
+
+    if (error instanceof Error) {
+      errorDetails = error.message;
+      errorType = error.constructor.name;
+
+      // Check for Stripe-specific error properties
+      const stripeError = error as { type?: string; code?: string; statusCode?: number };
+      if (stripeError.type) errorType = stripeError.type;
+      if (stripeError.code) errorDetails = `${stripeError.code}: ${errorDetails}`;
+    }
+
     return NextResponse.json(
-      { error: "Failed to create checkout session", details: errorMessage },
+      {
+        error: "Failed to create checkout session",
+        details: errorDetails,
+        type: errorType,
+        keyConfigured: !!process.env.STRIPE_SECRET_KEY,
+        keyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 10) || "not set"
+      },
       { status: 500 }
     );
   }
