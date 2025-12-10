@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 interface FooterContent {
@@ -122,6 +123,14 @@ export default function Footer() {
 
           {/* Company Info */}
           <div className="text-center border-t border-gray-700 pt-8">
+            <div className="flex justify-center gap-6 mb-4">
+              <Link
+                href="/terms"
+                className="text-xs text-gray-400 hover:text-[#DC143C] transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div>
             <p className="text-xs text-gray-500">
               {content.copyright}
             </p>
