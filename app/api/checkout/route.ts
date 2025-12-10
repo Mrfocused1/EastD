@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
       accessories,
       guestCount,
       comments,
+      paymentType = 'full', // 'deposit' or 'full'
     } = body;
 
     // Validate required fields
@@ -107,17 +108,40 @@ export async function POST(request: NextRequest) {
       minute: '2-digit',
     });
 
+    // Calculate payment amount based on payment type
+    const isDeposit = paymentType === 'deposit';
+    const depositAmount = Math.round(total / 2);
+    const paymentAmount = isDeposit ? depositAmount : total;
+    const remainingBalance = isDeposit ? total - depositAmount : 0;
+
     // Create line items for Stripe
-    const lineItems = breakdown.map((item) => ({
-      price_data: {
-        currency: 'gbp',
-        product_data: {
-          name: item.item,
+    let lineItems;
+    if (isDeposit) {
+      // For deposit, create a single line item with deposit description
+      lineItems = [{
+        price_data: {
+          currency: 'gbp',
+          product_data: {
+            name: `50% Deposit - ${studioData.name}`,
+            description: `Deposit to confirm booking on ${formattedDate}. Remaining balance: £${(remainingBalance / 100).toFixed(2)} due on arrival.`,
+          },
+          unit_amount: depositAmount,
         },
-        unit_amount: item.price,
-      },
-      quantity: 1,
-    }));
+        quantity: 1,
+      }];
+    } else {
+      // For full payment, show all line items
+      lineItems = breakdown.map((item) => ({
+        price_data: {
+          currency: 'gbp',
+          product_data: {
+            name: item.item,
+          },
+          unit_amount: item.price,
+        },
+        quantity: 1,
+      }));
+    }
 
     // Create Stripe Checkout Session
     const stripe = getServerStripe();
@@ -130,8 +154,10 @@ export async function POST(request: NextRequest) {
       customer_email: email,
       metadata: {
         studio,
+        studioName: studioData.name,
         bookingLength,
         bookingDate,
+        formattedDate: `${formattedDate} at ${formattedTime}`,
         name,
         email,
         phone: phone || '',
@@ -140,13 +166,23 @@ export async function POST(request: NextRequest) {
         accessories: accessories || '',
         guestCount: guestCount?.toString() || '0',
         comments: comments || '',
+        paymentType,
+        totalAmount: total.toString(),
+        amountPaid: paymentAmount.toString(),
+        remainingBalance: remainingBalance.toString(),
+        breakdown: JSON.stringify(breakdown),
       },
       payment_intent_data: {
         metadata: {
           studio,
+          studioName: studioData.name,
           bookingDate: `${formattedDate} at ${formattedTime}`,
           customerName: name,
           customerEmail: email,
+          paymentType,
+          totalAmount: `£${(total / 100).toFixed(2)}`,
+          amountPaid: `£${(paymentAmount / 100).toFixed(2)}`,
+          remainingBalance: isDeposit ? `£${(remainingBalance / 100).toFixed(2)}` : '£0.00',
         },
       },
     });

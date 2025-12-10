@@ -361,7 +361,7 @@ function DateTimePicker({
 
 export default function PhotographyBookingForm() {
   const [fields, setFields] = useState<FormField[]>(defaultFields);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, string>>({ paymentType: "deposit" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -646,14 +646,56 @@ export default function PhotographyBookingForm() {
             return renderField(field);
           })}
 
-          {/* Price Summary */}
+          {/* Price Summary & Payment Options */}
           {calculateTotal() > 0 && (
             <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-lg font-medium">Total</span>
                 <span className="text-2xl font-semibold">{formatPrice(calculateTotal())}</span>
               </div>
-              <p className="text-sm text-gray-600">
+
+              {/* Payment Options */}
+              <div className="mt-4 pt-4 border-t border-gray-300">
+                <p className="text-sm text-gray-700 font-medium mb-3">Choose payment option:</p>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="deposit"
+                      checked={formData.paymentType === "deposit"}
+                      onChange={(e) => handleChange("paymentType", e.target.value)}
+                      className="w-4 h-4 accent-black"
+                    />
+                    <div className="flex-1 flex justify-between items-center">
+                      <span className="text-gray-800 group-hover:text-black">50% Deposit (to confirm booking)</span>
+                      <span className="font-medium">{formatPrice(Math.round(calculateTotal() / 2))}</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="full"
+                      checked={formData.paymentType === "full"}
+                      onChange={(e) => handleChange("paymentType", e.target.value)}
+                      className="w-4 h-4 accent-black"
+                    />
+                    <div className="flex-1 flex justify-between items-center">
+                      <span className="text-gray-800 group-hover:text-black">Pay in Full</span>
+                      <span className="font-medium">{formatPrice(calculateTotal())}</span>
+                    </div>
+                  </label>
+                </div>
+
+                {formData.paymentType === "deposit" && (
+                  <p className="text-sm text-gray-600 mt-3">
+                    Remaining balance of {formatPrice(calculateTotal() - Math.round(calculateTotal() / 2))} due on arrival.
+                  </p>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-600 mt-4">
                 You will be redirected to our secure payment page to complete your booking.
               </p>
             </div>
@@ -665,7 +707,13 @@ export default function PhotographyBookingForm() {
               disabled={isSubmitting || calculateTotal() === 0}
               className="bg-black text-white px-12 py-4 text-sm tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "PROCESSING..." : calculateTotal() > 0 ? `PAY ${formatPrice(calculateTotal())} & BOOK` : "SELECT OPTIONS TO CONTINUE"}
+              {isSubmitting
+                ? "PROCESSING..."
+                : calculateTotal() > 0
+                  ? formData.paymentType === "deposit"
+                    ? `PAY ${formatPrice(Math.round(calculateTotal() / 2))} DEPOSIT`
+                    : `PAY ${formatPrice(calculateTotal())} & BOOK`
+                  : "SELECT OPTIONS TO CONTINUE"}
             </button>
           </div>
 

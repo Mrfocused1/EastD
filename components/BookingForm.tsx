@@ -753,6 +753,46 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
                 <span>Total</span>
                 <span>{formatPrice(bookingTotal.total)}</span>
               </div>
+
+              {/* Payment Options */}
+              <div className="mt-6 pt-4 border-t border-gray-700">
+                <p className="text-sm text-gray-300 mb-3">Choose payment option:</p>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="deposit"
+                      checked={formData.paymentType === "deposit"}
+                      onChange={(e) => handleChange("paymentType", e.target.value)}
+                      className="w-4 h-4 accent-white"
+                    />
+                    <div className="flex-1 flex justify-between items-center">
+                      <span className="group-hover:text-gray-200">50% Deposit (to confirm booking)</span>
+                      <span className="font-medium">{formatPrice(Math.round(bookingTotal.total / 2))}</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="full"
+                      checked={formData.paymentType === "full" || !formData.paymentType}
+                      onChange={(e) => handleChange("paymentType", e.target.value)}
+                      className="w-4 h-4 accent-white"
+                    />
+                    <div className="flex-1 flex justify-between items-center">
+                      <span className="group-hover:text-gray-200">Pay in Full</span>
+                      <span className="font-medium">{formatPrice(bookingTotal.total)}</span>
+                    </div>
+                  </label>
+                </div>
+                {formData.paymentType === "deposit" && (
+                  <p className="text-xs text-gray-400 mt-3">
+                    * Remaining balance of {formatPrice(bookingTotal.total - Math.round(bookingTotal.total / 2))} due before your booking date
+                  </p>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -770,7 +810,11 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  {bookingTotal ? `PAY ${formatPrice(bookingTotal.total)}` : "SELECT OPTIONS TO CONTINUE"}
+                  {bookingTotal
+                    ? formData.paymentType === "deposit"
+                      ? `PAY ${formatPrice(Math.round(bookingTotal.total / 2))} DEPOSIT`
+                      : `PAY ${formatPrice(bookingTotal.total)}`
+                    : "SELECT OPTIONS TO CONTINUE"}
                 </>
               )}
             </button>

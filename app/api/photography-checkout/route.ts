@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       numberOfPeople,
       equipmentNeeds,
       comments,
+      paymentType = "full", // 'deposit' or 'full'
     } = body;
 
     // Validate required fields
@@ -49,36 +50,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const lineItems = [];
-
-    // Add base session price
-    lineItems.push({
-      price_data: {
-        currency: "gbp",
-        product_data: {
-          name: `Photography ${lengthPricing.label}`,
-          description: `${shootType || "Photography"} session`,
-        },
-        unit_amount: lengthPricing.price,
-      },
-      quantity: 1,
-    });
+    // Calculate total price
+    let total = lengthPricing.price;
+    const breakdown: { item: string; price: number }[] = [
+      { item: `Photography ${lengthPricing.label}`, price: lengthPricing.price },
+    ];
 
     // Add equipment if selected
     if (equipmentNeeds && equipmentNeeds !== "none") {
       const equipPricing = PHOTOGRAPHY_PRICING.equipment[equipmentNeeds as keyof typeof PHOTOGRAPHY_PRICING.equipment];
       if (equipPricing && equipPricing.price > 0) {
-        lineItems.push({
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: equipPricing.label,
-            },
-            unit_amount: equipPricing.price,
-          },
-          quantity: 1,
-        });
+        total += equipPricing.price;
+        breakdown.push({ item: equipPricing.label, price: equipPricing.price });
       }
+    }
+
+    // Calculate payment amount based on payment type
+    const isDeposit = paymentType === "deposit";
+    const depositAmount = Math.round(total / 2);
+    const paymentAmount = isDeposit ? depositAmount : total;
+    const remainingBalance = isDeposit ? total - depositAmount : 0;
+
+    // Create line items for Stripe
+    let lineItems;
+    if (isDeposit) {
+      // For deposit, create a single line item
+      lineItems = [{
+        price_data: {
+          currency: "gbp",
+          product_data: {
+            name: `50% Deposit - Photography Session`,
+            description: `Deposit to confirm booking on ${bookingDate}. Remaining balance: £${(remainingBalance / 100).toFixed(2)} due on arrival.`,
+          },
+          unit_amount: depositAmount,
+        },
+        quantity: 1,
+      }];
+    } else {
+      // For full payment, show all line items
+      lineItems = breakdown.map((item) => ({
+        price_data: {
+          currency: "gbp",
+          product_data: {
+            name: item.item,
+            description: shootType ? `${shootType} session` : undefined,
+          },
+          unit_amount: item.price,
+        },
+        quantity: 1,
+      }));
     }
 
     // Format booking date for display
@@ -106,8 +126,10 @@ export async function POST(request: NextRequest) {
       customer_email: email,
       metadata: {
         type: "photography",
+        studioName: "Photography Studio",
         bookingLength,
         bookingDate,
+        formattedDate: `${formattedDate} at ${formattedTime}`,
         shootType: shootType || "",
         numberOfPeople: numberOfPeople || "",
         equipmentNeeds: equipmentNeeds || "",
@@ -115,13 +137,23 @@ export async function POST(request: NextRequest) {
         email,
         phone: phone || "",
         comments: comments || "",
+        paymentType,
+        totalAmount: total.toString(),
+        amountPaid: paymentAmount.toString(),
+        remainingBalance: remainingBalance.toString(),
+        breakdown: JSON.stringify(breakdown),
       },
       payment_intent_data: {
         metadata: {
           type: "photography",
+          studioName: "Photography Studio",
           bookingDate: `${formattedDate} at ${formattedTime}`,
           customerName: name,
           customerEmail: email,
+          paymentType,
+          totalAmount: `£${(total / 100).toFixed(2)}`,
+          amountPaid: `£${(paymentAmount / 100).toFixed(2)}`,
+          remainingBalance: isDeposit ? `£${(remainingBalance / 100).toFixed(2)}` : "£0.00",
         },
       },
     });

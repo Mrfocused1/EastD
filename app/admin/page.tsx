@@ -13,7 +13,8 @@ import {
   Camera,
   Briefcase,
   Users,
-  PoundSterling
+  PoundSterling,
+  Mail
 } from "lucide-react";
 
 const pages = [
@@ -94,10 +95,17 @@ const pages = [
     description: "Manage studio pricing and add-on packages",
     preview: "/booking",
   },
+  {
+    name: "Email Settings",
+    href: "/admin/emails",
+    icon: Mail,
+    description: "Customize booking confirmation emails and location info",
+    preview: null,
+  },
 ];
 
 const stats = [
-  { label: "Pages", value: "10" },
+  { label: "Pages", value: "11" },
   { label: "Sections", value: "35" },
   { label: "Images", value: "50+" },
 ];
