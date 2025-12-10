@@ -16,7 +16,8 @@ import {
   Users,
   Briefcase,
   PoundSterling,
-  Grid3X3
+  Grid3X3,
+  Mail
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -44,6 +45,7 @@ export default function AdminLayout({
     { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
     { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
     { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
+    { name: "Emails", href: "/admin/emails", icon: Mail },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]);
 
@@ -95,6 +97,7 @@ export default function AdminLayout({
             { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
             { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
             { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
+            { name: "Emails", href: "/admin/emails", icon: Mail },
             { name: "Settings", href: "/admin/settings", icon: Settings },
           ]);
         }
