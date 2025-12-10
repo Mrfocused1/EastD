@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { getServerStripe } from "@/lib/stripe";
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { email } = body;
+
+    const stripe = getServerStripe();
+
+    // Create a checkout session for £1 test payment
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: "Test Payment",
+              description: "£1 test payment to verify Stripe integration",
+            },
+            unit_amount: 100, // £1.00 in pence
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://eastdocstudios.site"}/sample/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://eastdocstudios.site"}/sample`,
+      customer_email: email || undefined,
+      metadata: {
+        type: "test_payment",
+      },
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("Sample checkout error:", error);
+    return NextResponse.json(
+      { error: "Failed to create checkout session" },
+      { status: 500 }
+    );
+  }
+}
