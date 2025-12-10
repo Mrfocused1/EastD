@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, calculateBookingTotal, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from '@/lib/stripe';
+import { getServerStripe, calculateBookingTotal, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
 
 async function loadPricing(): Promise<{ studios: StudioPricing[]; addons: AddonPricing[] }> {
@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // Create Stripe Checkout Session
+    const stripe = getServerStripe();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
