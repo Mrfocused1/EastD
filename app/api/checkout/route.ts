@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateBookingTotal, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-
-// Create server-side Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+import { supabase } from '@/lib/supabase';
 
 async function loadPricing(): Promise<{ studios: StudioPricing[]; addons: AddonPricing[] }> {
   try {

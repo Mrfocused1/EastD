@@ -1,114 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Singleton instance
-let supabaseInstance: SupabaseClient | null = null;
+// Hardcoded credentials - ALWAYS use these (anon key is safe - protected by RLS)
+const SUPABASE_URL = 'https://fhgvnjwiasusjfevimcw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3Zuandpb3N1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1NDczNzAsImV4cCI6MjA0ODEyMzM3MH0.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg';
 
-// Create a mock client for when env vars are not available
-const createMockClient = (): SupabaseClient => {
-  const mockResult = { data: [], error: null };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMockQuery = (): any => {
-    const query = {
-      eq: () => createMockQuery(),
-      in: () => createMockQuery(),
-      select: () => createMockQuery(),
-      order: () => createMockQuery(),
-      single: () => Promise.resolve(mockResult),
-      then: (resolve: (value: typeof mockResult) => void) => Promise.resolve(mockResult).then(resolve),
-      catch: () => Promise.resolve(mockResult),
-      finally: () => Promise.resolve(mockResult),
-    };
-    return query;
-  };
-  return {
-    from: () => ({
-      select: createMockQuery,
-      insert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
-      update: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }),
-      upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
-      delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
-    }),
-    storage: {
-      from: () => ({
-        upload: () => Promise.resolve({ data: null, error: null }),
-        remove: () => Promise.resolve({ error: null }),
-        getPublicUrl: () => ({ data: { publicUrl: '' } }),
-      }),
-    },
-  } as unknown as SupabaseClient;
-};
-
-// Fallback configuration (public anon key - safe to expose)
-const FALLBACK_CONFIG = {
-  url: 'https://fhgvnjwiasusjfevimcw.supabase.co',
-  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3Zuandpb3N1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1NDczNzAsImV4cCI6MjA0ODEyMzM3MH0.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg'
-};
-
-// Validate environment variables
-const validateEnvVars = (): { url: string; key: string } | null => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  // Check if env vars exist and are not empty
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Use fallback if env vars not available
-    return FALLBACK_CONFIG;
+// Create client - works on both server and client
+export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
   }
-
-  const trimmedUrl = supabaseUrl.trim();
-  const trimmedKey = supabaseAnonKey.trim();
-
-  if (trimmedUrl === '' || trimmedKey === '') {
-    return FALLBACK_CONFIG;
-  }
-
-  // Validate URL format
-  try {
-    new URL(trimmedUrl);
-  } catch {
-    return FALLBACK_CONFIG;
-  }
-
-  // Validate API key format (should be a JWT with 3 parts)
-  if (!trimmedKey.includes('.') || trimmedKey.split('.').length !== 3) {
-    return FALLBACK_CONFIG;
-  }
-
-  return { url: trimmedUrl, key: trimmedKey };
-};
-
-// Get or create the Supabase client (lazy initialization)
-const getSupabaseClient = (): SupabaseClient => {
-  // Return cached instance if available
-  if (supabaseInstance) {
-    return supabaseInstance;
-  }
-
-  // Get config (always returns valid config due to fallback)
-  const config = validateEnvVars() || FALLBACK_CONFIG;
-
-  // Create the real client
-  try {
-    supabaseInstance = createClient(config.url, config.key);
-    return supabaseInstance;
-  } catch (error) {
-    console.error('Supabase: Failed to create client:', error);
-    // Last resort: use mock client
-    supabaseInstance = createMockClient();
-    return supabaseInstance;
-  }
-};
-
-// Export a proxy that lazily initializes the client on first access
-export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const client = getSupabaseClient();
-    const value = client[prop as keyof SupabaseClient];
-    if (typeof value === 'function') {
-      return value.bind(client);
-    }
-    return value;
-  },
 });
 
 // Types for site content
@@ -244,4 +145,3 @@ export async function getAllContent(): Promise<SiteContent[]> {
 
   return data || [];
 }
-// Build timestamp: 1765334552
