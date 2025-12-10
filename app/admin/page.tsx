@@ -257,39 +257,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       </motion.div>
-
-      {/* Instructions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="bg-black text-white p-8"
-      >
-        <h2 className="text-2xl font-light mb-4">Getting Started</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div>
-            <div className="text-4xl font-light mb-2 text-white/40">01</div>
-            <h3 className="font-medium mb-2">Connect Supabase</h3>
-            <p className="text-sm text-white/70 leading-relaxed">
-              Add your Supabase URL and anon key to .env.local file
-            </p>
-          </div>
-          <div>
-            <div className="text-4xl font-light mb-2 text-white/40">02</div>
-            <h3 className="font-medium mb-2">Create Tables</h3>
-            <p className="text-sm text-white/70 leading-relaxed">
-              Run the SQL migration in your Supabase dashboard
-            </p>
-          </div>
-          <div>
-            <div className="text-4xl font-light mb-2 text-white/40">03</div>
-            <h3 className="font-medium mb-2">Start Editing</h3>
-            <p className="text-sm text-white/70 leading-relaxed">
-              Select a page and start customizing your content
-            </p>
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 }
