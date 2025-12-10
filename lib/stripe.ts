@@ -10,9 +10,8 @@ export const getServerStripe = (): Stripe => {
     if (!secretKey) {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
-    stripeInstance = new Stripe(secretKey, {
-      apiVersion: '2025-11-17.clover',
-    });
+    // @ts-expect-error - Using account's default API version
+    stripeInstance = new Stripe(secretKey);
   }
   return stripeInstance;
 };
