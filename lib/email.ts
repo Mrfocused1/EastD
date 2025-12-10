@@ -1,17 +1,21 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Lazy-loaded Resend instance
-let resendInstance: Resend | null = null;
+// Create Gmail SMTP transporter
+function getTransporter() {
+  const email = process.env.SMTP_EMAIL;
+  const password = process.env.SMTP_PASSWORD;
 
-function getResend(): Resend | null {
-  if (!resendInstance) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      return null;
-    }
-    resendInstance = new Resend(apiKey);
+  if (!email || !password) {
+    return null;
   }
-  return resendInstance;
+
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: email,
+      pass: password,
+    },
+  });
 }
 
 export interface BookingEmailData {
@@ -201,7 +205,7 @@ export function generateBookingEmailHTML(data: BookingEmailData, template: typeo
 
     <p style="color: #666;">
       If you have any questions, please don't hesitate to contact us.<br>
-      <a href="mailto:info@eastdockstudios.co.uk" style="color: #0066cc;">info@eastdockstudios.co.uk</a>
+      <a href="mailto:admin@eastdockstudios.co.uk" style="color: #0066cc;">admin@eastdockstudios.co.uk</a>
     </p>
 
   </div>
@@ -221,9 +225,9 @@ export function generateBookingEmailHTML(data: BookingEmailData, template: typeo
 
 export async function sendBookingConfirmationEmail(data: BookingEmailData, customTemplate?: typeof DEFAULT_EMAIL_TEMPLATES.bookingConfirmation): Promise<{ success: boolean; error?: string }> {
   try {
-    const resend = getResend();
-    if (!resend) {
-      console.warn('RESEND_API_KEY not configured, skipping email');
+    const transporter = getTransporter();
+    if (!transporter) {
+      console.warn('SMTP not configured, skipping email');
       return { success: false, error: 'Email service not configured' };
     }
 
@@ -232,19 +236,15 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData, custo
 
     const html = generateBookingEmailHTML(data, template);
 
-    const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'East Dock Studios <bookings@eastdockstudios.site>',
-      to: [data.customerEmail],
+    await transporter.sendMail({
+      from: `"East Dock Studios" <${process.env.SMTP_EMAIL}>`,
+      to: data.customerEmail,
       subject: template.subject,
       html,
-      replyTo: 'info@eastdockstudios.co.uk',
+      replyTo: process.env.SMTP_EMAIL,
     });
 
-    if (error) {
-      console.error('Failed to send email:', error);
-      return { success: false, error: error.message };
-    }
-
+    console.log('Customer confirmation email sent to:', data.customerEmail);
     return { success: true };
   } catch (err) {
     console.error('Email send error:', err);
@@ -255,12 +255,12 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData, custo
 // Send notification to admin/studio about new booking
 export async function sendAdminNotificationEmail(data: BookingEmailData): Promise<{ success: boolean; error?: string }> {
   try {
-    const resend = getResend();
-    if (!resend) {
+    const transporter = getTransporter();
+    if (!transporter) {
       return { success: false, error: 'Email service not configured' };
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL || 'info@eastdockstudios.co.uk';
+    const adminEmail = process.env.SMTP_EMAIL || 'admin@eastdockstudios.co.uk';
     const isDeposit = data.paymentType === 'deposit';
 
     const html = `
@@ -307,18 +307,14 @@ export async function sendAdminNotificationEmail(data: BookingEmailData): Promis
 </html>
     `.trim();
 
-    const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'East Dock Studios <bookings@eastdockstudios.site>',
-      to: [adminEmail],
+    await transporter.sendMail({
+      from: `"East Dock Studios Bookings" <${process.env.SMTP_EMAIL}>`,
+      to: adminEmail,
       subject: `New Booking: ${data.studioName} - ${data.bookingDate}`,
       html,
     });
 
-    if (error) {
-      console.error('Failed to send admin notification:', error);
-      return { success: false, error: error.message };
-    }
-
+    console.log('Admin notification email sent');
     return { success: true };
   } catch (err) {
     console.error('Admin email error:', err);
