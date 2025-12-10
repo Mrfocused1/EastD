@@ -16,11 +16,15 @@ export default function EmailSettingsPage() {
   // Booking Confirmation Email
   const [bookingSubject, setBookingSubject] = useState("Booking Confirmation - East Dock Studios");
   const [bookingHeader, setBookingHeader] = useState("Thank you for your booking!");
+  const [bookingIntro, setBookingIntro] = useState("We're excited to welcome you to our studio. Below you'll find all the details for your upcoming session.");
+  const [bookingBody, setBookingBody] = useState("Please arrive 10 minutes before your scheduled time to allow for setup. If you have any special requirements or equipment needs, please let us know in advance.");
   const [bookingFooter, setBookingFooter] = useState("We look forward to seeing you!");
 
   // Deposit Confirmation Email
   const [depositSubject, setDepositSubject] = useState("Deposit Received - East Dock Studios Booking");
   const [depositHeader, setDepositHeader] = useState("Thank you for your deposit!");
+  const [depositIntro, setDepositIntro] = useState("Your booking is now secured with a 50% deposit. Please remember to pay the remaining balance when you arrive at the studio.");
+  const [depositBody, setDepositBody] = useState("We recommend arriving 10 minutes early to complete payment and get set up. Payment can be made by card on arrival.");
   const [depositFooter, setDepositFooter] = useState("Your booking is now confirmed. Please remember to pay the remaining balance on arrival.");
 
   // Admin Settings
@@ -76,9 +80,13 @@ By Car: Underground parking available at Canary Wharf. Use postcode E14 5AB.`);
             if (section === 'templates') {
               if (key === 'booking_subject') setBookingSubject(value);
               if (key === 'booking_header') setBookingHeader(value);
+              if (key === 'booking_intro') setBookingIntro(value);
+              if (key === 'booking_body') setBookingBody(value);
               if (key === 'booking_footer') setBookingFooter(value);
               if (key === 'deposit_subject') setDepositSubject(value);
               if (key === 'deposit_header') setDepositHeader(value);
+              if (key === 'deposit_intro') setDepositIntro(value);
+              if (key === 'deposit_body') setDepositBody(value);
               if (key === 'deposit_footer') setDepositFooter(value);
             }
 
@@ -129,9 +137,13 @@ By Car: Underground parking available at Canary Wharf. Use postcode E14 5AB.`);
       // Templates
       { page: 'email', section: 'templates', key: 'booking_subject', value: bookingSubject, type: 'text' },
       { page: 'email', section: 'templates', key: 'booking_header', value: bookingHeader, type: 'text' },
+      { page: 'email', section: 'templates', key: 'booking_intro', value: bookingIntro, type: 'text' },
+      { page: 'email', section: 'templates', key: 'booking_body', value: bookingBody, type: 'text' },
       { page: 'email', section: 'templates', key: 'booking_footer', value: bookingFooter, type: 'text' },
       { page: 'email', section: 'templates', key: 'deposit_subject', value: depositSubject, type: 'text' },
       { page: 'email', section: 'templates', key: 'deposit_header', value: depositHeader, type: 'text' },
+      { page: 'email', section: 'templates', key: 'deposit_intro', value: depositIntro, type: 'text' },
+      { page: 'email', section: 'templates', key: 'deposit_body', value: depositBody, type: 'text' },
       { page: 'email', section: 'templates', key: 'deposit_footer', value: depositFooter, type: 'text' },
       // Admin
       { page: 'email', section: 'admin', key: 'admin_email', value: adminEmail, type: 'text' },
@@ -279,6 +291,22 @@ By Car: Underground parking available at Canary Wharf. Use postcode E14 5AB.`);
                 placeholder="Thank you for your booking!"
               />
               <TextInput
+                label="Introduction Text"
+                value={bookingIntro}
+                onChange={(v) => { setBookingIntro(v); markChanged(); }}
+                placeholder="We're excited to welcome you..."
+                multiline
+                rows={2}
+              />
+              <TextInput
+                label="Main Message Body"
+                value={bookingBody}
+                onChange={(v) => { setBookingBody(v); markChanged(); }}
+                placeholder="Additional information, instructions, or notes for your customer..."
+                multiline
+                rows={4}
+              />
+              <TextInput
                 label="Footer Message"
                 value={bookingFooter}
                 onChange={(v) => { setBookingFooter(v); markChanged(); }}
@@ -309,6 +337,22 @@ By Car: Underground parking available at Canary Wharf. Use postcode E14 5AB.`);
                 value={depositHeader}
                 onChange={(v) => { setDepositHeader(v); markChanged(); }}
                 placeholder="Thank you for your deposit!"
+              />
+              <TextInput
+                label="Introduction Text"
+                value={depositIntro}
+                onChange={(v) => { setDepositIntro(v); markChanged(); }}
+                placeholder="Your booking is now secured..."
+                multiline
+                rows={2}
+              />
+              <TextInput
+                label="Main Message Body"
+                value={depositBody}
+                onChange={(v) => { setDepositBody(v); markChanged(); }}
+                placeholder="Information about remaining balance, arrival instructions..."
+                multiline
+                rows={4}
               />
               <TextInput
                 label="Footer Message"

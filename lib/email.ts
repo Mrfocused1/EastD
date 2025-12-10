@@ -1,4 +1,95 @@
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client for server-side use
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export interface EmailTemplate {
+  subject: string;
+  headerMessage: string;
+  introText?: string;
+  bodyText?: string;
+  footerMessage: string;
+}
+
+// Fetch email templates from database
+export async function getEmailTemplates(): Promise<{
+  booking: EmailTemplate;
+  deposit: EmailTemplate;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('key, value')
+      .eq('page', 'email')
+      .eq('section', 'templates');
+
+    if (error || !data) {
+      return {
+        booking: DEFAULT_EMAIL_TEMPLATES.bookingConfirmation,
+        deposit: DEFAULT_EMAIL_TEMPLATES.depositConfirmation,
+      };
+    }
+
+    const templates: Record<string, string> = {};
+    data.forEach((item: { key: string; value: string }) => {
+      templates[item.key] = item.value;
+    });
+
+    return {
+      booking: {
+        subject: templates.booking_subject || DEFAULT_EMAIL_TEMPLATES.bookingConfirmation.subject,
+        headerMessage: templates.booking_header || DEFAULT_EMAIL_TEMPLATES.bookingConfirmation.headerMessage,
+        introText: templates.booking_intro || DEFAULT_EMAIL_TEMPLATES.bookingConfirmation.introText,
+        bodyText: templates.booking_body || DEFAULT_EMAIL_TEMPLATES.bookingConfirmation.bodyText,
+        footerMessage: templates.booking_footer || DEFAULT_EMAIL_TEMPLATES.bookingConfirmation.footerMessage,
+      },
+      deposit: {
+        subject: templates.deposit_subject || DEFAULT_EMAIL_TEMPLATES.depositConfirmation.subject,
+        headerMessage: templates.deposit_header || DEFAULT_EMAIL_TEMPLATES.depositConfirmation.headerMessage,
+        introText: templates.deposit_intro || DEFAULT_EMAIL_TEMPLATES.depositConfirmation.introText,
+        bodyText: templates.deposit_body || DEFAULT_EMAIL_TEMPLATES.depositConfirmation.bodyText,
+        footerMessage: templates.deposit_footer || DEFAULT_EMAIL_TEMPLATES.depositConfirmation.footerMessage,
+      },
+    };
+  } catch (err) {
+    console.error('Error fetching email templates:', err);
+    return {
+      booking: DEFAULT_EMAIL_TEMPLATES.bookingConfirmation,
+      deposit: DEFAULT_EMAIL_TEMPLATES.depositConfirmation,
+    };
+  }
+}
+
+// Save customer contact to database
+export async function saveCustomerContact(data: {
+  email: string;
+  name: string;
+  phone?: string;
+  source: 'booking' | 'enquiry' | 'membership';
+  studio?: string;
+}): Promise<void> {
+  try {
+    await supabase
+      .from('customer_contacts')
+      .upsert({
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        source: data.source,
+        studio: data.studio,
+        total_bookings: 1,
+        last_booking_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'email',
+      });
+  } catch (err) {
+    console.error('Error saving customer contact:', err);
+  }
+}
 
 // Create Gmail SMTP transporter
 function getTransporter() {
@@ -38,11 +129,15 @@ export const DEFAULT_EMAIL_TEMPLATES = {
   bookingConfirmation: {
     subject: 'Booking Confirmation - East Dock Studios',
     headerMessage: 'Thank you for your booking!',
+    introText: "We're excited to welcome you to our studio. Below you'll find all the details for your upcoming session.",
+    bodyText: "Please arrive 10 minutes before your scheduled time to allow for setup. If you have any special requirements or equipment needs, please let us know in advance.",
     footerMessage: 'We look forward to seeing you!',
   },
   depositConfirmation: {
     subject: 'Deposit Received - East Dock Studios Booking',
     headerMessage: 'Thank you for your deposit!',
+    introText: "Your booking is now secured with a 50% deposit. Please remember to pay the remaining balance when you arrive at the studio.",
+    bodyText: "We recommend arriving 10 minutes early to complete payment and get set up. Payment can be made by card on arrival.",
     footerMessage: 'Your booking is now confirmed. Please remember to pay the remaining balance on arrival.',
   },
 };
@@ -84,7 +179,7 @@ export const LOCATION_INFO = {
   },
 };
 
-export function generateBookingEmailHTML(data: BookingEmailData, template: typeof DEFAULT_EMAIL_TEMPLATES.bookingConfirmation): string {
+export function generateBookingEmailHTML(data: BookingEmailData, template: EmailTemplate): string {
   const isDeposit = data.paymentType === 'deposit';
   const studioId = data.studioName.toLowerCase().includes('e16') ? 'e16'
     : data.studioName.toLowerCase().includes('e20') ? 'e20'
@@ -119,6 +214,8 @@ export function generateBookingEmailHTML(data: BookingEmailData, template: typeo
 
     <p style="margin-top: 0;">Hi ${data.customerName},</p>
 
+    ${template.introText ? `<p style="margin: 15px 0; color: #333;">${template.introText}</p>` : ''}
+
     ${isDeposit ? `
     <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 6px; margin: 20px 0;">
       <strong>Deposit Payment Received</strong><br>
@@ -130,6 +227,8 @@ export function generateBookingEmailHTML(data: BookingEmailData, template: typeo
       Your booking is fully paid and confirmed!
     </div>
     `}
+
+    ${template.bodyText ? `<p style="margin: 15px 0; color: #555; line-height: 1.6;">${template.bodyText}</p>` : ''}
 
     <!-- Booking Details -->
     <h2 style="font-size: 18px; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px;">Booking Details</h2>

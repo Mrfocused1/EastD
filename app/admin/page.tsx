@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -14,10 +15,21 @@ import {
   Briefcase,
   Users,
   PoundSterling,
-  Mail
+  Mail,
+  Grid3X3,
+  Send
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-const pages = [
+interface PageItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  description: string;
+  preview: string | null;
+}
+
+const getDefaultPages = (studioTitles: { e16: string; e20: string; lux: string }): PageItem[] => [
   {
     name: "Homepage",
     href: "/admin/homepage",
@@ -26,24 +38,24 @@ const pages = [
     preview: "/",
   },
   {
-    name: "E16 Set",
+    name: studioTitles.e16,
     href: "/admin/e16",
     icon: Building2,
-    description: "Manage E16 studio page content and pricing",
+    description: `Manage ${studioTitles.e16} studio page content and pricing`,
     preview: "/studios/e16",
   },
   {
-    name: "E20 Set",
+    name: studioTitles.e20,
     href: "/admin/e20",
     icon: Building2,
-    description: "Manage E20 studio page content and pricing",
+    description: `Manage ${studioTitles.e20} studio page content and pricing`,
     preview: "/studios/e20",
   },
   {
-    name: "LUX Set",
+    name: studioTitles.lux,
     href: "/admin/lux",
     icon: Building2,
-    description: "Manage LUX studio page content and pricing",
+    description: `Manage ${studioTitles.lux} studio page content and pricing`,
     preview: "/studios/lux",
   },
   {
@@ -66,6 +78,13 @@ const pages = [
     icon: ImageIcon,
     description: "Upload and manage all website images",
     preview: null,
+  },
+  {
+    name: "Gallery",
+    href: "/admin/gallery",
+    icon: Grid3X3,
+    description: "Manage gallery images, categories, and order",
+    preview: "/gallery",
   },
   {
     name: "Booking Form",
@@ -102,15 +121,64 @@ const pages = [
     description: "Customize booking confirmation emails and location info",
     preview: null,
   },
+  {
+    name: "Email Campaigns",
+    href: "/admin/campaigns",
+    icon: Send,
+    description: "Create automated email sequences for customers",
+    preview: null,
+  },
 ];
 
 const stats = [
-  { label: "Pages", value: "11" },
-  { label: "Sections", value: "35" },
+  { label: "Pages", value: "14" },
+  { label: "Sections", value: "40+" },
   { label: "Images", value: "50+" },
 ];
 
 export default function AdminDashboard() {
+  const [pages, setPages] = useState<PageItem[]>(getDefaultPages({
+    e16: "Studio Dock One",
+    e20: "Studio Dock Two",
+    lux: "Studio Wharf",
+  }));
+
+  useEffect(() => {
+    async function loadStudioTitles() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('key, value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+
+        if (error) {
+          console.error('Error loading studio titles:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const titles = {
+            e16: "Studio Dock One",
+            e20: "Studio Dock Two",
+            lux: "Studio Wharf",
+          };
+          data.forEach((item: { key: string; value: string }) => {
+            if (item.key === 'e16_title') titles.e16 = item.value;
+            if (item.key === 'e20_title') titles.e20 = item.value;
+            if (item.key === 'lux_title') titles.lux = item.value;
+          });
+          setPages(getDefaultPages(titles));
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    }
+
+    loadStudioTitles();
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
