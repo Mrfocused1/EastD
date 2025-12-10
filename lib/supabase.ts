@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Hardcoded credentials - ALWAYS use these (anon key is safe - protected by RLS)
 const SUPABASE_URL = 'https://fhgvnjwiasusjfevimcw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3Zuandpb3N1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1NDczNzAsImV4cCI6MjA0ODEyMzM3MH0.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3ZuandpYXN1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTk3MzcsImV4cCI6MjA3OTU3NTczN30.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg';
 
 // Create client - works on both server and client
 export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
