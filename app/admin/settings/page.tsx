@@ -16,12 +16,17 @@ export default function SettingsPage() {
   // Site Settings
   const [siteName, setSiteName] = useState("EASTDOCK STUDIOS");
   const [siteTagline, setSiteTagline] = useState("BESPOKE STUDIO HIRE");
-  const [contactEmail, setContactEmail] = useState("hello@eastdocstudios.com");
+  const [contactEmail, setContactEmail] = useState("admin@eastdockstudios.co.uk");
   const [contactPhone, setContactPhone] = useState("+44 123 456 7890");
+  const [contactAddress, setContactAddress] = useState("East Dock Studios, Royal Victoria Dock, London E16");
+  const [googleMapsEmbed, setGoogleMapsEmbed] = useState("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.123456789!2d0.0234!3d51.5074!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRoyal%20Victoria%20Dock!5e0!3m2!1sen!2suk!4v1234567890");
 
   // Social Links
-  const [instagramUrl, setInstagramUrl] = useState("https://instagram.com/eastdocstudios");
-  const [tiktokUrl, setTiktokUrl] = useState("https://tiktok.com/@eastdocstudios");
+  const [instagramUrl, setInstagramUrl] = useState("https://instagram.com/eastdockstudios");
+  const [tiktokUrl, setTiktokUrl] = useState("https://tiktok.com/@eastdockstudios");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [twitterUrl, setTwitterUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
 
   // Studio/Page Titles
   const [e16Title, setE16Title] = useState("E16 SET");
@@ -92,9 +97,16 @@ export default function SettingsPage() {
             if (key === 'contact_email') setContactEmail(value);
             if (key === 'contact_phone') setContactPhone(value);
 
+            // Address & Map
+            if (key === 'contact_address') setContactAddress(value);
+            if (key === 'google_maps_embed') setGoogleMapsEmbed(value);
+
             // Social Links
             if (key === 'instagram_url') setInstagramUrl(value);
             if (key === 'tiktok_url') setTiktokUrl(value);
+            if (key === 'facebook_url') setFacebookUrl(value);
+            if (key === 'twitter_url') setTwitterUrl(value);
+            if (key === 'linkedin_url') setLinkedinUrl(value);
 
             // Studio Titles
             if (key === 'e16_title') setE16Title(value);
@@ -188,9 +200,15 @@ export default function SettingsPage() {
       { page: 'global', section: 'settings', key: 'site_tagline', value: siteTagline, type: 'text' },
       { page: 'global', section: 'settings', key: 'contact_email', value: contactEmail, type: 'text' },
       { page: 'global', section: 'settings', key: 'contact_phone', value: contactPhone, type: 'text' },
+      // Address & Map
+      { page: 'global', section: 'settings', key: 'contact_address', value: contactAddress, type: 'text' },
+      { page: 'global', section: 'settings', key: 'google_maps_embed', value: googleMapsEmbed, type: 'text' },
       // Social Links
       { page: 'global', section: 'settings', key: 'instagram_url', value: instagramUrl, type: 'text' },
       { page: 'global', section: 'settings', key: 'tiktok_url', value: tiktokUrl, type: 'text' },
+      { page: 'global', section: 'settings', key: 'facebook_url', value: facebookUrl, type: 'text' },
+      { page: 'global', section: 'settings', key: 'twitter_url', value: twitterUrl, type: 'text' },
+      { page: 'global', section: 'settings', key: 'linkedin_url', value: linkedinUrl, type: 'text' },
       // Studio Titles
       { page: 'global', section: 'settings', key: 'e16_title', value: e16Title, type: 'text' },
       { page: 'global', section: 'settings', key: 'e20_title', value: e20Title, type: 'text' },
@@ -334,6 +352,22 @@ export default function SettingsPage() {
                 onChange={(v) => { setContactPhone(v); markChanged(); }}
               />
             </div>
+            <div className="grid md:grid-cols-1 gap-6 mt-6">
+              <TextInput
+                label="Address"
+                value={contactAddress}
+                onChange={(v) => { setContactAddress(v); markChanged(); }}
+                placeholder="East Dock Studios, Royal Victoria Dock, London E16"
+              />
+              <TextInput
+                label="Google Maps Embed URL"
+                value={googleMapsEmbed}
+                onChange={(v) => { setGoogleMapsEmbed(v); markChanged(); }}
+                placeholder="https://www.google.com/maps/embed?pb=..."
+                multiline
+                rows={2}
+              />
+            </div>
           </Section>
         </motion.div>
 
@@ -356,6 +390,24 @@ export default function SettingsPage() {
                 value={tiktokUrl}
                 onChange={(v) => { setTiktokUrl(v); markChanged(); }}
                 placeholder="https://tiktok.com/..."
+              />
+              <TextInput
+                label="Facebook URL"
+                value={facebookUrl}
+                onChange={(v) => { setFacebookUrl(v); markChanged(); }}
+                placeholder="https://facebook.com/..."
+              />
+              <TextInput
+                label="Twitter/X URL"
+                value={twitterUrl}
+                onChange={(v) => { setTwitterUrl(v); markChanged(); }}
+                placeholder="https://twitter.com/..."
+              />
+              <TextInput
+                label="LinkedIn URL"
+                value={linkedinUrl}
+                onChange={(v) => { setLinkedinUrl(v); markChanged(); }}
+                placeholder="https://linkedin.com/..."
               />
             </div>
           </Section>

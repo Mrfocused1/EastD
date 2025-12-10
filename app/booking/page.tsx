@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 
 function BookingContent() {
   const heroRef = useRef<HTMLElement>(null);
+  const bookingFormRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const preselectedStudio = searchParams.get("studio");
 
@@ -74,6 +75,26 @@ function BookingContent() {
     loadStudioSettings();
   }, []);
 
+  // Auto-scroll to form when arriving with preselected studio
+  useEffect(() => {
+    if (preselectedStudio && bookingFormRef.current) {
+      setTimeout(() => {
+        bookingFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500); // Wait for page to fully load
+    }
+  }, [preselectedStudio]);
+
+  // Handle studio selection with smooth scroll
+  const handleStudioSelect = (studioValue: string) => {
+    setSelectedStudio(studioValue);
+    // Wait for state update and form to render, then scroll
+    setTimeout(() => {
+      if (bookingFormRef.current) {
+        bookingFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
   return (
     <>
       <Header />
@@ -116,7 +137,7 @@ function BookingContent() {
                 className={`relative h-[400px] overflow-hidden cursor-pointer group ${
                   selectedStudio === studio.value ? 'ring-4 ring-black' : ''
                 }`}
-                onClick={() => setSelectedStudio(studio.value)}
+                onClick={() => handleStudioSelect(studio.value)}
               >
                 <Image
                   src={studio.image}
@@ -145,12 +166,14 @@ function BookingContent() {
       </section>
 
       {/* Booking Form */}
-      {selectedStudio && selectedStudio === "photography" && (
-        <PhotographyBookingForm />
-      )}
-      {selectedStudio && selectedStudio !== "photography" && (
-        <BookingForm preselectedStudio={selectedStudio} />
-      )}
+      <div ref={bookingFormRef}>
+        {selectedStudio && selectedStudio === "photography" && (
+          <PhotographyBookingForm />
+        )}
+        {selectedStudio && selectedStudio !== "photography" && (
+          <BookingForm preselectedStudio={selectedStudio} />
+        )}
+      </div>
       </main>
       <Footer />
     </>
