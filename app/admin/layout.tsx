@@ -34,9 +34,9 @@ export default function AdminLayout({
   const [navigation, setNavigation] = useState([
     { name: "Dashboard", href: "/admin", icon: Home },
     { name: "Homepage", href: "/admin/homepage", icon: Layout },
-    { name: "Studio Dock One", href: "/admin/e16", icon: Building2 },
-    { name: "Studio Dock Two", href: "/admin/e20", icon: Building2 },
-    { name: "Studio Wharf", href: "/admin/lux", icon: Building2 },
+    { name: "Studio Dock One", href: "/admin/studio-dock-one", icon: Building2 },
+    { name: "Studio Dock Two", href: "/admin/studio-dock-two", icon: Building2 },
+    { name: "Studio Wharf", href: "/admin/studio-wharf", icon: Building2 },
     { name: "Photography", href: "/admin/photography", icon: Camera },
     { name: "Services", href: "/admin/services", icon: Briefcase },
     { name: "Membership", href: "/admin/membership", icon: Users },
@@ -69,7 +69,7 @@ export default function AdminLayout({
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title']);
 
         if (error) {
           console.error('Error loading studio titles:', error);
@@ -79,17 +79,17 @@ export default function AdminLayout({
         if (data && data.length > 0) {
           const titles: Record<string, string> = {};
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') titles.e16 = item.value;
-            if (item.key === 'e20_title') titles.e20 = item.value;
-            if (item.key === 'lux_title') titles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') titles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') titles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') titles.studioWharf = item.value;
           });
 
           setNavigation([
             { name: "Dashboard", href: "/admin", icon: Home },
             { name: "Homepage", href: "/admin/homepage", icon: Layout },
-            { name: titles.e16 || "Studio Dock One", href: "/admin/e16", icon: Building2 },
-            { name: titles.e20 || "Studio Dock Two", href: "/admin/e20", icon: Building2 },
-            { name: titles.lux || "Studio Wharf", href: "/admin/lux", icon: Building2 },
+            { name: titles.studioDockOne || "Studio Dock One", href: "/admin/studio-dock-one", icon: Building2 },
+            { name: titles.studioDockTwo || "Studio Dock Two", href: "/admin/studio-dock-two", icon: Building2 },
+            { name: titles.studioWharf || "Studio Wharf", href: "/admin/studio-wharf", icon: Building2 },
             { name: "Photography", href: "/admin/photography", icon: Camera },
             { name: "Services", href: "/admin/services", icon: Briefcase },
             { name: "Membership", href: "/admin/membership", icon: Users },

@@ -19,7 +19,7 @@ export default function E16Editor() {
 
   // Studio info
   const [studioSubtitle, setStudioSubtitle] = useState("THE STUDIO");
-  const [studioTitle, setStudioTitle] = useState("E16 SET");
+  const [studioTitle, setStudioTitle] = useState("Studio Dock One");
   const [studioDescription, setStudioDescription] = useState(
     "A vintage leather sofa in a lush, deep green color creates an ambiance reminiscent of an exclusive lounge. The large sofa can accommodate up to four guests. Enhance the atmosphere with your choice of art décor or vintage industrial-inspired lighting."
   );
@@ -57,7 +57,7 @@ export default function E16Editor() {
         const { data, error } = await supabase
           .from('site_content')
           .select('*')
-          .eq('page', 'e16');
+          .eq('page', 'studio-dock-one');
 
         if (error) {
           console.error('Error loading content:', error);
@@ -107,18 +107,18 @@ export default function E16Editor() {
   const handleSave = async () => {
     const contentToSave = [
       // Hero
-      { page: 'e16', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      { page: 'studio-dock-one', section: 'hero', key: 'image', value: heroImage, type: 'image' },
       // Studio info
-      { page: 'e16', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
-      { page: 'e16', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
-      { page: 'e16', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
+      { page: 'studio-dock-one', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
+      { page: 'studio-dock-one', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
+      { page: 'studio-dock-one', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
       // Features
-      { page: 'e16', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
+      { page: 'studio-dock-one', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
       // Pricing
-      { page: 'e16', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
-      { page: 'e16', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
+      { page: 'studio-dock-one', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
+      { page: 'studio-dock-one', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
       // Gallery
-      { page: 'e16', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
+      { page: 'studio-dock-one', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
     ];
 
     try {
@@ -200,11 +200,11 @@ export default function E16Editor() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm tracking-[0.3em] text-black/60 mb-2">EDITING</p>
-            <h1 className="text-4xl font-light text-black">E16 Set Page</h1>
+            <h1 className="text-4xl font-light text-black">Studio Dock One Page</h1>
           </div>
           <div className="flex items-center gap-4">
             <Link
-              href="/studios/e16"
+              href="/studios/studio-dock-one"
               target="_blank"
               className="inline-flex items-center gap-2 px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors"
             >

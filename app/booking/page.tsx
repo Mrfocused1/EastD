@@ -30,9 +30,9 @@ function BookingContent() {
     title: "SELECT A STUDIO",
   });
   const [studios, setStudios] = useState([
-    { value: "e16", label: "E16 SET", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
-    { value: "e20", label: "E20 SET", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
-    { value: "lux", label: "LUX SET", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "studio-dock-one", label: "Studio Dock One", image: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "studio-dock-two", label: "Studio Dock Two", image: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
+    { value: "studio-wharf", label: "Studio Wharf", image: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
     { value: "photography", label: "Photography", image: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
   ]);
 
@@ -62,7 +62,7 @@ function BookingContent() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title', 'e16_thumbnail', 'e20_thumbnail', 'lux_thumbnail', 'photography_thumbnail']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title', 'photography_title', 'studio_dock_one_thumbnail', 'studio_dock_two_thumbnail', 'studio_wharf_thumbnail', 'photography_thumbnail']);
 
         if (error) {
           console.error('Error loading studio settings:', error);
@@ -73,20 +73,20 @@ function BookingContent() {
           const titles: Record<string, string> = {};
           const thumbnails: Record<string, string> = {};
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') titles.e16 = item.value;
-            if (item.key === 'e20_title') titles.e20 = item.value;
-            if (item.key === 'lux_title') titles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') titles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') titles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') titles.studioWharf = item.value;
             if (item.key === 'photography_title') titles.photography = item.value;
-            if (item.key === 'e16_thumbnail') thumbnails.e16 = item.value;
-            if (item.key === 'e20_thumbnail') thumbnails.e20 = item.value;
-            if (item.key === 'lux_thumbnail') thumbnails.lux = item.value;
+            if (item.key === 'studio_dock_one_thumbnail') thumbnails.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_thumbnail') thumbnails.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_thumbnail') thumbnails.studioWharf = item.value;
             if (item.key === 'photography_thumbnail') thumbnails.photography = item.value;
           });
 
           setStudios([
-            { value: "e16", label: titles.e16 || "E16 SET", image: thumbnails.e16 || "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
-            { value: "e20", label: titles.e20 || "E20 SET", image: thumbnails.e20 || "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
-            { value: "lux", label: titles.lux || "LUX SET", image: thumbnails.lux || "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "studio-dock-one", label: titles.studioDockOne || "Studio Dock One", image: thumbnails.studioDockOne || "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "studio-dock-two", label: titles.studioDockTwo || "Studio Dock Two", image: thumbnails.studioDockTwo || "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=800" },
+            { value: "studio-wharf", label: titles.studioWharf || "Studio Wharf", image: thumbnails.studioWharf || "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=800" },
             { value: "photography", label: titles.photography || "Photography", image: thumbnails.photography || "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=800" }
           ]);
         }

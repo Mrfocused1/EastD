@@ -58,21 +58,21 @@ export default function LuxPage() {
 
   const [contentLoaded, setContentLoaded] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
-    e16: "E16 SET",
-    e20: "E20 SET",
-    lux: "LUX SET",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
     photography: "Photography",
   });
   const [studioThumbnails, setStudioThumbnails] = useState({
-    e16: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    e20: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    lux: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioDockOne: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioDockTwo: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioWharf: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
     photography: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1200",
   });
   const [content, setContent] = useState<LuxContent>({
     heroImage: { url: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1920", focalPoints: DEFAULT_FOCAL_POINTS },
     studioSubtitle: "THE STUDIO",
-    studioTitle: "LUX SET",
+    studioTitle: "Studio Wharf",
     studioDescription: "Elegant modern living room featuring a grand spiral staircase and luxurious decor. Our premium studio space offers the ultimate in sophistication and style for your high-end productions.",
     features: [
       { title: "1 - 4 Person Layout", description: "Flexible seating for intimate to small group productions" },
@@ -106,7 +106,7 @@ export default function LuxPage() {
         const { data, error } = await supabase
           .from('site_content')
           .select('section, key, value')
-          .eq('page', 'lux');
+          .eq('page', 'studio-wharf');
 
         if (error) {
           console.error('Error loading LUX content:', error);
@@ -165,7 +165,7 @@ export default function LuxPage() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title', 'e16_thumbnail', 'e20_thumbnail', 'lux_thumbnail', 'photography_thumbnail']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title', 'photography_title', 'studio_dock_one_thumbnail', 'studio_dock_two_thumbnail', 'studio_wharf_thumbnail', 'photography_thumbnail']);
 
         if (error) {
           console.error('Error loading studio settings:', error);
@@ -173,16 +173,16 @@ export default function LuxPage() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
+          const newTitles = { studioDockOne: "Studio Dock One", studioDockTwo: "Studio Dock Two", studioWharf: "Studio Wharf", photography: "Photography" };
           const newThumbnails = { ...studioThumbnails };
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') newTitles.e16 = item.value;
-            if (item.key === 'e20_title') newTitles.e20 = item.value;
-            if (item.key === 'lux_title') newTitles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') newTitles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') newTitles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') newTitles.studioWharf = item.value;
             if (item.key === 'photography_title') newTitles.photography = item.value;
-            if (item.key === 'e16_thumbnail') newThumbnails.e16 = item.value;
-            if (item.key === 'e20_thumbnail') newThumbnails.e20 = item.value;
-            if (item.key === 'lux_thumbnail') newThumbnails.lux = item.value;
+            if (item.key === 'studio_dock_one_thumbnail') newThumbnails.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_thumbnail') newThumbnails.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_thumbnail') newThumbnails.studioWharf = item.value;
             if (item.key === 'photography_thumbnail') newThumbnails.photography = item.value;
           });
           setStudioTitles(newTitles);
@@ -220,14 +220,14 @@ export default function LuxPage() {
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-[70vh] overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 h-[130%] -top-[15%]">
-          <FocalPointImage src={content.heroImage.url} alt="LUX SET" focalPoints={content.heroImage.focalPoints} priority />
+          <FocalPointImage src={content.heroImage.url} alt="Studio Wharf" focalPoints={content.heroImage.focalPoints} priority />
         </motion.div>
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center text-white">
             <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
             <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
-            <Link href="/booking?studio=lux" className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
+            <Link href="/booking?studio=studio-wharf" className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
               BOOK NOW
             </Link>
           </motion.div>
@@ -282,7 +282,7 @@ export default function LuxPage() {
                   Additional equipment including extra lights, cameras, audio equipment, and more can be arranged to suit your production needs.
                 </p>
               </div>
-              <Link href="/booking?studio=lux" className="inline-block border border-white px-6 py-2 text-xs tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
+              <Link href="/booking?studio=studio-wharf" className="inline-block border border-white px-6 py-2 text-xs tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
                 BOOK NOW
               </Link>
             </motion.div>
@@ -329,8 +329,8 @@ export default function LuxPage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { name: studioTitles.e16, slug: "e16", image: studioThumbnails.e16 },
-              { name: studioTitles.e20, slug: "e20", image: studioThumbnails.e20 },
+              { name: studioTitles.studioDockOne, slug: "studio-dock-one", image: studioThumbnails.studioDockOne },
+              { name: studioTitles.studioDockTwo, slug: "studio-dock-two", image: studioThumbnails.studioDockTwo },
               { name: studioTitles.photography, slug: "photography", image: studioThumbnails.photography }
             ].map((studio, index) => (
               <Link key={`lux-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">

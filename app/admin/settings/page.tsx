@@ -29,9 +29,9 @@ export default function SettingsPage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
 
   // Studio/Page Titles
-  const [e16Title, setE16Title] = useState("E16 SET");
-  const [e20Title, setE20Title] = useState("E20 SET");
-  const [luxTitle, setLuxTitle] = useState("LUX SET");
+  const [e16Title, setE16Title] = useState("Studio Dock One");
+  const [e20Title, setE20Title] = useState("Studio Dock Two");
+  const [luxTitle, setLuxTitle] = useState("Studio Wharf");
   const [photographyTitle, setPhotographyTitle] = useState("Photography");
 
   // Other Studios Thumbnails
@@ -109,15 +109,15 @@ export default function SettingsPage() {
             if (key === 'linkedin_url') setLinkedinUrl(value);
 
             // Studio Titles
-            if (key === 'e16_title') setE16Title(value);
-            if (key === 'e20_title') setE20Title(value);
-            if (key === 'lux_title') setLuxTitle(value);
+            if (key === 'studio_dock_one_title') setE16Title(value);
+            if (key === 'studio_dock_two_title') setE20Title(value);
+            if (key === 'studio_wharf_title') setLuxTitle(value);
             if (key === 'photography_title') setPhotographyTitle(value);
 
             // Studio Thumbnails
-            if (key === 'e16_thumbnail') setE16Thumbnail(value);
-            if (key === 'e20_thumbnail') setE20Thumbnail(value);
-            if (key === 'lux_thumbnail') setLuxThumbnail(value);
+            if (key === 'studio_dock_one_thumbnail') setE16Thumbnail(value);
+            if (key === 'studio_dock_two_thumbnail') setE20Thumbnail(value);
+            if (key === 'studio_wharf_thumbnail') setLuxThumbnail(value);
             if (key === 'photography_thumbnail') setPhotographyThumbnail(value);
           });
         }
@@ -210,14 +210,14 @@ export default function SettingsPage() {
       { page: 'global', section: 'settings', key: 'twitter_url', value: twitterUrl, type: 'text' },
       { page: 'global', section: 'settings', key: 'linkedin_url', value: linkedinUrl, type: 'text' },
       // Studio Titles
-      { page: 'global', section: 'settings', key: 'e16_title', value: e16Title, type: 'text' },
-      { page: 'global', section: 'settings', key: 'e20_title', value: e20Title, type: 'text' },
-      { page: 'global', section: 'settings', key: 'lux_title', value: luxTitle, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_dock_one_title', value: e16Title, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_dock_two_title', value: e20Title, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_wharf_title', value: luxTitle, type: 'text' },
       { page: 'global', section: 'settings', key: 'photography_title', value: photographyTitle, type: 'text' },
       // Studio Thumbnails
-      { page: 'global', section: 'settings', key: 'e16_thumbnail', value: e16Thumbnail, type: 'text' },
-      { page: 'global', section: 'settings', key: 'e20_thumbnail', value: e20Thumbnail, type: 'text' },
-      { page: 'global', section: 'settings', key: 'lux_thumbnail', value: luxThumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_dock_one_thumbnail', value: e16Thumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_dock_two_thumbnail', value: e20Thumbnail, type: 'text' },
+      { page: 'global', section: 'settings', key: 'studio_wharf_thumbnail', value: luxThumbnail, type: 'text' },
       { page: 'global', section: 'settings', key: 'photography_thumbnail', value: photographyThumbnail, type: 'text' },
       // Promo Popup
       { page: 'global', section: 'promo_popup', key: 'enabled', value: promoEnabled.toString(), type: 'text' },
@@ -432,19 +432,19 @@ export default function SettingsPage() {
                 label="Studio Dock 1 Title"
                 value={e16Title}
                 onChange={(v) => { setE16Title(v); markChanged(); }}
-                placeholder="E16 SET"
+                placeholder="Studio Dock One"
               />
               <TextInput
                 label="Studio Dock 2 Title"
                 value={e20Title}
                 onChange={(v) => { setE20Title(v); markChanged(); }}
-                placeholder="E20 SET"
+                placeholder="Studio Dock Two"
               />
               <TextInput
                 label="Studio Wharf Title"
                 value={luxTitle}
                 onChange={(v) => { setLuxTitle(v); markChanged(); }}
-                placeholder="LUX SET"
+                placeholder="Studio Wharf"
               />
               <TextInput
                 label="Photography Title"

@@ -19,7 +19,7 @@ export default function E20Editor() {
 
   // Studio info
   const [studioSubtitle, setStudioSubtitle] = useState("THE STUDIO");
-  const [studioTitle, setStudioTitle] = useState("E20 SET");
+  const [studioTitle, setStudioTitle] = useState("Studio Dock Two");
   const [studioDescription, setStudioDescription] = useState(
     "Spacious modern interior with staircase and leather sofas, perfect for creating cinematic content. This versatile space offers the ideal backdrop for sophisticated productions."
   );
@@ -65,7 +65,7 @@ export default function E20Editor() {
         const { data, error } = await supabase
           .from('site_content')
           .select('*')
-          .eq('page', 'e20');
+          .eq('page', 'studio-dock-two');
 
         if (error) {
           console.error('Error loading content:', error);
@@ -108,15 +108,15 @@ export default function E20Editor() {
 
   const handleSave = async () => {
     const contentToSave = [
-      { page: 'e20', section: 'hero', key: 'image', value: heroImage, type: 'image' },
-      { page: 'e20', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
-      { page: 'e20', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
-      { page: 'e20', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
-      { page: 'e20', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
-      { page: 'e20', section: 'inclusive', key: 'items', value: JSON.stringify(inclusiveFeatures), type: 'array' },
-      { page: 'e20', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
-      { page: 'e20', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
-      { page: 'e20', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
+      { page: 'studio-dock-two', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      { page: 'studio-dock-two', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
+      { page: 'studio-dock-two', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
+      { page: 'studio-dock-two', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
+      { page: 'studio-dock-two', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
+      { page: 'studio-dock-two', section: 'inclusive', key: 'items', value: JSON.stringify(inclusiveFeatures), type: 'array' },
+      { page: 'studio-dock-two', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
+      { page: 'studio-dock-two', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
+      { page: 'studio-dock-two', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
     ];
 
     try {
@@ -196,11 +196,11 @@ export default function E20Editor() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm tracking-[0.3em] text-black/60 mb-2">EDITING</p>
-            <h1 className="text-4xl font-light text-black">E20 Set Page</h1>
+            <h1 className="text-4xl font-light text-black">Studio Dock Two Page</h1>
           </div>
           <div className="flex items-center gap-4">
             <Link
-              href="/studios/e20"
+              href="/studios/studio-dock-two"
               target="_blank"
               className="inline-flex items-center gap-2 px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors"
             >

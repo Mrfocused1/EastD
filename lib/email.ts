@@ -144,7 +144,7 @@ export const DEFAULT_EMAIL_TEMPLATES = {
 
 // How to get to us information
 export const LOCATION_INFO = {
-  e16: {
+  studioDockOne: {
     name: 'Studio Dock One (E16)',
     address: 'East Dock Studios, Royal Victoria Dock, London E16',
     directions: `
@@ -155,7 +155,7 @@ export const LOCATION_INFO = {
     nearestStation: 'Royal Victoria DLR',
     parking: 'Free on-site parking available',
   },
-  e20: {
+  studioDockTwo: {
     name: 'Studio Dock Two (E20)',
     address: 'East Dock Studios, Queen Elizabeth Olympic Park, London E20',
     directions: `
@@ -166,7 +166,7 @@ export const LOCATION_INFO = {
     nearestStation: 'Stratford (Underground, Overground, DLR, Elizabeth Line)',
     parking: 'Westfield Stratford car park nearby',
   },
-  lux: {
+  studioWharf: {
     name: 'Studio Wharf (LUX)',
     address: 'East Dock Studios, Canary Wharf, London E14',
     directions: `
@@ -181,10 +181,10 @@ export const LOCATION_INFO = {
 
 export function generateBookingEmailHTML(data: BookingEmailData, template: EmailTemplate): string {
   const isDeposit = data.paymentType === 'deposit';
-  const studioId = data.studioName.toLowerCase().includes('e16') ? 'e16'
-    : data.studioName.toLowerCase().includes('e20') ? 'e20'
-    : 'lux';
-  const location = LOCATION_INFO[studioId];
+  const studioKey = data.studioName.toLowerCase().includes('dock one') || data.studioName.toLowerCase().includes('studio-dock-one') ? 'studioDockOne'
+    : data.studioName.toLowerCase().includes('dock two') || data.studioName.toLowerCase().includes('studio-dock-two') ? 'studioDockTwo'
+    : 'studioWharf';
+  const location = LOCATION_INFO[studioKey];
 
   const breakdownHTML = data.breakdown.map(item =>
     `<tr>

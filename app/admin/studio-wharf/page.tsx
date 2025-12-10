@@ -19,7 +19,7 @@ export default function LuxEditor() {
 
   // Studio info
   const [studioSubtitle, setStudioSubtitle] = useState("THE STUDIO");
-  const [studioTitle, setStudioTitle] = useState("LUX SET");
+  const [studioTitle, setStudioTitle] = useState("Studio Wharf");
   const [studioDescription, setStudioDescription] = useState(
     "Our premium luxury studio experience. Perfect for high-end productions, brand campaigns, and exclusive content creation."
   );
@@ -54,7 +54,7 @@ export default function LuxEditor() {
         const { data, error } = await supabase
           .from('site_content')
           .select('*')
-          .eq('page', 'lux');
+          .eq('page', 'studio-wharf');
 
         if (error) {
           console.error('Error loading content:', error);
@@ -94,14 +94,14 @@ export default function LuxEditor() {
 
   const handleSave = async () => {
     const contentToSave = [
-      { page: 'lux', section: 'hero', key: 'image', value: heroImage, type: 'image' },
-      { page: 'lux', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
-      { page: 'lux', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
-      { page: 'lux', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
-      { page: 'lux', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
-      { page: 'lux', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
-      { page: 'lux', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
-      { page: 'lux', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
+      { page: 'studio-wharf', section: 'hero', key: 'image', value: heroImage, type: 'image' },
+      { page: 'studio-wharf', section: 'studio', key: 'subtitle', value: studioSubtitle, type: 'text' },
+      { page: 'studio-wharf', section: 'studio', key: 'title', value: studioTitle, type: 'text' },
+      { page: 'studio-wharf', section: 'studio', key: 'description', value: studioDescription, type: 'text' },
+      { page: 'studio-wharf', section: 'features', key: 'items', value: JSON.stringify(features), type: 'array' },
+      { page: 'studio-wharf', section: 'pricing', key: 'image', value: pricingImage, type: 'image' },
+      { page: 'studio-wharf', section: 'pricing', key: 'plans', value: JSON.stringify(pricingPlans), type: 'array' },
+      { page: 'studio-wharf', section: 'gallery', key: 'images', value: JSON.stringify(galleryImages), type: 'array' },
     ];
 
     try {
@@ -165,10 +165,10 @@ export default function LuxEditor() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm tracking-[0.3em] text-black/60 mb-2">EDITING</p>
-            <h1 className="text-4xl font-light text-black">LUX Set Page</h1>
+            <h1 className="text-4xl font-light text-black">Studio Wharf Page</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/studios/lux" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors">
+            <Link href="/studios/studio-wharf" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors">
               <Eye className="w-4 h-4" />
               PREVIEW
             </Link>

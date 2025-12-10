@@ -61,8 +61,8 @@ export interface AddonPricing {
 // Default pricing configuration (in pence) - used as fallback
 export const DEFAULT_STUDIOS: StudioPricing[] = [
   {
-    id: 'e16',
-    name: 'Studio Dock One (E16)',
+    id: 'studio-dock-one',
+    name: 'Studio Dock One',
     packages: [
       { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 15000 },
       { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 28000 },
@@ -70,8 +70,8 @@ export const DEFAULT_STUDIOS: StudioPricing[] = [
     ],
   },
   {
-    id: 'e20',
-    name: 'Studio Dock Two (E20)',
+    id: 'studio-dock-two',
+    name: 'Studio Dock Two',
     packages: [
       { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 15000 },
       { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 28000 },
@@ -79,8 +79,8 @@ export const DEFAULT_STUDIOS: StudioPricing[] = [
     ],
   },
   {
-    id: 'lux',
-    name: 'Studio Wharf (LUX)',
+    id: 'studio-wharf',
+    name: 'Studio Wharf',
     packages: [
       { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 20000 },
       { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 38000 },
@@ -97,7 +97,7 @@ export const DEFAULT_ADDONS: AddonPricing[] = [
   { id: 'guest', category: 'guests', label: 'Additional Guest (per person)', price: 500 },
 ];
 
-export type StudioType = 'e16' | 'e20' | 'lux';
+export type StudioType = 'studio-dock-one' | 'studio-dock-two' | 'studio-wharf';
 export type BookingLength = string;
 
 export function calculateBookingTotal(

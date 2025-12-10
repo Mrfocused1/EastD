@@ -29,7 +29,7 @@ interface PageItem {
   preview: string | null;
 }
 
-const getDefaultPages = (studioTitles: { e16: string; e20: string; lux: string }): PageItem[] => [
+const getDefaultPages = (studioTitles: { studioDockOne: string; studioDockTwo: string; studioWharf: string }): PageItem[] => [
   {
     name: "Homepage",
     href: "/admin/homepage",
@@ -38,25 +38,25 @@ const getDefaultPages = (studioTitles: { e16: string; e20: string; lux: string }
     preview: "/",
   },
   {
-    name: studioTitles.e16,
-    href: "/admin/e16",
+    name: studioTitles.studioDockOne,
+    href: "/admin/studio-dock-one",
     icon: Building2,
-    description: `Manage ${studioTitles.e16} studio page content and pricing`,
-    preview: "/studios/e16",
+    description: `Manage ${studioTitles.studioDockOne} studio page content and pricing`,
+    preview: "/studios/studio-dock-one",
   },
   {
-    name: studioTitles.e20,
-    href: "/admin/e20",
+    name: studioTitles.studioDockTwo,
+    href: "/admin/studio-dock-two",
     icon: Building2,
-    description: `Manage ${studioTitles.e20} studio page content and pricing`,
-    preview: "/studios/e20",
+    description: `Manage ${studioTitles.studioDockTwo} studio page content and pricing`,
+    preview: "/studios/studio-dock-two",
   },
   {
-    name: studioTitles.lux,
-    href: "/admin/lux",
+    name: studioTitles.studioWharf,
+    href: "/admin/studio-wharf",
     icon: Building2,
-    description: `Manage ${studioTitles.lux} studio page content and pricing`,
-    preview: "/studios/lux",
+    description: `Manage ${studioTitles.studioWharf} studio page content and pricing`,
+    preview: "/studios/studio-wharf",
   },
   {
     name: "Photography",
@@ -138,9 +138,9 @@ const stats = [
 
 export default function AdminDashboard() {
   const [pages, setPages] = useState<PageItem[]>(getDefaultPages({
-    e16: "Studio Dock One",
-    e20: "Studio Dock Two",
-    lux: "Studio Wharf",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
   }));
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title']);
 
         if (error) {
           console.error('Error loading studio titles:', error);
@@ -160,14 +160,14 @@ export default function AdminDashboard() {
 
         if (data && data.length > 0) {
           const titles = {
-            e16: "Studio Dock One",
-            e20: "Studio Dock Two",
-            lux: "Studio Wharf",
+            studioDockOne: "Studio Dock One",
+            studioDockTwo: "Studio Dock Two",
+            studioWharf: "Studio Wharf",
           };
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') titles.e16 = item.value;
-            if (item.key === 'e20_title') titles.e20 = item.value;
-            if (item.key === 'lux_title') titles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') titles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') titles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') titles.studioWharf = item.value;
           });
           setPages(getDefaultPages(titles));
         }

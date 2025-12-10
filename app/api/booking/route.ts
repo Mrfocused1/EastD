@@ -6,7 +6,7 @@ const bookingSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits").max(20),
-  studio: z.enum(["e16", "e20", "lux"], { errorMap: () => ({ message: "Invalid studio selection" }) }),
+  studio: z.enum(["studio-dock-one", "studio-dock-two", "studio-wharf"], { errorMap: () => ({ message: "Invalid studio selection" }) }),
   date: z.string().min(1, "Date is required"),
   time: z.string().optional(),
   duration: z.string().optional(),

@@ -29,7 +29,7 @@ interface AddonPricing {
 
 const defaultStudios: StudioPricing[] = [
   {
-    id: "e16",
+    id: "studio-dock-one",
     name: "Studio Dock One (E16)",
     packages: [
       { id: "minimum2hrs", label: "Minimum 2 Hours", hours: 2, price: 15000 },
@@ -38,7 +38,7 @@ const defaultStudios: StudioPricing[] = [
     ],
   },
   {
-    id: "e20",
+    id: "studio-dock-two",
     name: "Studio Dock Two (E20)",
     packages: [
       { id: "minimum2hrs", label: "Minimum 2 Hours", hours: 2, price: 15000 },
@@ -47,7 +47,7 @@ const defaultStudios: StudioPricing[] = [
     ],
   },
   {
-    id: "lux",
+    id: "studio-wharf",
     name: "Studio Wharf (LUX)",
     packages: [
       { id: "minimum2hrs", label: "Minimum 2 Hours", hours: 2, price: 20000 },

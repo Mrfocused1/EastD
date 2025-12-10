@@ -33,11 +33,11 @@ export default function Studios() {
     subtitle: "EASTDOCK STUDIOS",
     title: "OUR STUDIOS",
     studio1_image: defaultImage("/BLACKPR X WANNI121.JPG"),
-    studio1_title: "E16 SET",
+    studio1_title: "Studio Dock One",
     studio2_image: defaultImage("/BLACKPR X WANNI174.JPG"),
-    studio2_title: "E20 SET",
+    studio2_title: "Studio Dock Two",
     studio3_image: defaultImage("https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200"),
-    studio3_title: "LUX SET",
+    studio3_title: "Studio Wharf",
   });
 
   useEffect(() => {
@@ -83,19 +83,19 @@ export default function Studios() {
 
   const studios = [
     {
-      id: "e16",
+      id: "studio-dock-one",
       title: content.studio1_title,
       subtitle: "Studio 1",
       image: content.studio1_image,
     },
     {
-      id: "e20",
+      id: "studio-dock-two",
       title: content.studio2_title,
       subtitle: "Studio 2",
       image: content.studio2_image,
     },
     {
-      id: "lux",
+      id: "studio-wharf",
       title: content.studio3_title,
       subtitle: "Studio 3",
       image: content.studio3_image,

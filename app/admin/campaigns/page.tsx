@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus, Trash2, Send, Users, Clock, Loader2, Play, Pause } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Send, Users, Clock, Loader2, Play, Pause, Mail, Calendar, ChevronDown, ChevronUp, Edit2, Copy } from "lucide-react";
 import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
-import SaveButton from "@/components/admin/SaveButton";
 import { supabase } from "@/lib/supabase";
 
 interface EmailTemplate {
@@ -40,24 +39,44 @@ interface CustomerContact {
   subscribed: boolean;
 }
 
+// Available merge tags for email templates
+const MERGE_TAGS = [
+  { tag: "{{customer_name}}", description: "Customer's full name" },
+  { tag: "{{customer_email}}", description: "Customer's email address" },
+  { tag: "{{booking_date}}", description: "Date of booking" },
+  { tag: "{{booking_time}}", description: "Time slot booked" },
+  { tag: "{{studio_name}}", description: "Name of studio booked" },
+  { tag: "{{total_amount}}", description: "Total booking amount" },
+  { tag: "{{amount_paid}}", description: "Amount already paid" },
+  { tag: "{{remaining_balance}}", description: "Balance due on arrival" },
+  { tag: "{{booking_details}}", description: "Full booking breakdown table" },
+  { tag: "{{studio_address}}", description: "Studio location address" },
+  { tag: "{{studio_directions}}", description: "How to get there info" },
+];
+
 export default function CampaignsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
   const [contacts, setContacts] = useState<CustomerContact[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [activeTab, setActiveTab] = useState<'templates' | 'campaigns' | 'contacts'>('campaigns');
+  const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
 
   // New template form
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplateSubject, setNewTemplateSubject] = useState("");
   const [newTemplateBody, setNewTemplateBody] = useState("");
 
   // New campaign form
+  const [showCampaignForm, setShowCampaignForm] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState("");
   const [newCampaignDescription, setNewCampaignDescription] = useState("");
   const [newCampaignTemplateId, setNewCampaignTemplateId] = useState("");
   const [newCampaignTrigger, setNewCampaignTrigger] = useState("after_booking");
-  const [newCampaignDelay, setNewCampaignDelay] = useState(24);
+  const [newCampaignDelayValue, setNewCampaignDelayValue] = useState(1);
+  const [newCampaignDelayUnit, setNewCampaignDelayUnit] = useState<'hours' | 'days'>('days');
   const [newCampaignAudience, setNewCampaignAudience] = useState("all");
 
   useEffect(() => {
@@ -66,30 +85,15 @@ export default function CampaignsPage() {
 
   async function loadData() {
     try {
-      // Load templates
-      const { data: templatesData } = await supabase
-        .from('email_templates')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [templatesRes, campaignsRes, contactsRes] = await Promise.all([
+        supabase.from('email_templates').select('*').order('created_at', { ascending: false }),
+        supabase.from('email_campaigns').select('*').order('created_at', { ascending: false }),
+        supabase.from('customer_contacts').select('*').order('created_at', { ascending: false }).limit(100)
+      ]);
 
-      if (templatesData) setTemplates(templatesData);
-
-      // Load campaigns
-      const { data: campaignsData } = await supabase
-        .from('email_campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (campaignsData) setCampaigns(campaignsData);
-
-      // Load contacts
-      const { data: contactsData } = await supabase
-        .from('customer_contacts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (contactsData) setContacts(contactsData);
+      if (templatesRes.data) setTemplates(templatesRes.data);
+      if (campaignsRes.data) setCampaigns(campaignsRes.data);
+      if (contactsRes.data) setContacts(contactsRes.data);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
@@ -97,50 +101,74 @@ export default function CampaignsPage() {
     }
   }
 
-  async function createTemplate() {
+  function resetTemplateForm() {
+    setNewTemplateName("");
+    setNewTemplateSubject("");
+    setNewTemplateBody("");
+    setEditingTemplate(null);
+    setShowTemplateForm(false);
+  }
+
+  function editTemplate(template: EmailTemplate) {
+    setEditingTemplate(template);
+    setNewTemplateName(template.name);
+    setNewTemplateSubject(template.subject);
+    setNewTemplateBody(template.body_html);
+    setShowTemplateForm(true);
+  }
+
+  async function saveTemplate() {
     if (!newTemplateName || !newTemplateSubject || !newTemplateBody) {
       alert('Please fill in all template fields');
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('email_templates')
-        .insert({
-          name: newTemplateName,
-          subject: newTemplateSubject,
-          body_html: newTemplateBody,
-          template_type: 'custom',
-        });
+      if (editingTemplate) {
+        const { error } = await supabase
+          .from('email_templates')
+          .update({
+            name: newTemplateName,
+            subject: newTemplateSubject,
+            body_html: newTemplateBody,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingTemplate.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('email_templates')
+          .insert({
+            name: newTemplateName,
+            subject: newTemplateSubject,
+            body_html: newTemplateBody,
+            template_type: 'custom',
+          });
+        if (error) throw error;
+      }
 
-      if (error) throw error;
-
-      setNewTemplateName("");
-      setNewTemplateSubject("");
-      setNewTemplateBody("");
+      resetTemplateForm();
       loadData();
-      alert('Template created successfully!');
+      alert(editingTemplate ? 'Template updated!' : 'Template created!');
     } catch (err) {
-      console.error('Error creating template:', err);
-      alert('Failed to create template');
+      console.error('Error saving template:', err);
+      alert('Failed to save template');
     }
   }
 
   async function deleteTemplate(id: string) {
-    if (!confirm('Are you sure you want to delete this template?')) return;
+    if (!confirm('Delete this template? Any campaigns using it will stop working.')) return;
 
     try {
-      const { error } = await supabase
-        .from('email_templates')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await supabase.from('email_templates').delete().eq('id', id);
       loadData();
     } catch (err) {
       console.error('Error deleting template:', err);
-      alert('Failed to delete template');
     }
+  }
+
+  function insertMergeTag(tag: string) {
+    setNewTemplateBody(prev => prev + tag);
   }
 
   async function createCampaign() {
@@ -148,6 +176,10 @@ export default function CampaignsPage() {
       alert('Please fill in campaign name and select a template');
       return;
     }
+
+    const delayHours = newCampaignDelayUnit === 'days'
+      ? newCampaignDelayValue * 24
+      : newCampaignDelayValue;
 
     try {
       const { error } = await supabase
@@ -157,7 +189,7 @@ export default function CampaignsPage() {
           description: newCampaignDescription,
           template_id: newCampaignTemplateId,
           trigger_type: newCampaignTrigger,
-          trigger_delay_hours: newCampaignDelay,
+          trigger_delay_hours: delayHours,
           target_audience: newCampaignAudience,
           is_active: true,
         });
@@ -167,8 +199,9 @@ export default function CampaignsPage() {
       setNewCampaignName("");
       setNewCampaignDescription("");
       setNewCampaignTemplateId("");
+      setShowCampaignForm(false);
       loadData();
-      alert('Campaign created successfully!');
+      alert('Campaign created!');
     } catch (err) {
       console.error('Error creating campaign:', err);
       alert('Failed to create campaign');
@@ -177,12 +210,7 @@ export default function CampaignsPage() {
 
   async function toggleCampaign(id: string, isActive: boolean) {
     try {
-      const { error } = await supabase
-        .from('email_campaigns')
-        .update({ is_active: !isActive })
-        .eq('id', id);
-
-      if (error) throw error;
+      await supabase.from('email_campaigns').update({ is_active: !isActive }).eq('id', id);
       loadData();
     } catch (err) {
       console.error('Error toggling campaign:', err);
@@ -190,20 +218,30 @@ export default function CampaignsPage() {
   }
 
   async function deleteCampaign(id: string) {
-    if (!confirm('Are you sure you want to delete this campaign?')) return;
-
+    if (!confirm('Delete this campaign?')) return;
     try {
-      const { error } = await supabase
-        .from('email_campaigns')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await supabase.from('email_campaigns').delete().eq('id', id);
       loadData();
     } catch (err) {
       console.error('Error deleting campaign:', err);
-      alert('Failed to delete campaign');
     }
+  }
+
+  function formatDelay(hours: number): string {
+    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''}`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days !== 1 ? 's' : ''}`;
+  }
+
+  function getTriggerLabel(trigger: string): string {
+    const labels: Record<string, string> = {
+      'after_booking': 'After Booking',
+      'after_deposit': 'After Deposit',
+      'after_enquiry': 'After Enquiry',
+      'before_booking': 'Before Booking Date',
+      'manual': 'Manual Send',
+    };
+    return labels[trigger] || trigger;
   }
 
   if (isLoading) {
@@ -230,11 +268,9 @@ export default function CampaignsPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm tracking-[0.3em] text-black/60 mb-2">MARKETING</p>
-            <h1 className="text-4xl font-light text-black">Email Campaigns</h1>
-          </div>
+        <div>
+          <p className="text-sm tracking-[0.3em] text-black/60 mb-2">MARKETING AUTOMATION</p>
+          <h1 className="text-4xl font-light text-black">Email Campaigns</h1>
         </div>
       </motion.div>
 
@@ -248,268 +284,495 @@ export default function CampaignsPage() {
         <div className="bg-white p-6 border border-black/10">
           <div className="flex items-center gap-3 mb-2">
             <Users className="w-5 h-5 text-black/40" />
-            <span className="text-sm text-black/60">Contacts</span>
+            <span className="text-sm text-black/60">Customer Contacts</span>
           </div>
           <p className="text-3xl font-light">{contacts.length}</p>
         </div>
         <div className="bg-white p-6 border border-black/10">
           <div className="flex items-center gap-3 mb-2">
-            <Send className="w-5 h-5 text-black/40" />
+            <Send className="w-5 h-5 text-green-500" />
             <span className="text-sm text-black/60">Active Campaigns</span>
           </div>
           <p className="text-3xl font-light">{campaigns.filter(c => c.is_active).length}</p>
         </div>
         <div className="bg-white p-6 border border-black/10">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-5 h-5 text-black/40" />
-            <span className="text-sm text-black/60">Templates</span>
+            <Mail className="w-5 h-5 text-black/40" />
+            <span className="text-sm text-black/60">Email Templates</span>
           </div>
           <p className="text-3xl font-light">{templates.length}</p>
         </div>
       </motion.div>
 
-      <div className="space-y-6">
-        {/* Email Templates */}
-        <Section title="Email Templates" description="Create reusable email templates for your campaigns">
-          {/* Existing Templates */}
-          {templates.length > 0 && (
-            <div className="mb-6 space-y-3">
-              {templates.map(template => (
-                <div key={template.id} className="flex items-center justify-between p-4 bg-black/5 rounded">
+      {/* Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.15 }}
+        className="flex gap-2 mb-6"
+      >
+        {(['campaigns', 'templates', 'contacts'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-6 py-3 text-sm tracking-widest transition-colors ${
+              activeTab === tab
+                ? 'bg-black text-white'
+                : 'bg-white border border-black/20 hover:border-black'
+            }`}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
+      </motion.div>
+
+      {/* Campaigns Tab */}
+      {activeTab === 'campaigns' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          {/* Create Campaign Button */}
+          {!showCampaignForm && (
+            <button
+              onClick={() => setShowCampaignForm(true)}
+              className="w-full py-4 border-2 border-dashed border-black/20 hover:border-black transition-colors flex items-center justify-center gap-2 text-black/60 hover:text-black"
+            >
+              <Plus className="w-5 h-5" />
+              Create New Campaign
+            </button>
+          )}
+
+          {/* Campaign Form */}
+          {showCampaignForm && (
+            <div className="bg-white border border-black/10 p-6">
+              <h3 className="text-lg font-medium mb-6">Create Automated Email Campaign</h3>
+
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <TextInput
+                    label="Campaign Name"
+                    value={newCampaignName}
+                    onChange={setNewCampaignName}
+                    placeholder="e.g., Post-Session Follow-up"
+                  />
                   <div>
-                    <p className="font-medium">{template.name}</p>
-                    <p className="text-sm text-black/60">{template.subject}</p>
-                    <span className="text-xs bg-black/10 px-2 py-1 rounded mt-1 inline-block">{template.template_type}</span>
+                    <label className="block text-sm font-medium text-black/70 mb-2">Email Template</label>
+                    <select
+                      value={newCampaignTemplateId}
+                      onChange={(e) => setNewCampaignTemplateId(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black"
+                    >
+                      <option value="">Select template...</option>
+                      {templates.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
                   </div>
+                </div>
+
+                <TextInput
+                  label="Description (optional)"
+                  value={newCampaignDescription}
+                  onChange={setNewCampaignDescription}
+                  placeholder="What this campaign does..."
+                />
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black/70 mb-2">Trigger Event</label>
+                    <select
+                      value={newCampaignTrigger}
+                      onChange={(e) => setNewCampaignTrigger(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black"
+                    >
+                      <option value="after_booking">After Booking Confirmed</option>
+                      <option value="after_deposit">After Deposit Paid</option>
+                      <option value="before_booking">Before Booking Date (Reminder)</option>
+                      <option value="after_enquiry">After Enquiry Submitted</option>
+                      <option value="manual">Manual Send Only</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-black/70 mb-2">
+                      {newCampaignTrigger === 'before_booking' ? 'Send Before' : 'Send After'}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={newCampaignDelayValue}
+                        onChange={(e) => setNewCampaignDelayValue(parseInt(e.target.value) || 0)}
+                        className="w-24 px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black"
+                        min="0"
+                      />
+                      <select
+                        value={newCampaignDelayUnit}
+                        onChange={(e) => setNewCampaignDelayUnit(e.target.value as 'hours' | 'days')}
+                        className="flex-1 px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black"
+                      >
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-black/70 mb-2">Target Audience</label>
+                    <select
+                      value={newCampaignAudience}
+                      onChange={(e) => setNewCampaignAudience(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black"
+                    >
+                      <option value="all">All Customers</option>
+                      <option value="e16_bookings">Studio Dock One Only</option>
+                      <option value="e20_bookings">Studio Dock Two Only</option>
+                      <option value="lux_bookings">Studio Wharf Only</option>
+                      <option value="deposit_customers">Deposit Payers Only</option>
+                      <option value="full_payment">Full Payment Only</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
                   <button
-                    onClick={() => deleteTemplate(template.id)}
-                    className="p-2 text-black/40 hover:text-red-600 transition-colors"
+                    onClick={createCampaign}
+                    className="px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    CREATE CAMPAIGN
+                  </button>
+                  <button
+                    onClick={() => setShowCampaignForm(false)}
+                    className="px-6 py-3 border border-black/20 text-sm tracking-widest hover:border-black transition-colors"
+                  >
+                    CANCEL
                   </button>
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
-          {/* New Template Form */}
-          <div className="border-t border-black/10 pt-6">
-            <h4 className="text-sm font-medium mb-4">Create New Template</h4>
-            <div className="grid gap-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <TextInput
-                  label="Template Name"
-                  value={newTemplateName}
-                  onChange={setNewTemplateName}
-                  placeholder="e.g., Follow-up Email"
-                />
-                <TextInput
-                  label="Email Subject"
-                  value={newTemplateSubject}
-                  onChange={setNewTemplateSubject}
-                  placeholder="e.g., Thank you for visiting!"
-                />
+          {/* Campaign List */}
+          {campaigns.length === 0 ? (
+            <div className="text-center py-12 bg-white border border-black/10">
+              <Send className="w-12 h-12 mx-auto text-black/20 mb-4" />
+              <p className="text-black/60">No campaigns yet. Create your first automated email campaign above.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {campaigns.map(campaign => {
+                const template = templates.find(t => t.id === campaign.template_id);
+                return (
+                  <div key={campaign.id} className="bg-white border border-black/10 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-medium">{campaign.name}</h3>
+                          <span className={`text-xs px-3 py-1 rounded-full ${
+                            campaign.is_active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {campaign.is_active ? 'Active' : 'Paused'}
+                          </span>
+                        </div>
+                        {campaign.description && (
+                          <p className="text-sm text-black/60 mb-3">{campaign.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {getTriggerLabel(campaign.trigger_type)}
+                          </span>
+                          <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {campaign.trigger_type === 'before_booking' ? 'Before: ' : 'After: '}
+                            {formatDelay(campaign.trigger_delay_hours)}
+                          </span>
+                          <span className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {campaign.target_audience === 'all' ? 'All Customers' : campaign.target_audience.replace('_', ' ')}
+                          </span>
+                          {template && (
+                            <span className="text-xs bg-black/5 text-black/70 px-3 py-1 rounded-full flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {template.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleCampaign(campaign.id, campaign.is_active)}
+                          className={`p-2 rounded transition-colors ${
+                            campaign.is_active
+                              ? 'text-green-600 hover:bg-green-50'
+                              : 'text-gray-400 hover:bg-gray-50'
+                          }`}
+                          title={campaign.is_active ? 'Pause' : 'Activate'}
+                        >
+                          {campaign.is_active ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                        </button>
+                        <button
+                          onClick={() => deleteCampaign(campaign.id)}
+                          className="p-2 text-black/40 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Campaign Ideas */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-6 rounded-lg">
+            <h3 className="font-medium text-blue-900 mb-3">Suggested Campaign Ideas</h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-white/50 p-4 rounded">
+                <p className="font-medium text-blue-800">Booking Reminder</p>
+                <p className="text-blue-600">Send 1 day before booking with directions and what to bring</p>
               </div>
-              <TextInput
-                label="Email Body (HTML supported)"
-                value={newTemplateBody}
-                onChange={setNewTemplateBody}
-                placeholder="<p>Your email content here...</p>"
-                multiline
-                rows={6}
-              />
-              <button
-                onClick={createTemplate}
-                className="self-start px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                CREATE TEMPLATE
-              </button>
+              <div className="bg-white/50 p-4 rounded">
+                <p className="font-medium text-blue-800">Follow-up & Review Request</p>
+                <p className="text-blue-600">Send 3 days after session asking for feedback</p>
+              </div>
+              <div className="bg-white/50 p-4 rounded">
+                <p className="font-medium text-blue-800">Return Offer</p>
+                <p className="text-blue-600">Send 2 weeks after with a discount code</p>
+              </div>
+              <div className="bg-white/50 p-4 rounded">
+                <p className="font-medium text-blue-800">Deposit Reminder</p>
+                <p className="text-blue-600">Remind deposit customers about remaining balance</p>
+              </div>
             </div>
           </div>
-        </Section>
+        </motion.div>
+      )}
 
-        {/* Campaigns */}
-        <Section title="Automated Campaigns" description="Set up automated emails triggered by customer actions">
-          {/* Existing Campaigns */}
-          {campaigns.length > 0 && (
-            <div className="mb-6 space-y-3">
-              {campaigns.map(campaign => (
-                <div key={campaign.id} className="flex items-center justify-between p-4 bg-black/5 rounded">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{campaign.name}</p>
-                      <span className={`text-xs px-2 py-1 rounded ${campaign.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {campaign.is_active ? 'Active' : 'Paused'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-black/60">{campaign.description}</p>
-                    <div className="flex gap-2 mt-1">
-                      <span className="text-xs bg-black/10 px-2 py-1 rounded">Trigger: {campaign.trigger_type}</span>
-                      <span className="text-xs bg-black/10 px-2 py-1 rounded">Delay: {campaign.trigger_delay_hours}h</span>
-                      <span className="text-xs bg-black/10 px-2 py-1 rounded">Audience: {campaign.target_audience}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleCampaign(campaign.id, campaign.is_active)}
-                      className={`p-2 transition-colors ${campaign.is_active ? 'text-green-600 hover:text-yellow-600' : 'text-gray-400 hover:text-green-600'}`}
-                      title={campaign.is_active ? 'Pause campaign' : 'Activate campaign'}
-                    >
-                      {campaign.is_active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    </button>
-                    <button
-                      onClick={() => deleteCampaign(campaign.id)}
-                      className="p-2 text-black/40 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Templates Tab */}
+      {activeTab === 'templates' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          {/* Create Template Button */}
+          {!showTemplateForm && (
+            <button
+              onClick={() => setShowTemplateForm(true)}
+              className="w-full py-4 border-2 border-dashed border-black/20 hover:border-black transition-colors flex items-center justify-center gap-2 text-black/60 hover:text-black"
+            >
+              <Plus className="w-5 h-5" />
+              Create New Template
+            </button>
           )}
 
-          {/* New Campaign Form */}
-          <div className="border-t border-black/10 pt-6">
-            <h4 className="text-sm font-medium mb-4">Create New Campaign</h4>
-            <div className="grid gap-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <TextInput
-                  label="Campaign Name"
-                  value={newCampaignName}
-                  onChange={setNewCampaignName}
-                  placeholder="e.g., Post-Booking Follow-up"
-                />
-                <div>
-                  <label className="block text-sm font-medium text-black/70 mb-2">Email Template</label>
-                  <select
-                    value={newCampaignTemplateId}
-                    onChange={(e) => setNewCampaignTemplateId(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-black/20 text-black focus:outline-none focus:border-black"
-                  >
-                    <option value="">Select a template...</option>
-                    {templates.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <TextInput
-                label="Description"
-                value={newCampaignDescription}
-                onChange={setNewCampaignDescription}
-                placeholder="What this campaign does..."
-              />
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black/70 mb-2">Trigger</label>
-                  <select
-                    value={newCampaignTrigger}
-                    onChange={(e) => setNewCampaignTrigger(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-black/20 text-black focus:outline-none focus:border-black"
-                  >
-                    <option value="after_booking">After Booking</option>
-                    <option value="after_deposit">After Deposit</option>
-                    <option value="after_enquiry">After Enquiry</option>
-                    <option value="manual">Manual Send</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black/70 mb-2">Delay (hours)</label>
-                  <input
-                    type="number"
-                    value={newCampaignDelay}
-                    onChange={(e) => setNewCampaignDelay(parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-white border border-black/20 text-black focus:outline-none focus:border-black"
-                    min="0"
+          {/* Template Form */}
+          {showTemplateForm && (
+            <div className="bg-white border border-black/10 p-6">
+              <h3 className="text-lg font-medium mb-6">
+                {editingTemplate ? 'Edit Template' : 'Create Email Template'}
+              </h3>
+
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <TextInput
+                    label="Template Name"
+                    value={newTemplateName}
+                    onChange={setNewTemplateName}
+                    placeholder="e.g., Post-Session Follow-up"
+                  />
+                  <TextInput
+                    label="Email Subject"
+                    value={newTemplateSubject}
+                    onChange={setNewTemplateSubject}
+                    placeholder="e.g., Thank you for visiting East Dock Studios!"
                   />
                 </div>
+
+                {/* Merge Tags */}
                 <div>
-                  <label className="block text-sm font-medium text-black/70 mb-2">Target Audience</label>
-                  <select
-                    value={newCampaignAudience}
-                    onChange={(e) => setNewCampaignAudience(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-black/20 text-black focus:outline-none focus:border-black"
+                  <label className="block text-sm font-medium text-black/70 mb-2">
+                    Insert Booking Details (click to add)
+                  </label>
+                  <div className="flex flex-wrap gap-2 p-4 bg-black/5 rounded mb-4">
+                    {MERGE_TAGS.map(({ tag, description }) => (
+                      <button
+                        key={tag}
+                        onClick={() => insertMergeTag(tag)}
+                        className="text-xs bg-white px-3 py-2 rounded border border-black/10 hover:border-black hover:bg-black hover:text-white transition-colors"
+                        title={description}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black/70 mb-2">
+                    Email Body (HTML supported)
+                  </label>
+                  <textarea
+                    value={newTemplateBody}
+                    onChange={(e) => setNewTemplateBody(e.target.value)}
+                    placeholder={`<h2>Thank you for your booking!</h2>
+
+<p>Hi {{customer_name}},</p>
+
+<p>We're excited to see you at {{studio_name}} on {{booking_date}} at {{booking_time}}.</p>
+
+<h3>Your Booking Details:</h3>
+{{booking_details}}
+
+<p><strong>Total:</strong> {{total_amount}}</p>
+<p><strong>Paid:</strong> {{amount_paid}}</p>
+<p><strong>Balance Due:</strong> {{remaining_balance}}</p>
+
+<h3>How to Find Us:</h3>
+<p>{{studio_address}}</p>
+{{studio_directions}}
+
+<p>See you soon!</p>
+<p>The East Dock Studios Team</p>`}
+                    rows={16}
+                    className="w-full px-4 py-3 bg-white border border-black/20 focus:outline-none focus:border-black font-mono text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={saveTemplate}
+                    className="px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors"
                   >
-                    <option value="all">All Customers</option>
-                    <option value="e16_bookings">Studio Dock One Bookings</option>
-                    <option value="e20_bookings">Studio Dock Two Bookings</option>
-                    <option value="lux_bookings">Studio Wharf Bookings</option>
-                    <option value="deposit_customers">Deposit Customers Only</option>
-                  </select>
+                    {editingTemplate ? 'UPDATE TEMPLATE' : 'CREATE TEMPLATE'}
+                  </button>
+                  <button
+                    onClick={resetTemplateForm}
+                    className="px-6 py-3 border border-black/20 text-sm tracking-widest hover:border-black transition-colors"
+                  >
+                    CANCEL
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={createCampaign}
-                className="self-start px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                CREATE CAMPAIGN
-              </button>
-            </div>
-          </div>
-        </Section>
-
-        {/* Customer Contacts */}
-        <Section title="Customer Contacts" description="View customers who have booked or enquired">
-          {contacts.length === 0 ? (
-            <p className="text-black/60 text-center py-8">No contacts yet. Contacts are automatically added when customers book or enquire.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-black/10">
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Name</th>
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Email</th>
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Source</th>
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Studio</th>
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Bookings</th>
-                    <th className="text-left text-sm font-medium text-black/60 py-3 px-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contacts.map(contact => (
-                    <tr key={contact.id} className="border-b border-black/5">
-                      <td className="py-3 px-2">{contact.name || '-'}</td>
-                      <td className="py-3 px-2 text-sm">{contact.email}</td>
-                      <td className="py-3 px-2">
-                        <span className="text-xs bg-black/5 px-2 py-1 rounded">{contact.source}</span>
-                      </td>
-                      <td className="py-3 px-2 text-sm">{contact.studio || '-'}</td>
-                      <td className="py-3 px-2 text-sm">{contact.total_bookings}</td>
-                      <td className="py-3 px-2">
-                        <span className={`text-xs px-2 py-1 rounded ${contact.subscribed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {contact.subscribed ? 'Subscribed' : 'Unsubscribed'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           )}
-        </Section>
 
-        {/* Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="p-6 bg-blue-50 border border-blue-200 rounded-lg"
-        >
-          <h3 className="font-medium text-blue-900 mb-2">How Automated Campaigns Work</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• <strong>After Booking:</strong> Email sent X hours after a customer completes a booking</li>
-            <li>• <strong>After Deposit:</strong> Email sent X hours after a deposit payment is received</li>
-            <li>• <strong>After Enquiry:</strong> Email sent X hours after a membership/service enquiry</li>
-            <li>• <strong>Manual Send:</strong> Manually trigger emails to selected contacts</li>
-          </ul>
-          <p className="text-sm text-blue-700 mt-3">
-            Customer contacts are automatically saved when they make a booking or submit an enquiry.
-          </p>
+          {/* Template List */}
+          {templates.length === 0 ? (
+            <div className="text-center py-12 bg-white border border-black/10">
+              <Mail className="w-12 h-12 mx-auto text-black/20 mb-4" />
+              <p className="text-black/60">No templates yet. Create your first email template above.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {templates.map(template => (
+                <div key={template.id} className="bg-white border border-black/10">
+                  <div
+                    className="p-6 cursor-pointer"
+                    onClick={() => setExpandedTemplate(expandedTemplate === template.id ? null : template.id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="font-medium">{template.name}</h3>
+                          <span className="text-xs bg-black/5 px-2 py-1 rounded">{template.template_type}</span>
+                        </div>
+                        <p className="text-sm text-black/60">Subject: {template.subject}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); editTemplate(template); }}
+                          className="p-2 text-black/40 hover:text-black hover:bg-black/5 rounded transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteTemplate(template.id); }}
+                          className="p-2 text-black/40 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        {expandedTemplate === template.id ? (
+                          <ChevronUp className="w-5 h-5 text-black/40" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-black/40" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {expandedTemplate === template.id && (
+                    <div className="px-6 pb-6 border-t border-black/10">
+                      <p className="text-xs text-black/40 mt-4 mb-2">PREVIEW:</p>
+                      <div
+                        className="bg-gray-50 p-4 rounded text-sm prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: template.body_html }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
-      </div>
+      )}
+
+      {/* Contacts Tab */}
+      {activeTab === 'contacts' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="bg-white border border-black/10">
+            {contacts.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 mx-auto text-black/20 mb-4" />
+                <p className="text-black/60">No contacts yet.</p>
+                <p className="text-sm text-black/40">Contacts are automatically added when customers book or enquire.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-black/5">
+                    <tr>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Name</th>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Email</th>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Source</th>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Studio</th>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Bookings</th>
+                      <th className="text-left text-xs font-medium text-black/60 py-4 px-6 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5">
+                    {contacts.map(contact => (
+                      <tr key={contact.id} className="hover:bg-black/[0.02]">
+                        <td className="py-4 px-6 font-medium">{contact.name || '-'}</td>
+                        <td className="py-4 px-6 text-sm text-black/70">{contact.email}</td>
+                        <td className="py-4 px-6">
+                          <span className="text-xs bg-black/5 px-2 py-1 rounded capitalize">{contact.source}</span>
+                        </td>
+                        <td className="py-4 px-6 text-sm">{contact.studio || '-'}</td>
+                        <td className="py-4 px-6 text-sm">{contact.total_bookings}</td>
+                        <td className="py-4 px-6">
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            contact.subscribed
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {contact.subscribed ? 'Subscribed' : 'Unsubscribed'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

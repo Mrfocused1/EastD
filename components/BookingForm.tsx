@@ -30,9 +30,9 @@ const defaultFields: FormField[] = [
     type: "select",
     required: true,
     options: [
-      { value: "e16", label: "E16 SET" },
-      { value: "e20", label: "E20 SET" },
-      { value: "lux", label: "LUX SET" },
+      { value: "studio-dock-one", label: "Studio Dock One" },
+      { value: "studio-dock-two", label: "Studio Dock Two" },
+      { value: "studio-wharf", label: "Studio Wharf" },
     ],
     order: 1,
   },
@@ -357,9 +357,9 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [studioTitles, setStudioTitles] = useState({
-    e16: "E16 SET",
-    e20: "E20 SET",
-    lux: "LUX SET",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
   });
 
   // Pricing state
@@ -413,7 +413,7 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         .select("key, value")
         .eq("page", "global")
         .eq("section", "settings")
-        .in("key", ["e16_title", "e20_title", "lux_title"]);
+        .in("key", ["studio_dock_one_title", "studio_dock_two_title", "studio_wharf_title"]);
 
       if (error) {
         console.error("Error loading studio titles:", error);
@@ -421,11 +421,11 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
       }
 
       if (data && data.length > 0) {
-        const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+        const newTitles = { studioDockOne: "Studio Dock One", studioDockTwo: "Studio Dock Two", studioWharf: "Studio Wharf" };
         data.forEach((item: { key: string; value: string }) => {
-          if (item.key === "e16_title") newTitles.e16 = item.value;
-          if (item.key === "e20_title") newTitles.e20 = item.value;
-          if (item.key === "lux_title") newTitles.lux = item.value;
+          if (item.key === "studio_dock_one_title") newTitles.studioDockOne = item.value;
+          if (item.key === "studio_dock_two_title") newTitles.studioDockTwo = item.value;
+          if (item.key === "studio_wharf_title") newTitles.studioWharf = item.value;
         });
         setStudioTitles(newTitles);
       }
@@ -569,9 +569,9 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
   const getStudioOptions = (field: FormField) => {
     if (field.name === "studio") {
       return [
-        { value: "e16", label: studioTitles.e16 },
-        { value: "e20", label: studioTitles.e20 },
-        { value: "lux", label: studioTitles.lux },
+        { value: "studio-dock-one", label: studioTitles.studioDockOne },
+        { value: "studio-dock-two", label: studioTitles.studioDockTwo },
+        { value: "studio-wharf", label: studioTitles.studioWharf },
       ];
     }
     return field.options || [];

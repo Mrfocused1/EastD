@@ -33,9 +33,9 @@ const defaultFields: FormField[] = [
     type: "select",
     required: true,
     options: [
-      { value: "e16", label: "E16 SET" },
-      { value: "e20", label: "E20 SET" },
-      { value: "lux", label: "LUX SET" },
+      { value: "studio-dock-one", label: "Studio Dock One" },
+      { value: "studio-dock-two", label: "Studio Dock Two" },
+      { value: "studio-wharf", label: "Studio Wharf" },
     ],
     order: 1,
   },

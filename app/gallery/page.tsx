@@ -16,18 +16,18 @@ interface GalleryImage {
 }
 
 const defaultImages: GalleryImage[] = [
-  { id: "1", url: "/BLACKPR X WANNI115.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "2", url: "/BLACKPR X WANNI121.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "3", url: "/BLACKPR X WANNI171.JPG", title: "E20 Studio", category: "E20 SET" },
-  { id: "4", url: "/BLACKPR X WANNI174.JPG", title: "E20 Studio", category: "E20 SET" },
-  { id: "5", url: "/gallery/BLACKPR X WANNI111.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "6", url: "/gallery/BLACKPR X WANNI116.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "7", url: "/gallery/BLACKPR X WANNI117.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "8", url: "/gallery/BLACKPR X WANNI122.JPG", title: "E16 Studio", category: "E16 SET" },
-  { id: "9", url: "/Gallery 2/BLACKPR X WANNI161.JPG", title: "E20 Studio", category: "E20 SET" },
-  { id: "10", url: "/Gallery 2/BLACKPR X WANNI163.JPG", title: "E20 Studio", category: "E20 SET" },
-  { id: "11", url: "/Gallery 2/BLACKPR X WANNI164.JPG", title: "E20 Studio", category: "E20 SET" },
-  { id: "12", url: "/Gallery 2/BLACKPR X WANNI166.JPG", title: "E20 Studio", category: "E20 SET" },
+  { id: "1", url: "/BLACKPR X WANNI115.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "2", url: "/BLACKPR X WANNI121.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "3", url: "/BLACKPR X WANNI171.JPG", title: "E20 Studio", category: "Studio Dock Two" },
+  { id: "4", url: "/BLACKPR X WANNI174.JPG", title: "E20 Studio", category: "Studio Dock Two" },
+  { id: "5", url: "/gallery/BLACKPR X WANNI111.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "6", url: "/gallery/BLACKPR X WANNI116.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "7", url: "/gallery/BLACKPR X WANNI117.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "8", url: "/gallery/BLACKPR X WANNI122.JPG", title: "E16 Studio", category: "Studio Dock One" },
+  { id: "9", url: "/Gallery 2/BLACKPR X WANNI161.JPG", title: "E20 Studio", category: "Studio Dock Two" },
+  { id: "10", url: "/Gallery 2/BLACKPR X WANNI163.JPG", title: "E20 Studio", category: "Studio Dock Two" },
+  { id: "11", url: "/Gallery 2/BLACKPR X WANNI164.JPG", title: "E20 Studio", category: "Studio Dock Two" },
+  { id: "12", url: "/Gallery 2/BLACKPR X WANNI166.JPG", title: "E20 Studio", category: "Studio Dock Two" },
 ];
 
 export default function GalleryPage() {
@@ -35,9 +35,9 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [studioTitles, setStudioTitles] = useState({
-    e16: "E16 SET",
-    e20: "E20 SET",
-    lux: "LUX SET",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
   });
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function GalleryPage() {
         .select("key, value")
         .eq("page", "global")
         .eq("section", "settings")
-        .in("key", ["e16_title", "e20_title", "lux_title"]);
+        .in("key", ["studio_dock_one_title", "studio_dock_two_title", "studio_wharf_title"]);
 
       if (error) {
         console.error("Error loading studio titles:", error);
@@ -90,11 +90,11 @@ export default function GalleryPage() {
       }
 
       if (data && data.length > 0) {
-        const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET" };
+        const newTitles = { studioDockOne: "Studio Dock One", studioDockTwo: "Studio Dock Two", studioWharf: "Studio Wharf" };
         data.forEach((item: { key: string; value: string }) => {
-          if (item.key === "e16_title") newTitles.e16 = item.value;
-          if (item.key === "e20_title") newTitles.e20 = item.value;
-          if (item.key === "lux_title") newTitles.lux = item.value;
+          if (item.key === "studio_dock_one_title") newTitles.studioDockOne = item.value;
+          if (item.key === "studio_dock_two_title") newTitles.studioDockTwo = item.value;
+          if (item.key === "studio_wharf_title") newTitles.studioWharf = item.value;
         });
         setStudioTitles(newTitles);
       }
@@ -103,14 +103,14 @@ export default function GalleryPage() {
     }
   }
 
-  const categories = ["All", studioTitles.e16, studioTitles.e20, studioTitles.lux];
+  const categories = ["All", studioTitles.studioDockOne, studioTitles.studioDockTwo, studioTitles.studioWharf];
 
   const filteredImages = selectedCategory === "All"
     ? images
     : images.filter((img) => {
-        if (selectedCategory === studioTitles.e16) return img.category === "E16 SET";
-        if (selectedCategory === studioTitles.e20) return img.category === "E20 SET";
-        if (selectedCategory === studioTitles.lux) return img.category === "LUX SET";
+        if (selectedCategory === studioTitles.studioDockOne) return img.category === "Studio Dock One";
+        if (selectedCategory === studioTitles.studioDockTwo) return img.category === "Studio Dock Two";
+        if (selectedCategory === studioTitles.studioWharf) return img.category === "Studio Wharf";
         return true;
       });
 

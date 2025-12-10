@@ -59,15 +59,15 @@ export default function PhotographyPage() {
 
   const [contentLoaded, setContentLoaded] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
-    e16: "E16 SET",
-    e20: "E20 SET",
-    lux: "LUX SET",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
     photography: "Photography",
   });
   const [studioThumbnails, setStudioThumbnails] = useState({
-    e16: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    e20: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    lux: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioDockOne: "https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioDockTwo: "https://images.pexels.com/photos/6957097/pexels-photo-6957097.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    studioWharf: "https://images.pexels.com/photos/6957089/pexels-photo-6957089.jpeg?auto=compress&cs=tinysrgb&w=1200",
     photography: "https://images.pexels.com/photos/3379934/pexels-photo-3379934.jpeg?auto=compress&cs=tinysrgb&w=1200",
   });
   const [content, setContent] = useState<PhotographyContent>({
@@ -180,7 +180,7 @@ export default function PhotographyPage() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title', 'e16_thumbnail', 'e20_thumbnail', 'lux_thumbnail', 'photography_thumbnail']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title', 'photography_title', 'studio_dock_one_thumbnail', 'studio_dock_two_thumbnail', 'studio_wharf_thumbnail', 'photography_thumbnail']);
 
         if (error) {
           console.error('Error loading studio settings:', error);
@@ -188,16 +188,16 @@ export default function PhotographyPage() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
+          const newTitles = { studioDockOne: "Studio Dock One", studioDockTwo: "Studio Dock Two", studioWharf: "Studio Wharf", photography: "Photography" };
           const newThumbnails = { ...studioThumbnails };
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') newTitles.e16 = item.value;
-            if (item.key === 'e20_title') newTitles.e20 = item.value;
-            if (item.key === 'lux_title') newTitles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') newTitles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') newTitles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') newTitles.studioWharf = item.value;
             if (item.key === 'photography_title') newTitles.photography = item.value;
-            if (item.key === 'e16_thumbnail') newThumbnails.e16 = item.value;
-            if (item.key === 'e20_thumbnail') newThumbnails.e20 = item.value;
-            if (item.key === 'lux_thumbnail') newThumbnails.lux = item.value;
+            if (item.key === 'studio_dock_one_thumbnail') newThumbnails.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_thumbnail') newThumbnails.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_thumbnail') newThumbnails.studioWharf = item.value;
             if (item.key === 'photography_thumbnail') newThumbnails.photography = item.value;
           });
           setStudioTitles(newTitles);
@@ -422,9 +422,9 @@ export default function PhotographyPage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { name: studioTitles.e16, slug: "e16", image: studioThumbnails.e16 },
-              { name: studioTitles.e20, slug: "e20", image: studioThumbnails.e20 },
-              { name: studioTitles.lux, slug: "lux", image: studioThumbnails.lux }
+              { name: studioTitles.studioDockOne, slug: "studio-dock-one", image: studioThumbnails.studioDockOne },
+              { name: studioTitles.studioDockTwo, slug: "studio-dock-two", image: studioThumbnails.studioDockTwo },
+              { name: studioTitles.studioWharf, slug: "studio-wharf", image: studioThumbnails.studioWharf }
             ].map((studio, index) => (
               <Link key={`photography-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
                 <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />

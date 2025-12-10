@@ -12,9 +12,9 @@ export default function Header() {
   const [studiosDropdownOpen, setStudiosDropdownOpen] = useState(false);
   const [mobileStudiosOpen, setMobileStudiosOpen] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
-    e16: "E16 SET",
-    e20: "E20 SET",
-    lux: "LUX SET",
+    studioDockOne: "Studio Dock One",
+    studioDockTwo: "Studio Dock Two",
+    studioWharf: "Studio Wharf",
     photography: "Photography",
   });
 
@@ -26,7 +26,7 @@ export default function Header() {
           .select('key, value')
           .eq('page', 'global')
           .eq('section', 'settings')
-          .in('key', ['e16_title', 'e20_title', 'lux_title', 'photography_title']);
+          .in('key', ['studio_dock_one_title', 'studio_dock_two_title', 'studio_wharf_title', 'photography_title']);
 
         if (error) {
           console.error('Error loading studio titles:', error);
@@ -34,11 +34,11 @@ export default function Header() {
         }
 
         if (data && data.length > 0) {
-          const newTitles = { e16: "E16 SET", e20: "E20 SET", lux: "LUX SET", photography: "Photography" };
+          const newTitles = { studioDockOne: "Studio Dock One", studioDockTwo: "Studio Dock Two", studioWharf: "Studio Wharf", photography: "Photography" };
           data.forEach((item: { key: string; value: string }) => {
-            if (item.key === 'e16_title') newTitles.e16 = item.value;
-            if (item.key === 'e20_title') newTitles.e20 = item.value;
-            if (item.key === 'lux_title') newTitles.lux = item.value;
+            if (item.key === 'studio_dock_one_title') newTitles.studioDockOne = item.value;
+            if (item.key === 'studio_dock_two_title') newTitles.studioDockTwo = item.value;
+            if (item.key === 'studio_wharf_title') newTitles.studioWharf = item.value;
             if (item.key === 'photography_title') newTitles.photography = item.value;
           });
           setStudioTitles(newTitles);
@@ -97,22 +97,22 @@ export default function Header() {
                     className="absolute top-full left-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 min-w-[180px]"
                   >
                     <Link
-                      href="/studios/e16"
+                      href="/studios/studio-dock-one"
                       className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
                     >
-                      {studioTitles.e16}
+                      {studioTitles.studioDockOne}
                     </Link>
                     <Link
-                      href="/studios/e20"
+                      href="/studios/studio-dock-two"
                       className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
                     >
-                      {studioTitles.e20}
+                      {studioTitles.studioDockTwo}
                     </Link>
                     <Link
-                      href="/studios/lux"
+                      href="/studios/studio-wharf"
                       className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
                     >
-                      {studioTitles.lux}
+                      {studioTitles.studioWharf}
                     </Link>
                     <Link
                       href="/studios/photography"
@@ -205,25 +205,25 @@ export default function Header() {
                       className="flex flex-col items-center space-y-4 mt-4 overflow-hidden"
                     >
                       <Link
-                        href="/studios/e16"
+                        href="/studios/studio-dock-one"
                         onClick={() => setMobileMenuOpen(false)}
                         className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
                       >
-                        {studioTitles.e16}
+                        {studioTitles.studioDockOne}
                       </Link>
                       <Link
-                        href="/studios/e20"
+                        href="/studios/studio-dock-two"
                         onClick={() => setMobileMenuOpen(false)}
                         className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
                       >
-                        {studioTitles.e20}
+                        {studioTitles.studioDockTwo}
                       </Link>
                       <Link
-                        href="/studios/lux"
+                        href="/studios/studio-wharf"
                         onClick={() => setMobileMenuOpen(false)}
                         className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
                       >
-                        {studioTitles.lux}
+                        {studioTitles.studioWharf}
                       </Link>
                       <Link
                         href="/studios/photography"
