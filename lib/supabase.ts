@@ -1,41 +1,57 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Create a mock client for when env vars are not available
+const createMockClient = (): SupabaseClient => {
+  const mockResult = { data: [], error: null };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createMockQuery = (): any => {
+    const query = {
+      eq: () => createMockQuery(),
+      in: () => createMockQuery(),
+      select: () => createMockQuery(),
+      order: () => createMockQuery(),
+      single: () => Promise.resolve(mockResult),
+      then: (resolve: (value: typeof mockResult) => void) => Promise.resolve(mockResult).then(resolve),
+      catch: () => Promise.resolve(mockResult),
+      finally: () => Promise.resolve(mockResult),
+    };
+    return query;
+  };
+  return {
+    from: () => ({
+      select: createMockQuery,
+      insert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
+      update: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }),
+      upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
+      delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
+    }),
+    storage: {
+      from: () => ({
+        upload: () => Promise.resolve({ data: null, error: null }),
+        remove: () => Promise.resolve({ error: null }),
+        getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      }),
+    },
+  } as unknown as SupabaseClient;
+};
 
 // Create a dummy client for build time when env vars are not available
 const createSupabaseClient = (): SupabaseClient => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Check if we're in a browser environment and env vars are missing
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Return a mock client for build time
-    const mockResult = { data: [], error: null };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const createMockQuery = (): any => {
-      const query = {
-        eq: () => createMockQuery(),
-        in: () => createMockQuery(),
-        select: () => createMockQuery(),
-        order: () => createMockQuery(),
-        then: (resolve: (value: typeof mockResult) => void) => Promise.resolve(mockResult).then(resolve),
-        catch: () => Promise.resolve(mockResult),
-        finally: () => Promise.resolve(mockResult),
-      };
-      return query;
-    };
-    return {
-      from: () => ({
-        select: createMockQuery,
-        upsert: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
-      }),
-      storage: {
-        from: () => ({
-          upload: () => Promise.resolve({ data: null, error: null }),
-          remove: () => Promise.resolve({ error: null }),
-          getPublicUrl: () => ({ data: { publicUrl: '' } }),
-        }),
-      },
-    } as unknown as SupabaseClient;
+    console.warn('Supabase environment variables not found, using mock client');
+    return createMockClient();
   }
-  return createClient(supabaseUrl, supabaseAnonKey);
+
+  try {
+    return createClient(supabaseUrl, supabaseAnonKey);
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error);
+    return createMockClient();
+  }
 };
 
 export const supabase = createSupabaseClient();
