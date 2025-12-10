@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2 } from "lucide-react";
-import { calculateBookingTotal, formatPrice, StudioType, BookingLength } from "@/lib/stripe";
+import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from "@/lib/stripe";
 
 interface DropdownOption {
   value: string;
@@ -362,9 +362,14 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
     lux: "LUX SET",
   });
 
+  // Pricing state
+  const [pricingStudios, setPricingStudios] = useState<StudioPricing[]>(DEFAULT_STUDIOS);
+  const [pricingAddons, setPricingAddons] = useState<AddonPricing[]>(DEFAULT_ADDONS);
+
   useEffect(() => {
     loadFormConfig();
     loadStudioTitles();
+    loadPricing();
   }, []);
 
   useEffect(() => {
@@ -423,6 +428,42 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
           if (item.key === "lux_title") newTitles.lux = item.value;
         });
         setStudioTitles(newTitles);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  }
+
+  async function loadPricing() {
+    try {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("key, value")
+        .eq("page", "pricing")
+        .eq("section", "config");
+
+      if (error) {
+        console.error("Error loading pricing:", error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key === "studios") {
+            try {
+              setPricingStudios(JSON.parse(item.value));
+            } catch (e) {
+              console.error("Error parsing studios:", e);
+            }
+          }
+          if (item.key === "addons") {
+            try {
+              setPricingAddons(JSON.parse(item.value));
+            } catch (e) {
+              console.error("Error parsing addons:", e);
+            }
+          }
+        });
       }
     } catch (err) {
       console.error("Error:", err);
@@ -510,11 +551,17 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
       return null;
     }
 
-    return calculateBookingTotal(studio, bookingLength, {
-      cameraLens: formData.cameraLens,
-      videoSwitcher: formData.videoSwitcher,
-      accessories: formData.accessories,
-    });
+    return calculateBookingTotal(
+      studio,
+      bookingLength,
+      {
+        cameraLens: formData.cameraLens,
+        videoSwitcher: formData.videoSwitcher,
+        accessories: formData.accessories,
+      },
+      pricingStudios,
+      pricingAddons
+    );
   };
 
   const bookingTotal = getBookingTotal();

@@ -12,7 +12,8 @@ import {
   ClipboardList,
   Camera,
   Briefcase,
-  Users
+  Users,
+  PoundSterling
 } from "lucide-react";
 
 const pages = [
@@ -85,6 +86,13 @@ const pages = [
     icon: Users,
     description: "Edit membership page content and benefits",
     preview: "/membership",
+  },
+  {
+    name: "Pricing",
+    href: "/admin/pricing",
+    icon: PoundSterling,
+    description: "Manage studio pricing and add-on packages",
+    preview: "/booking",
   },
 ];
 

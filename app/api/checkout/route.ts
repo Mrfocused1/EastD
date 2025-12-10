@@ -1,5 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, calculateBookingTotal, STUDIO_PRICING, StudioType, BookingLength } from '@/lib/stripe';
+import { stripe, calculateBookingTotal, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from '@/lib/stripe';
+import { createClient } from '@supabase/supabase-js';
+
+// Create server-side Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
+
+async function loadPricing(): Promise<{ studios: StudioPricing[]; addons: AddonPricing[] }> {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('key, value')
+      .eq('page', 'pricing')
+      .eq('section', 'config');
+
+    if (error || !data || data.length === 0) {
+      return { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS };
+    }
+
+    let studios = DEFAULT_STUDIOS;
+    let addons = DEFAULT_ADDONS;
+
+    data.forEach((item: { key: string; value: string }) => {
+      if (item.key === 'studios') {
+        try {
+          studios = JSON.parse(item.value);
+        } catch (e) {
+          console.error('Error parsing studios:', e);
+        }
+      }
+      if (item.key === 'addons') {
+        try {
+          addons = JSON.parse(item.value);
+        } catch (e) {
+          console.error('Error parsing addons:', e);
+        }
+      }
+    });
+
+    return { studios, addons };
+  } catch (err) {
+    console.error('Error loading pricing:', err);
+    return { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS };
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,19 +72,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate studio type
-    if (!STUDIO_PRICING[studio as StudioType]) {
+    // Load pricing from database
+    const { studios, addons } = await loadPricing();
+
+    // Validate studio exists
+    const studioData = studios.find(s => s.id === studio);
+    if (!studioData) {
       return NextResponse.json(
         { error: 'Invalid studio selection' },
         { status: 400 }
       );
     }
 
-    // Calculate total
+    // Calculate total with dynamic pricing
     const { total, breakdown } = calculateBookingTotal(
       studio as StudioType,
       bookingLength as BookingLength,
-      { cameraLens, videoSwitcher, accessories, guestCount }
+      { cameraLens, videoSwitcher, accessories, guestCount },
+      studios,
+      addons
     );
 
     if (total === 0) {

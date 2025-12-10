@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 
 // Server-side Stripe instance
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-11-17.clover',
 });
 
 // Client-side Stripe promise
@@ -11,89 +11,122 @@ export const getStripe = () => {
   return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 };
 
-// Pricing configuration (in pence/cents)
-export const STUDIO_PRICING = {
-  e16: {
+// Types for pricing
+export interface StudioPackage {
+  id: string;
+  label: string;
+  hours: number;
+  price: number;
+}
+
+export interface StudioPricing {
+  id: string;
+  name: string;
+  packages: StudioPackage[];
+}
+
+export interface AddonPricing {
+  id: string;
+  category: string;
+  label: string;
+  price: number;
+}
+
+// Default pricing configuration (in pence) - used as fallback
+export const DEFAULT_STUDIOS: StudioPricing[] = [
+  {
+    id: 'e16',
     name: 'Studio Dock One (E16)',
-    minimum2hrs: { price: 15000, label: 'Minimum 2 Hours', hours: 2 },
-    halfday4hrs: { price: 28000, label: 'Half Day (4 Hours)', hours: 4 },
-    fullday8hrs: { price: 50000, label: 'Full Day (8 Hours)', hours: 8 },
+    packages: [
+      { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 15000 },
+      { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 28000 },
+      { id: 'fullday8hrs', label: 'Full Day (8 Hours)', hours: 8, price: 50000 },
+    ],
   },
-  e20: {
+  {
+    id: 'e20',
     name: 'Studio Dock Two (E20)',
-    minimum2hrs: { price: 15000, label: 'Minimum 2 Hours', hours: 2 },
-    halfday4hrs: { price: 28000, label: 'Half Day (4 Hours)', hours: 4 },
-    fullday8hrs: { price: 50000, label: 'Full Day (8 Hours)', hours: 8 },
+    packages: [
+      { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 15000 },
+      { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 28000 },
+      { id: 'fullday8hrs', label: 'Full Day (8 Hours)', hours: 8, price: 50000 },
+    ],
   },
-  lux: {
+  {
+    id: 'lux',
     name: 'Studio Wharf (LUX)',
-    minimum2hrs: { price: 20000, label: 'Minimum 2 Hours', hours: 2 },
-    halfday4hrs: { price: 38000, label: 'Half Day (4 Hours)', hours: 4 },
-    fullday8hrs: { price: 70000, label: 'Full Day (8 Hours)', hours: 8 },
+    packages: [
+      { id: 'minimum2hrs', label: 'Minimum 2 Hours', hours: 2, price: 20000 },
+      { id: 'halfday4hrs', label: 'Half Day (4 Hours)', hours: 4, price: 38000 },
+      { id: 'fullday8hrs', label: 'Full Day (8 Hours)', hours: 8, price: 70000 },
+    ],
   },
-} as const;
+];
 
-// Add-on pricing (in pence)
-export const ADDON_PRICING = {
-  cameraLens: {
-    quantity2more: { price: 3000, label: 'Additional Camera & Lens (up to 2 more)' },
-  },
-  videoSwitcher: {
-    halfday: { price: 3500, label: 'Video Switcher Engineer - Half Day' },
-    fullday: { price: 6000, label: 'Video Switcher Engineer - Full Day' },
-  },
-  accessories: {
-    teleprompter: { price: 2500, label: 'Teleprompter' },
-  },
-  guests: {
-    perPerson: { price: 500, label: 'Additional Guest' },
-  },
-} as const;
+export const DEFAULT_ADDONS: AddonPricing[] = [
+  { id: 'quantity2more', category: 'cameraLens', label: 'Additional Camera & Lens', price: 3000 },
+  { id: 'halfday', category: 'videoSwitcher', label: 'Video Switcher Engineer - Half Day', price: 3500 },
+  { id: 'fullday', category: 'videoSwitcher', label: 'Video Switcher Engineer - Full Day', price: 6000 },
+  { id: 'teleprompter', category: 'accessories', label: 'Teleprompter', price: 2500 },
+  { id: 'guest', category: 'guests', label: 'Additional Guest (per person)', price: 500 },
+];
 
-export type StudioType = keyof typeof STUDIO_PRICING;
-export type BookingLength = 'minimum2hrs' | 'halfday4hrs' | 'fullday8hrs';
+export type StudioType = 'e16' | 'e20' | 'lux';
+export type BookingLength = string;
 
 export function calculateBookingTotal(
-  studio: StudioType,
-  bookingLength: BookingLength,
+  studioId: StudioType,
+  bookingLengthId: BookingLength,
   addons: {
     cameraLens?: string;
     videoSwitcher?: string;
     accessories?: string;
     guestCount?: number;
-  }
+  },
+  studios: StudioPricing[] = DEFAULT_STUDIOS,
+  addonsList: AddonPricing[] = DEFAULT_ADDONS
 ): { total: number; breakdown: { item: string; price: number }[] } {
   const breakdown: { item: string; price: number }[] = [];
 
-  // Base studio price
-  const studioPrice = STUDIO_PRICING[studio]?.[bookingLength];
-  if (studioPrice) {
+  // Find studio and package
+  const studio = studios.find(s => s.id === studioId);
+  const pkg = studio?.packages.find(p => p.id === bookingLengthId);
+
+  if (studio && pkg) {
     breakdown.push({
-      item: `${STUDIO_PRICING[studio].name} - ${studioPrice.label}`,
-      price: studioPrice.price,
+      item: `${studio.name} - ${pkg.label}`,
+      price: pkg.price,
     });
   }
 
   // Add-ons
-  if (addons.cameraLens && ADDON_PRICING.cameraLens[addons.cameraLens as keyof typeof ADDON_PRICING.cameraLens]) {
-    const addon = ADDON_PRICING.cameraLens[addons.cameraLens as keyof typeof ADDON_PRICING.cameraLens];
-    breakdown.push({ item: addon.label, price: addon.price });
+  if (addons.cameraLens) {
+    const addon = addonsList.find(a => a.category === 'cameraLens' && a.id === addons.cameraLens);
+    if (addon) {
+      breakdown.push({ item: addon.label, price: addon.price });
+    }
   }
 
-  if (addons.videoSwitcher && ADDON_PRICING.videoSwitcher[addons.videoSwitcher as keyof typeof ADDON_PRICING.videoSwitcher]) {
-    const addon = ADDON_PRICING.videoSwitcher[addons.videoSwitcher as keyof typeof ADDON_PRICING.videoSwitcher];
-    breakdown.push({ item: addon.label, price: addon.price });
+  if (addons.videoSwitcher) {
+    const addon = addonsList.find(a => a.category === 'videoSwitcher' && a.id === addons.videoSwitcher);
+    if (addon) {
+      breakdown.push({ item: addon.label, price: addon.price });
+    }
   }
 
-  if (addons.accessories && ADDON_PRICING.accessories[addons.accessories as keyof typeof ADDON_PRICING.accessories]) {
-    const addon = ADDON_PRICING.accessories[addons.accessories as keyof typeof ADDON_PRICING.accessories];
-    breakdown.push({ item: addon.label, price: addon.price });
+  if (addons.accessories) {
+    const addon = addonsList.find(a => a.category === 'accessories' && a.id === addons.accessories);
+    if (addon) {
+      breakdown.push({ item: addon.label, price: addon.price });
+    }
   }
 
   if (addons.guestCount && addons.guestCount > 0) {
-    const guestTotal = addons.guestCount * ADDON_PRICING.guests.perPerson.price;
+    const guestAddon = addonsList.find(a => a.category === 'guests');
+    const guestPrice = guestAddon?.price || 500;
+    const guestTotal = addons.guestCount * guestPrice;
     breakdown.push({
-      item: `Additional Guests (${addons.guestCount} x £5)`,
+      item: `Additional Guests (${addons.guestCount} x £${(guestPrice / 100).toFixed(2)})`,
       price: guestTotal,
     });
   }
