@@ -1,5 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+// Singleton instance
+let supabaseInstance: SupabaseClient | null = null;
+
 // Create a mock client for when env vars are not available
 const createMockClient = (): SupabaseClient => {
   const mockResult = { data: [], error: null };
@@ -35,42 +38,78 @@ const createMockClient = (): SupabaseClient => {
   } as unknown as SupabaseClient;
 };
 
-// Create a dummy client for build time when env vars are not available
-const createSupabaseClient = (): SupabaseClient => {
+// Validate environment variables
+const validateEnvVars = (): { url: string; key: string } | null => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Check if env vars are missing or empty
-  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.trim() === '' || supabaseAnonKey.trim() === '') {
-    if (typeof window !== 'undefined') {
-      console.warn('Supabase environment variables not found, using mock client');
-    }
-    return createMockClient();
+  // Check if env vars exist and are not empty
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return null;
   }
 
-  // Validate URL format before creating client
+  const trimmedUrl = supabaseUrl.trim();
+  const trimmedKey = supabaseAnonKey.trim();
+
+  if (trimmedUrl === '' || trimmedKey === '') {
+    return null;
+  }
+
+  // Validate URL format
   try {
-    new URL(supabaseUrl);
+    new URL(trimmedUrl);
   } catch {
-    console.warn('Invalid Supabase URL format, using mock client');
-    return createMockClient();
+    return null;
   }
 
-  // Validate API key format (should be a JWT)
-  if (!supabaseAnonKey.includes('.') || supabaseAnonKey.split('.').length !== 3) {
-    console.warn('Invalid Supabase API key format, using mock client');
-    return createMockClient();
+  // Validate API key format (should be a JWT with 3 parts)
+  if (!trimmedKey.includes('.') || trimmedKey.split('.').length !== 3) {
+    return null;
   }
 
+  return { url: trimmedUrl, key: trimmedKey };
+};
+
+// Get or create the Supabase client (lazy initialization)
+const getSupabaseClient = (): SupabaseClient => {
+  // Return cached instance if available
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  // Validate environment variables
+  const envVars = validateEnvVars();
+
+  if (!envVars) {
+    if (typeof window !== 'undefined') {
+      console.warn('Supabase: Environment variables not configured, using mock client');
+    }
+    supabaseInstance = createMockClient();
+    return supabaseInstance;
+  }
+
+  // Create the real client
   try {
-    return createClient(supabaseUrl, supabaseAnonKey);
+    supabaseInstance = createClient(envVars.url, envVars.key);
+    return supabaseInstance;
   } catch (error) {
-    console.error('Failed to create Supabase client:', error);
-    return createMockClient();
+    console.error('Supabase: Failed to create client:', error);
+    supabaseInstance = createMockClient();
+    return supabaseInstance;
   }
 };
 
-export const supabase = createSupabaseClient();
+// Export a proxy that lazily initializes the client on first access
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseClient();
+    const value = client[prop as keyof SupabaseClient];
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
 
 // Types for site content
 export interface SiteContent {
