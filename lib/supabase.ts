@@ -38,6 +38,12 @@ const createMockClient = (): SupabaseClient => {
   } as unknown as SupabaseClient;
 };
 
+// Fallback configuration (public anon key - safe to expose)
+const FALLBACK_CONFIG = {
+  url: 'https://fhgvnjwiasusjfevimcw.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3Zuandpb3N1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1NDczNzAsImV4cCI6MjA0ODEyMzM3MH0.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg'
+};
+
 // Validate environment variables
 const validateEnvVars = (): { url: string; key: string } | null => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -45,26 +51,27 @@ const validateEnvVars = (): { url: string; key: string } | null => {
 
   // Check if env vars exist and are not empty
   if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
+    // Use fallback if env vars not available
+    return FALLBACK_CONFIG;
   }
 
   const trimmedUrl = supabaseUrl.trim();
   const trimmedKey = supabaseAnonKey.trim();
 
   if (trimmedUrl === '' || trimmedKey === '') {
-    return null;
+    return FALLBACK_CONFIG;
   }
 
   // Validate URL format
   try {
     new URL(trimmedUrl);
   } catch {
-    return null;
+    return FALLBACK_CONFIG;
   }
 
   // Validate API key format (should be a JWT with 3 parts)
   if (!trimmedKey.includes('.') || trimmedKey.split('.').length !== 3) {
-    return null;
+    return FALLBACK_CONFIG;
   }
 
   return { url: trimmedUrl, key: trimmedKey };
@@ -77,23 +84,16 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance;
   }
 
-  // Validate environment variables
-  const envVars = validateEnvVars();
-
-  if (!envVars) {
-    if (typeof window !== 'undefined') {
-      console.warn('Supabase: Environment variables not configured, using mock client');
-    }
-    supabaseInstance = createMockClient();
-    return supabaseInstance;
-  }
+  // Get config (always returns valid config due to fallback)
+  const config = validateEnvVars() || FALLBACK_CONFIG;
 
   // Create the real client
   try {
-    supabaseInstance = createClient(envVars.url, envVars.key);
+    supabaseInstance = createClient(config.url, config.key);
     return supabaseInstance;
   } catch (error) {
     console.error('Supabase: Failed to create client:', error);
+    // Last resort: use mock client
     supabaseInstance = createMockClient();
     return supabaseInstance;
   }
