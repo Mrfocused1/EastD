@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2 } from "lucide-react";
+import { calculateBookingTotal, formatPrice, StudioType, BookingLength } from "@/lib/stripe";
 
 interface DropdownOption {
   value: string;
@@ -474,7 +475,8 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
     setSubmitStatus(null);
 
     try {
-      const response = await fetch("/api/booking", {
+      // Create Stripe checkout session
+      const response = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -482,18 +484,40 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        setSubmitStatus("success");
-        setFormData(preselectedStudio ? { studio: preselectedStudio } : {});
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
       } else {
+        console.error("Checkout error:", data.error);
         setSubmitStatus("error");
       }
     } catch (error) {
+      console.error("Submit error:", error);
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Calculate current booking total
+  const getBookingTotal = () => {
+    const studio = formData.studio as StudioType;
+    const bookingLength = formData.bookingLength as BookingLength;
+
+    if (!studio || !bookingLength) {
+      return null;
+    }
+
+    return calculateBookingTotal(studio, bookingLength, {
+      cameraLens: formData.cameraLens,
+      videoSwitcher: formData.videoSwitcher,
+      accessories: formData.accessories,
+    });
+  };
+
+  const bookingTotal = getBookingTotal();
 
   const getStudioOptions = (field: FormField) => {
     if (field.name === "studio") {
@@ -659,25 +683,54 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
             return renderField(field);
           })}
 
+          {/* Price Summary */}
+          {bookingTotal && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-black text-white p-6"
+            >
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Booking Summary
+              </h3>
+              <div className="space-y-2 mb-4">
+                {bookingTotal.breakdown.map((item, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span className="text-gray-300">{item.item}</span>
+                    <span>{formatPrice(item.price)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-700 pt-4 flex justify-between text-lg font-medium">
+                <span>Total</span>
+                <span>{formatPrice(bookingTotal.total)}</span>
+              </div>
+            </motion.div>
+          )}
+
           <div className="text-center">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-black text-white px-12 py-4 text-sm tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || !bookingTotal}
+              className="bg-black text-white px-12 py-4 text-sm tracking-widest hover:bg-[#DC143C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-3"
             >
-              {isSubmitting ? "SUBMITTING..." : "SUBMIT BOOKING REQUEST"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  PROCESSING...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-5 h-5" />
+                  {bookingTotal ? `PAY ${formatPrice(bookingTotal.total)}` : "SELECT OPTIONS TO CONTINUE"}
+                </>
+              )}
             </button>
+            <p className="text-xs text-gray-500 mt-3">
+              Secure payment powered by Stripe
+            </p>
           </div>
-
-          {submitStatus === "success" && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-green-600"
-            >
-              Thank you! We&apos;ll be in touch shortly.
-            </motion.p>
-          )}
 
           {submitStatus === "error" && (
             <motion.p
