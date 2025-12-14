@@ -193,7 +193,7 @@ export default function AboutPage() {
               className="text-center text-white"
             >
               <p className="text-sm tracking-[0.3em] mb-4 text-white">{content.heroSubtitle}</p>
-              <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.heroTitle}</h1>
+              <h1 className="text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.heroTitle}</h1>
             </motion.div>
           </div>
         </section>

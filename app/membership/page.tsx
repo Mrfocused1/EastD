@@ -297,8 +297,8 @@ export default function MembershipPage() {
               className="text-center text-white max-w-4xl px-6"
             >
               <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
-              <h1 className="text-5xl md:text-6xl font-light tracking-wider mb-6 text-white">{content.heroHeadline}</h1>
-              <p className="text-lg md:text-xl font-light mb-8 text-white/90">{content.heroSubheadline}</p>
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-light tracking-wide leading-tight mb-6 text-white">{content.heroHeadline}</h1>
+              <p className="text-base md:text-lg lg:text-xl font-light mb-8 text-white/90">{content.heroSubheadline}</p>
               <button
                 onClick={scrollToForm}
                 className="inline-block border-2 border-white px-10 py-4 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
