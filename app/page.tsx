@@ -64,6 +64,20 @@ export default function Home() {
 
   const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
+  // Handle hash scrolling after page load (for links like /#contact from other pages)
+  useEffect(() => {
+    if (!isLoading && typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const element = document.getElementById(hash);
+      if (element) {
+        // Small delay to ensure DOM is fully rendered
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [isLoading]);
+
   // Load site mode setting
   useEffect(() => {
     async function loadSiteMode() {
