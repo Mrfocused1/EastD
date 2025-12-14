@@ -4,13 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
+  const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [studiosDropdownOpen, setStudiosDropdownOpen] = useState(false);
   const [mobileStudiosOpen, setMobileStudiosOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
     studioDockOne: "Studio Dock One",
     studioDockTwo: "Studio Dock Two",
@@ -154,13 +157,81 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Desktop Book Now Button */}
-          <Link
-            href="/booking"
-            className="hidden md:block border border-white text-white px-6 py-2 text-xs tracking-widest hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
-          >
-            BOOK NOW!
-          </Link>
+          {/* Desktop User Menu & Book Now Button */}
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <div
+                className="relative"
+                onMouseEnter={() => setUserDropdownOpen(true)}
+                onMouseLeave={() => setUserDropdownOpen(false)}
+              >
+                <button className="flex items-center gap-2 text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors">
+                  <User className="w-4 h-4" />
+                  ACCOUNT
+                  <ChevronDown className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {userDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 min-w-[180px]"
+                    >
+                      <Link
+                        href="/profile"
+                        className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                      >
+                        My Profile
+                      </Link>
+                      <Link
+                        href="/profile/bookings"
+                        className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                      >
+                        My Bookings
+                      </Link>
+                      <Link
+                        href="/profile/favorites"
+                        className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                      >
+                        Favorites
+                      </Link>
+                      <Link
+                        href="/profile/settings"
+                        className="block px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors"
+                      >
+                        Settings
+                      </Link>
+                      <button
+                        onClick={() => signOut()}
+                        className="w-full text-left px-6 py-3 text-white font-roboto text-sm tracking-wider hover:bg-[#DC143C] transition-colors flex items-center gap-2 border-t border-white/10"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="flex items-center gap-2 text-white font-roboto text-sm tracking-wider hover:text-[#DC143C] transition-colors"
+              >
+                <User className="w-4 h-4" />
+                LOGIN
+              </Link>
+            )}
+
+            <Link
+              href="/booking"
+              className="border border-white text-white px-6 py-2 text-xs tracking-widest hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
+            >
+              BOOK NOW!
+            </Link>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -268,6 +339,61 @@ export default function Header() {
               >
                 CONTACT
               </Link>
+
+              {/* Mobile User Menu */}
+              {user ? (
+                <>
+                  <div className="w-16 h-px bg-white/20 my-2" />
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors flex items-center gap-2"
+                  >
+                    <User className="w-5 h-5" />
+                    MY PROFILE
+                  </Link>
+                  <Link
+                    href="/profile/bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                  >
+                    My Bookings
+                  </Link>
+                  <Link
+                    href="/profile/favorites"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                  >
+                    Favorites
+                  </Link>
+                  <Link
+                    href="/profile/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white/80 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-white/60 font-roboto text-base tracking-wider hover:text-[#DC143C] transition-colors flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-white font-roboto text-lg tracking-wider hover:text-[#DC143C] transition-colors flex items-center gap-2"
+                >
+                  <User className="w-5 h-5" />
+                  LOGIN
+                </Link>
+              )}
 
               <Link
                 href="/booking"

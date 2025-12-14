@@ -243,6 +243,41 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       console.error('Error tracking discount usage:', discountError);
     }
 
+    // Create user booking record if user is logged in
+    try {
+      if (metadata.userId) {
+        const totalAmount = parseInt(metadata.totalAmount || '0');
+        const amountPaid = parseInt(metadata.amountPaid || '0');
+        const remainingBalance = parseInt(metadata.remainingBalance || '0');
+        const discountAmount = parseInt(metadata.discountAmount || '0');
+        const bookingDateStr = metadata.bookingDate || '';
+        const duration = parseInt(metadata.bookingDuration || '2');
+
+        await supabase.from('user_bookings').insert({
+          user_id: metadata.userId,
+          stripe_session_id: session.id,
+          stripe_payment_intent_id: session.payment_intent as string || null,
+          studio_slug: metadata.studio,
+          studio_name: metadata.studioName || metadata.studio || 'Studio',
+          booking_date: bookingDateStr,
+          duration_hours: duration,
+          total_amount: totalAmount,
+          amount_paid: amountPaid,
+          remaining_balance: remainingBalance,
+          discount_code: metadata.discountCode || null,
+          discount_amount: discountAmount,
+          payment_type: metadata.paymentType || 'full',
+          status: 'confirmed',
+          comments: metadata.comments || null,
+        });
+
+        console.log('User booking record created for user:', metadata.userId);
+      }
+    } catch (bookingError) {
+      // Don't fail the webhook if user booking creation fails
+      console.error('Error creating user booking record:', bookingError);
+    }
+
   } catch (error) {
     console.error('Error handling successful payment:', error);
   }

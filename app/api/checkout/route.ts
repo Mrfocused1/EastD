@@ -149,6 +149,7 @@ export async function POST(request: NextRequest) {
       paymentType = 'full', // 'deposit' or 'full'
       discountCode = null,
       discountId = null,
+      userId = null, // User ID for linking booking to account
     } = body;
 
     // Validate required fields
@@ -320,6 +321,7 @@ export async function POST(request: NextRequest) {
         discountId: appliedDiscount?.id || '',
         discountAmount: discountAmount.toString(),
         originalTotal: (total + discountAmount).toString(),
+        userId: userId || '', // User ID for linking booking to account
       },
       payment_intent_data: {
         metadata: {

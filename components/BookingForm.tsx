@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2, Tag, Check, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2, Tag, Check, X, User } from "lucide-react";
 import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, getAddonsForStudio } from "@/lib/stripe";
 import {
   OPERATING_HOURS,
@@ -419,6 +421,7 @@ function DateTimePicker({
 }
 
 export default function BookingForm({ preselectedStudio }: BookingFormProps = {}) {
+  const { user, profile } = useAuth();
   const [fields, setFields] = useState<FormField[]>(defaultFields);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -466,6 +469,18 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
       setFormData((prev) => ({ ...prev, studio: preselectedStudio }));
     }
   }, [preselectedStudio]);
+
+  // Auto-fill user data when logged in
+  useEffect(() => {
+    if (user && profile) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || profile.full_name || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || profile.phone || "",
+      }));
+    }
+  }, [user, profile]);
 
   async function loadFormConfig() {
     try {
@@ -679,6 +694,7 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
           hasSurcharge: bookingTotal?.hasSurcharge || false,
           discountCode: appliedDiscount?.code || null,
           discountId: appliedDiscount?.id || null,
+          userId: user?.id || null, // Link booking to user account
         }),
       });
 
@@ -927,6 +943,65 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         >
           <h2 className="text-5xl font-light mb-4 text-black">Booking Request</h2>
         </motion.div>
+
+        {/* Login Status Banner */}
+        {user ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3 mb-8"
+          >
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-green-800">
+                Logged in as {profile?.full_name || user.email}
+              </p>
+              <p className="text-sm text-green-600">
+                This booking will be linked to your account for easy tracking
+              </p>
+            </div>
+            <Link
+              href="/profile/bookings"
+              className="text-sm text-green-700 hover:text-green-900 underline"
+            >
+              View Bookings
+            </Link>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 mb-8"
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-blue-800">
+                Create an account for easier booking
+              </p>
+              <p className="text-sm text-blue-600">
+                Track bookings, save payment methods, and get exclusive discounts
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/auth/login"
+                className="px-4 py-2 text-sm border border-blue-300 text-blue-700 hover:bg-blue-100 rounded transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded transition-colors"
+              >
+                Sign Up
+              </Link>
+            </div>
+          </motion.div>
+        )}
 
         <motion.form
           initial={{ opacity: 0 }}
