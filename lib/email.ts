@@ -352,6 +352,39 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData, custo
 }
 
 // Send notification to admin/studio about new booking
+// Send a campaign email to a specific contact
+export async function sendCampaignEmail(
+  to: string,
+  subject: string,
+  htmlBody: string,
+  contactName?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const transporter = getTransporter();
+    if (!transporter) {
+      return { success: false, error: 'Email service not configured' };
+    }
+
+    // Replace merge tags with actual values
+    let html = htmlBody
+      .replace(/\{\{customer_name\}\}/g, contactName || 'Valued Customer')
+      .replace(/\{\{customer_email\}\}/g, to);
+
+    await transporter.sendMail({
+      from: `"East Dock Studios" <${process.env.SMTP_EMAIL}>`,
+      to,
+      subject,
+      html,
+      replyTo: process.env.SMTP_EMAIL,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('Campaign email error:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function sendAdminNotificationEmail(data: BookingEmailData): Promise<{ success: boolean; error?: string }> {
   try {
     const transporter = getTransporter();

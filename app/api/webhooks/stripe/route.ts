@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerStripe } from '@/lib/stripe';
-import { sendBookingConfirmationEmail, sendAdminNotificationEmail, BookingEmailData } from '@/lib/email';
+import { sendBookingConfirmationEmail, sendAdminNotificationEmail, BookingEmailData, saveCustomerContact } from '@/lib/email';
 import { createBookingEvent } from '@/lib/googleCalendar';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
@@ -144,6 +144,21 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       console.log('Admin notification email sent');
     } else {
       console.error('Failed to send admin email:', adminEmailResult.error);
+    }
+
+    // Save customer contact for email campaigns
+    try {
+      await saveCustomerContact({
+        email: metadata.email || session.customer_email || '',
+        name: metadata.name || 'Customer',
+        phone: metadata.phone || undefined,
+        source: 'booking',
+        studio: metadata.studioName || metadata.studio || undefined,
+      });
+      console.log('Customer contact saved for:', metadata.email || session.customer_email);
+    } catch (contactError) {
+      // Don't fail the webhook if contact saving fails
+      console.error('Error saving customer contact:', contactError);
     }
 
     // Create Google Calendar event

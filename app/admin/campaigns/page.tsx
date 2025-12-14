@@ -64,6 +64,9 @@ export default function CampaignsPage() {
   const [contacts, setContacts] = useState<CustomerContact[]>([]);
   const [activeTab, setActiveTab] = useState<'templates' | 'campaigns' | 'contacts'>('campaigns');
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
+  const [sendingCampaignId, setSendingCampaignId] = useState<string | null>(null);
+  const [testEmailAddress, setTestEmailAddress] = useState("");
+  const [showTestEmailModal, setShowTestEmailModal] = useState<string | null>(null);
 
   // New template form
   const [showTemplateForm, setShowTemplateForm] = useState(false);
@@ -227,6 +230,69 @@ export default function CampaignsPage() {
       loadData();
     } catch (err) {
       console.error('Error deleting campaign:', err);
+    }
+  }
+
+  async function sendCampaign(campaignId: string) {
+    const subscribedCount = contacts.filter(c => c.subscribed).length;
+    if (subscribedCount === 0) {
+      alert('No subscribed contacts to send to. Add contacts first.');
+      return;
+    }
+
+    if (!confirm(`Send this campaign to ${subscribedCount} subscribed contacts? This action cannot be undone.`)) return;
+
+    setSendingCampaignId(campaignId);
+    try {
+      const response = await fetch('/api/campaigns/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Campaign sent successfully!\n\nSent: ${data.sent}\nFailed: ${data.failed}`);
+      } else {
+        alert(`Failed to send campaign: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Error sending campaign:', err);
+      alert('Failed to send campaign');
+    } finally {
+      setSendingCampaignId(null);
+    }
+  }
+
+  async function sendTestEmail(templateId: string) {
+    if (!testEmailAddress) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    setSendingCampaignId(templateId);
+    try {
+      const response = await fetch('/api/campaigns/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId, testEmail: testEmailAddress }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Test email sent to ${testEmailAddress}!`);
+        setShowTestEmailModal(null);
+        setTestEmailAddress("");
+      } else {
+        alert(`Failed to send test: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Error sending test email:', err);
+      alert('Failed to send test email');
+    } finally {
+      setSendingCampaignId(null);
     }
   }
 
@@ -510,6 +576,21 @@ export default function CampaignsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {campaign.trigger_type === 'manual' && (
+                          <button
+                            onClick={() => sendCampaign(campaign.id)}
+                            disabled={sendingCampaignId === campaign.id}
+                            className="px-4 py-2 bg-blue-600 text-white text-xs tracking-widest rounded hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            title="Send to all subscribed contacts"
+                          >
+                            {sendingCampaignId === campaign.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                            SEND NOW
+                          </button>
+                        )}
                         <button
                           onClick={() => toggleCampaign(campaign.id, campaign.is_active)}
                           className={`p-2 rounded transition-colors ${
@@ -693,6 +774,14 @@ export default function CampaignsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <button
+                          onClick={(e) => { e.stopPropagation(); setShowTestEmailModal(template.id); }}
+                          className="px-3 py-1 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors flex items-center gap-1"
+                          title="Send test email"
+                        >
+                          <Send className="w-3 h-3" />
+                          Test
+                        </button>
+                        <button
                           onClick={(e) => { e.stopPropagation(); editTemplate(template); }}
                           className="p-2 text-black/40 hover:text-black hover:bg-black/5 rounded transition-colors"
                         >
@@ -781,6 +870,52 @@ export default function CampaignsPage() {
             )}
           </div>
         </motion.div>
+      )}
+
+      {/* Test Email Modal */}
+      {showTestEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4"
+          >
+            <h3 className="text-lg font-medium mb-4">Send Test Email</h3>
+            <p className="text-sm text-black/60 mb-4">
+              Enter your email address to receive a test of this template.
+            </p>
+            <input
+              type="email"
+              value={testEmailAddress}
+              onChange={(e) => setTestEmailAddress(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-3 border border-black/20 focus:outline-none focus:border-black mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowTestEmailModal(null);
+                  setTestEmailAddress("");
+                }}
+                className="px-4 py-2 text-sm border border-black/20 hover:border-black transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => sendTestEmail(showTestEmailModal)}
+                disabled={sendingCampaignId === showTestEmailModal || !testEmailAddress}
+                className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {sendingCampaignId === showTestEmailModal ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                Send Test
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
