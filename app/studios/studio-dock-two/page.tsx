@@ -238,7 +238,7 @@ export default function E20Page() {
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center text-white">
             <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
-            <h1 className="text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link href="/booking?studio=studio-dock-two" className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300">
               BOOK NOW
             </Link>

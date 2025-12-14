@@ -251,7 +251,7 @@ export default function StudioDockOnePage() {
             className="text-center text-white"
           >
             <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
-            <h1 className="text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link
               href="/booking?studio=studio-dock-one"
               className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
