@@ -346,7 +346,7 @@ export default function E20Page() {
               { name: studioTitles.photography, slug: "photography", image: studioThumbnails.photography }
             ].map((studio, index) => (
               <Link key={`e20-studio-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
-                <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Image src={studio.image} alt={studio.name} fill sizes="(max-width: 768px) 100vw, 33vw" quality={80} className="object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                   <div className="w-12 h-12 border border-white/50 rounded-full flex items-center justify-center mb-4">

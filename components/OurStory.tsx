@@ -64,6 +64,8 @@ export default function OurStory() {
                 src={service.image}
                 alt={service.title}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                quality={80}
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>

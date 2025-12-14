@@ -282,6 +282,8 @@ export default function MembershipPage() {
               src={content.heroImage}
               alt="Membership"
               fill
+              sizes="100vw"
+              quality={85}
               className="object-cover"
               priority
             />
