@@ -18,7 +18,11 @@ import {
   Mail,
   Grid3X3,
   Send,
-  Calendar
+  Calendar,
+  Globe,
+  Clock,
+  Loader2,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -150,6 +154,68 @@ export default function AdminDashboard() {
     studioDockTwo: "Studio Dock Two",
     studioWharf: "Studio Wharf",
   }));
+  const [siteMode, setSiteMode] = useState<"coming_soon" | "live">("coming_soon");
+  const [siteModeLoading, setSiteModeLoading] = useState(true);
+  const [siteModeUpdating, setSiteModeUpdating] = useState(false);
+
+  // Load site mode setting
+  useEffect(() => {
+    async function loadSiteMode() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .eq('key', 'site_mode')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading site mode:', error);
+        }
+
+        if (data?.value) {
+          setSiteMode(data.value as "coming_soon" | "live");
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setSiteModeLoading(false);
+      }
+    }
+
+    loadSiteMode();
+  }, []);
+
+  // Toggle site mode
+  async function toggleSiteMode() {
+    const newMode = siteMode === "coming_soon" ? "live" : "coming_soon";
+    setSiteModeUpdating(true);
+
+    try {
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({
+          page: 'global',
+          section: 'settings',
+          key: 'site_mode',
+          value: newMode,
+        }, {
+          onConflict: 'page,section,key'
+        });
+
+      if (error) {
+        console.error('Error updating site mode:', error);
+        return;
+      }
+
+      setSiteMode(newMode);
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setSiteModeUpdating(false);
+    }
+  }
 
   useEffect(() => {
     async function loadStudioTitles() {
@@ -194,11 +260,92 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="mb-12"
+        className="mb-8"
       >
         <p className="text-sm tracking-[0.3em] text-black/60 mb-2">WELCOME TO</p>
         <h1 className="text-5xl font-light text-black mb-4">Admin Dashboard</h1>
         <div className="w-24 h-px bg-black/30"></div>
+      </motion.div>
+
+      {/* Site Mode Toggle - Prominent */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.05 }}
+        className={`mb-12 p-6 border-2 rounded-lg ${
+          siteMode === "live"
+            ? "bg-green-50 border-green-300"
+            : "bg-amber-50 border-amber-300"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {siteMode === "live" ? (
+              <div className="p-3 bg-green-100 rounded-full">
+                <Globe className="w-8 h-8 text-green-600" />
+              </div>
+            ) : (
+              <div className="p-3 bg-amber-100 rounded-full">
+                <Clock className="w-8 h-8 text-amber-600" />
+              </div>
+            )}
+            <div>
+              <h2 className="text-xl font-medium text-black">
+                Site Status: {siteMode === "live" ? "LIVE" : "COMING SOON"}
+              </h2>
+              <p className="text-sm text-black/60">
+                {siteMode === "live"
+                  ? "Your website is live and visible to visitors"
+                  : "Visitors see the 'Coming Soon' holding page"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-black/60 hover:text-black border border-black/20 hover:border-black rounded transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Preview Site
+            </Link>
+
+            {siteModeLoading ? (
+              <div className="px-8 py-3">
+                <Loader2 className="w-6 h-6 animate-spin text-black/40" />
+              </div>
+            ) : (
+              <button
+                onClick={toggleSiteMode}
+                disabled={siteModeUpdating}
+                className={`relative px-8 py-3 text-sm font-medium tracking-wider transition-all duration-300 rounded ${
+                  siteMode === "live"
+                    ? "bg-amber-500 hover:bg-amber-600 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                } disabled:opacity-50`}
+              >
+                {siteModeUpdating ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : siteMode === "live" ? (
+                  "SWITCH TO COMING SOON"
+                ) : (
+                  "GO LIVE"
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status indicator dot */}
+        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-black/10">
+          <div className={`w-3 h-3 rounded-full ${
+            siteMode === "live" ? "bg-green-500 animate-pulse" : "bg-amber-500"
+          }`} />
+          <span className="text-xs text-black/50 uppercase tracking-wider">
+            {siteMode === "live" ? "Live and receiving visitors" : "Holding page active"}
+          </span>
+        </div>
       </motion.div>
 
       {/* Stats */}

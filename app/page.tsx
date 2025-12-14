@@ -13,9 +13,6 @@ import HoldingPage from "@/components/HoldingPage";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
-// Set to true to show holding page, false to show full site
-const SHOW_HOLDING_PAGE = true;
-
 interface WelcomeContent {
   subtitle: string;
   title: string;
@@ -30,6 +27,7 @@ interface HomepageImages {
 }
 
 export default function Home() {
+  const [siteMode, setSiteMode] = useState<"coming_soon" | "live" | null>(null);
   const [welcomeContent, setWelcomeContent] = useState<WelcomeContent>({
     subtitle: "EASTDOCK STUDIOS",
     title: "WELCOME",
@@ -57,6 +55,33 @@ export default function Home() {
   // Only start preloading after content is loaded
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
   const isLoading = !contentLoaded || imagesLoading;
+
+  // Load site mode setting
+  useEffect(() => {
+    async function loadSiteMode() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('value')
+          .eq('page', 'global')
+          .eq('section', 'settings')
+          .eq('key', 'site_mode')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading site mode:', error);
+        }
+
+        // Default to "coming_soon" if not set
+        setSiteMode((data?.value as "coming_soon" | "live") || "coming_soon");
+      } catch (err) {
+        console.error('Error:', err);
+        setSiteMode("coming_soon");
+      }
+    }
+
+    loadSiteMode();
+  }, []);
 
   useEffect(() => {
     async function loadContent() {
@@ -112,8 +137,17 @@ export default function Home() {
     loadContent();
   }, []);
 
-  // Show holding page if enabled
-  if (SHOW_HOLDING_PAGE) {
+  // Show loading state while checking site mode
+  if (siteMode === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Show holding page if site is in coming_soon mode
+  if (siteMode === "coming_soon") {
     return <HoldingPage />;
   }
 
