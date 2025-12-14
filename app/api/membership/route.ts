@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         <h2>Thank you for your interest in East Dock Studios membership!</h2>
         <p>Hi ${validatedData.name},</p>
         <p>We've received your membership enquiry and our team will be in touch shortly to discuss your needs and create a tailored membership plan for you.</p>
-        <p>In the meantime, feel free to browse our studios and services at eastdockstudios.com</p>
+        <p>In the meantime, feel free to browse our studios and services at eastdockstudios.co.uk</p>
         <p>Best regards,<br>The East Dock Studios Team</p>
       `,
     });

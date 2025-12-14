@@ -3,8 +3,19 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2 } from "lucide-react";
-import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from "@/lib/stripe";
+import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2, Tag, Check, X } from "lucide-react";
+import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, getAddonsForStudio } from "@/lib/stripe";
+import {
+  OPERATING_HOURS,
+  SESSION_COOLDOWN_MINUTES,
+  generateTimeSlots,
+  addCooldownToBusyTimes,
+  isWithinOperatingHours,
+  hasEveningWeekendSurcharge,
+  applyEveningWeekendSurcharge,
+  formatSurchargeText,
+  EVENING_WEEKEND_SURCHARGE,
+} from "@/lib/studioConfig";
 
 interface DropdownOption {
   value: string;
@@ -33,6 +44,7 @@ const defaultFields: FormField[] = [
       { value: "studio-dock-one", label: "Studio Dock One" },
       { value: "studio-dock-two", label: "Studio Dock Two" },
       { value: "studio-wharf", label: "Studio Wharf" },
+      { value: "photography", label: "Photography Studio" },
     ],
     order: 1,
   },
@@ -74,49 +86,11 @@ const defaultFields: FormField[] = [
   {
     id: "bookingLength",
     name: "bookingLength",
-    label: "BOOKING LENGTH/TYPE",
+    label: "BOOKING LENGTH",
     type: "select",
     required: true,
-    options: [
-      { value: "minimum2hrs", label: "MINIMUM 2HRS" },
-      { value: "halfday4hrs", label: "HALF DAY (4HRS)" },
-      { value: "fullday8hrs", label: "FULL DAY (8HRS)" },
-    ],
+    options: [], // Options loaded dynamically based on selected studio
     order: 6,
-  },
-  {
-    id: "cameraLens",
-    name: "cameraLens",
-    label: "CAMERA AND LENS",
-    type: "select",
-    required: false,
-    options: [
-      { value: "quantity2more", label: "QUANTITY, UPTO 2MORE (AS EACH BOOKING COMES WITH TWO CAMERAS ALREADY) - £30 EACH" },
-    ],
-    order: 7,
-  },
-  {
-    id: "videoSwitcher",
-    name: "videoSwitcher",
-    label: "VIDEO SWITCHER",
-    type: "select",
-    required: false,
-    options: [
-      { value: "halfday", label: "ENGINEER FOR UPTO HALF DAY SESSION - £35" },
-      { value: "fullday", label: "FULL DAY - £60" },
-    ],
-    order: 8,
-  },
-  {
-    id: "accessories",
-    name: "accessories",
-    label: "ACCESSORIES",
-    type: "select",
-    required: false,
-    options: [
-      { value: "teleprompter", label: "TELEPROMPTER - £25" },
-    ],
-    order: 9,
   },
   {
     id: "comments",
@@ -125,7 +99,7 @@ const defaultFields: FormField[] = [
     type: "textarea",
     required: false,
     placeholder: "Enter any additional comments (optional)",
-    order: 10,
+    order: 7,
   },
 ];
 
@@ -139,17 +113,23 @@ function DateTimePicker({
   onChange,
   label,
   required,
+  studioSlug,
+  bookingDuration,
 }: {
   value: string;
   onChange: (value: string) => void;
   label: string;
   required: boolean;
+  studioSlug?: string;
+  bookingDuration?: number;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
   const [selectedTime, setSelectedTime] = useState(value ? value.split("T")[1]?.substring(0, 5) || "09:00" : "09:00");
   const pickerRef = useRef<HTMLDivElement>(null);
+  const [busyTimes, setBusyTimes] = useState<{ start: Date; end: Date }[]>([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -161,16 +141,85 @@ function DateTimePicker({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch busy times when date or studio changes
+  useEffect(() => {
+    async function fetchBusyTimes() {
+      if (!selectedDate || !studioSlug) {
+        setBusyTimes([]);
+        return;
+      }
+
+      setLoadingAvailability(true);
+      try {
+        const dateStr = selectedDate.toISOString().split("T")[0];
+        const res = await fetch(`/api/google/availability?studio=${studioSlug}&date=${dateStr}`);
+        const data = await res.json();
+
+        if (data.busyTimes) {
+          setBusyTimes(
+            data.busyTimes.map((bt: { start: string; end: string }) => ({
+              start: new Date(bt.start),
+              end: new Date(bt.end),
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching availability:", err);
+        setBusyTimes([]);
+      } finally {
+        setLoadingAvailability(false);
+      }
+    }
+
+    fetchBusyTimes();
+  }, [selectedDate, studioSlug]);
+
+  // Add cooldown to busy times
+  const busyTimesWithCooldown = addCooldownToBusyTimes(busyTimes);
+
+  // Check if a time slot conflicts with busy times (including cooldown)
+  const isTimeSlotBusy = (time: string) => {
+    if (!selectedDate) return false;
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotStart = new Date(selectedDate);
+    slotStart.setHours(hours, minutes, 0, 0);
+
+    const duration = bookingDuration || 2; // Default 2 hours
+    const slotEnd = new Date(slotStart);
+    slotEnd.setHours(slotEnd.getHours() + duration);
+
+    // First check if the slot fits within operating hours
+    if (!isWithinOperatingHours(slotStart, duration)) {
+      return true; // Outside operating hours = not available
+    }
+
+    // Check if this slot overlaps with any busy time (including cooldown buffer)
+    if (busyTimesWithCooldown.length > 0) {
+      return busyTimesWithCooldown.some((busy) => {
+        return slotStart < busy.end && slotEnd > busy.start;
+      });
+    }
+
+    return false;
+  };
+
+  // Check if time slot is evening/weekend (for display purposes)
+  const isEveningOrWeekend = (time: string) => {
+    if (!selectedDate) return false;
+    const [hours] = time.split(":").map(Number);
+    return hasEveningWeekendSurcharge(selectedDate, hours);
+  };
+
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const timeSlots = [];
-  for (let h = 6; h <= 22; h++) {
-    timeSlots.push(`${h.toString().padStart(2, "0")}:00`);
-    timeSlots.push(`${h.toString().padStart(2, "0")}:30`);
-  }
+  // Generate time slots based on operating hours for the selected day
+  const timeSlots = selectedDate
+    ? generateTimeSlots(selectedDate, 30)
+    : generateTimeSlots(new Date(), 30); // Default to today's schedule
 
   const handleDateSelect = (day: number) => {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
@@ -318,20 +367,39 @@ function DateTimePicker({
             {/* Time Picker */}
             <div className="p-4 w-32">
               <p className="text-sm font-medium mb-3">Time</p>
+              {loadingAvailability && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                </div>
+              )}
               <div className="h-64 overflow-y-auto space-y-1">
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    type="button"
-                    onClick={() => handleTimeSelect(time)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded transition-colors
-                      ${selectedTime === time ? "bg-black text-white" : "hover:bg-gray-100"}
-                    `}
-                  >
-                    {time}
-                  </button>
-                ))}
+                {timeSlots.map((time) => {
+                  const isBusy = isTimeSlotBusy(time);
+                  const isPremium = isEveningOrWeekend(time);
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => !isBusy && handleTimeSelect(time)}
+                      disabled={isBusy}
+                      className={`w-full text-left px-3 py-2 text-sm rounded transition-colors
+                        ${selectedTime === time && !isBusy ? "bg-black text-white" : ""}
+                        ${isBusy ? "bg-red-50 text-red-300 cursor-not-allowed line-through" : "hover:bg-gray-100"}
+                        ${isPremium && !isBusy && selectedTime !== time ? "bg-amber-50" : ""}
+                      `}
+                      title={isBusy ? "This time slot is not available" : isPremium ? "+15% evening/weekend rate" : ""}
+                    >
+                      {time}
+                      {isBusy && <span className="ml-1 text-xs">(booked)</span>}
+                      {isPremium && !isBusy && <span className="ml-1 text-xs text-amber-600">+15%</span>}
+                    </button>
+                  );
+                })}
               </div>
+              {/* Operating hours info */}
+              <p className="text-xs text-gray-400 mt-2 pt-2 border-t">
+                {selectedDate && selectedDate.getDay() === 0 ? "Sun: 4pm-10pm" : "Mon-Sat: 10am-10pm"}
+              </p>
             </div>
           </div>
 
@@ -362,9 +430,30 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
     studioWharf: "Studio Wharf",
   });
 
+  // Equipment quantities state (addonId -> quantity)
+  const [equipmentQuantities, setEquipmentQuantities] = useState<Record<string, number>>({});
+
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    id: string;
+    code: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    discountAmount: number;
+    description: string;
+  } | null>(null);
+  const [discountError, setDiscountError] = useState("");
+
   // Pricing state
   const [pricingStudios, setPricingStudios] = useState<StudioPricing[]>(DEFAULT_STUDIOS);
   const [pricingAddons, setPricingAddons] = useState<AddonPricing[]>(DEFAULT_ADDONS);
+
+  // Get available addons for the selected studio
+  const availableAddons = formData.studio
+    ? getAddonsForStudio(formData.studio)
+    : [];
 
   useEffect(() => {
     loadFormConfig();
@@ -470,8 +559,60 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
     }
   }
 
+  // Validate discount code
+  const validateDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError("Please enter a discount code");
+      return;
+    }
+
+    setDiscountLoading(true);
+    setDiscountError("");
+
+    try {
+      const response = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: discountCode,
+          email: formData.email,
+          studio: formData.studio,
+          bookingTotal: bookingTotal?.total || 0,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.valid) {
+        setAppliedDiscount(data.discount);
+        setDiscountError("");
+      } else {
+        setDiscountError(data.error || "Invalid discount code");
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      setDiscountError("Failed to validate discount code");
+      setAppliedDiscount(null);
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+
+  // Remove discount
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setDiscountError("");
+  };
+
   const handleChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear booking length and equipment when studio changes (packages/equipment differ per studio)
+    if (name === "studio") {
+      setFormData((prev) => ({ ...prev, [name]: value, bookingLength: "" }));
+      setEquipmentQuantities({}); // Clear equipment selections
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -479,6 +620,16 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         return newErrors;
       });
     }
+  };
+
+  // Handle equipment quantity change
+  const handleEquipmentChange = (addonId: string, quantity: number, maxQuantity: number) => {
+    if (quantity < 0) quantity = 0;
+    if (quantity > maxQuantity) quantity = maxQuantity;
+    setEquipmentQuantities((prev) => ({
+      ...prev,
+      [addonId]: quantity,
+    }));
   };
 
   const validateForm = () => {
@@ -522,7 +673,13 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          equipment: equipmentQuantities,
+          hasSurcharge: bookingTotal?.hasSurcharge || false,
+          discountCode: appliedDiscount?.code || null,
+          discountId: appliedDiscount?.id || null,
+        }),
       });
 
       const data = await response.json();
@@ -542,7 +699,7 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
     }
   };
 
-  // Calculate current booking total
+  // Calculate current booking total with evening/weekend surcharge and equipment
   const getBookingTotal = () => {
     const studio = formData.studio as StudioType;
     const bookingLength = formData.bookingLength as BookingLength;
@@ -551,17 +708,64 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
       return null;
     }
 
-    return calculateBookingTotal(
-      studio,
-      bookingLength,
-      {
-        cameraLens: formData.cameraLens,
-        videoSwitcher: formData.videoSwitcher,
-        accessories: formData.accessories,
-      },
-      pricingStudios,
-      pricingAddons
-    );
+    const breakdown: { item: string; price: number }[] = [];
+
+    // Find studio and package
+    const studioData = pricingStudios.find(s => s.id === studio);
+    const pkg = studioData?.packages.find(p => p.id === bookingLength);
+
+    if (studioData && pkg) {
+      breakdown.push({
+        item: `${studioData.name} - ${pkg.label}`,
+        price: pkg.price,
+      });
+    }
+
+    // Add equipment costs
+    Object.entries(equipmentQuantities).forEach(([addonId, quantity]) => {
+      if (quantity > 0) {
+        const addon = availableAddons.find(a => a.id === addonId);
+        if (addon) {
+          const itemTotal = addon.price * quantity;
+          breakdown.push({
+            item: quantity > 1 ? `${addon.label} x${quantity}` : addon.label,
+            price: itemTotal,
+          });
+        }
+      }
+    });
+
+    let total = breakdown.reduce((sum, item) => sum + item.price, 0);
+    let hasSurcharge = false;
+
+    // Check if evening/weekend surcharge applies
+    if (formData.bookingDate) {
+      const bookingDate = new Date(formData.bookingDate);
+      const bookingHour = bookingDate.getHours();
+
+      if (hasEveningWeekendSurcharge(bookingDate, bookingHour)) {
+        const surchargeAmount = Math.round(total * EVENING_WEEKEND_SURCHARGE);
+        breakdown.push({ item: "Evening/Weekend Surcharge (15%)", price: surchargeAmount });
+        total += surchargeAmount;
+        hasSurcharge = true;
+      }
+    }
+
+    // Apply discount if valid
+    let discountAmount = 0;
+    if (appliedDiscount) {
+      if (appliedDiscount.type === 'percentage') {
+        discountAmount = Math.round(total * (appliedDiscount.value / 100));
+      } else {
+        discountAmount = Math.round(appliedDiscount.value * 100);
+      }
+      // Ensure discount doesn't exceed total
+      discountAmount = Math.min(discountAmount, total);
+      breakdown.push({ item: `Discount (${appliedDiscount.code})`, price: -discountAmount });
+      total -= discountAmount;
+    }
+
+    return { total, breakdown, hasSurcharge, discountAmount };
   };
 
   const bookingTotal = getBookingTotal();
@@ -572,7 +776,25 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         { value: "studio-dock-one", label: studioTitles.studioDockOne },
         { value: "studio-dock-two", label: studioTitles.studioDockTwo },
         { value: "studio-wharf", label: studioTitles.studioWharf },
+        { value: "photography", label: "Photography Studio" },
       ];
+    }
+    // Dynamic booking length options based on selected studio
+    if (field.name === "bookingLength") {
+      const selectedStudio = pricingStudios.find(s => s.id === formData.studio);
+      if (selectedStudio) {
+        return selectedStudio.packages.map(pkg => ({
+          value: pkg.id,
+          label: `${pkg.label} - ${formatPrice(pkg.price)}`,
+        }));
+      }
+      // Fallback to first studio's packages if none selected
+      if (pricingStudios.length > 0) {
+        return pricingStudios[0].packages.map(pkg => ({
+          value: pkg.id,
+          label: `${pkg.label} - ${formatPrice(pkg.price)}`,
+        }));
+      }
     }
     return field.options || [];
   };
@@ -611,6 +833,15 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
         );
 
       case "datetime":
+        // Get booking duration from the selected studio package
+        const getDurationHours = () => {
+          const selectedStudio = pricingStudios.find(s => s.id === formData.studio);
+          if (selectedStudio && formData.bookingLength) {
+            const pkg = selectedStudio.packages.find(p => p.id === formData.bookingLength);
+            if (pkg) return pkg.hours;
+          }
+          return 2; // Default 2 hours
+        };
         return (
           <DateTimePicker
             key={field.id}
@@ -618,6 +849,8 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
             onChange={(value) => handleChange(field.name, value)}
             label={field.label}
             required={field.required}
+            studioSlug={formData.studio}
+            bookingDuration={getDurationHours()}
           />
         );
 
@@ -730,6 +963,105 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
             return renderField(field);
           })}
 
+          {/* Equipment Section - Only show when studio is selected */}
+          {formData.studio && availableAddons.length > 0 && (
+            <div className="border border-gray-300 p-6 bg-white">
+              <h3 className="text-lg font-medium mb-4 text-black">
+                {formData.studio === "photography" ? "Photography Equipment" : "Additional Equipment & Services"}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">Select optional add-ons for your booking</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                {availableAddons.map((addon) => (
+                  <div key={addon.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-black">{addon.label}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatPrice(addon.price)} each
+                        {addon.maxQuantity && addon.maxQuantity > 1 && ` (max ${addon.maxQuantity})`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEquipmentChange(addon.id, (equipmentQuantities[addon.id] || 0) - 1, addon.maxQuantity || 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                        disabled={!equipmentQuantities[addon.id]}
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center text-black font-medium">
+                        {equipmentQuantities[addon.id] || 0}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleEquipmentChange(addon.id, (equipmentQuantities[addon.id] || 0) + 1, addon.maxQuantity || 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                        disabled={(equipmentQuantities[addon.id] || 0) >= (addon.maxQuantity || 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Discount Code Section */}
+          {formData.studio && formData.bookingLength && (
+            <div className="border border-gray-300 p-6 bg-white">
+              <h3 className="text-lg font-medium mb-4 text-black flex items-center gap-2">
+                <Tag className="w-5 h-5" />
+                Discount Code
+              </h3>
+              {appliedDiscount ? (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 p-4 rounded">
+                  <div className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-800">{appliedDiscount.code}</p>
+                      <p className="text-sm text-green-600">{appliedDiscount.description}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeDiscount}
+                    className="p-2 text-green-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                      placeholder="Enter discount code"
+                      className="flex-1 bg-white border border-gray-300 px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors uppercase"
+                    />
+                    <button
+                      type="button"
+                      onClick={validateDiscountCode}
+                      disabled={discountLoading || !discountCode.trim()}
+                      className="px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {discountLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "APPLY"
+                      )}
+                    </button>
+                  </div>
+                  {discountError && (
+                    <p className="text-red-600 text-sm mt-2">{discountError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Price Summary */}
           {bookingTotal && (
             <motion.div
@@ -753,6 +1085,11 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
                 <span>Total</span>
                 <span>{formatPrice(bookingTotal.total)}</span>
               </div>
+              {bookingTotal.hasSurcharge && (
+                <p className="text-xs text-amber-400 mt-2">
+                  * Includes 15% evening/weekend surcharge
+                </p>
+              )}
 
               {/* Payment Options */}
               <div className="mt-6 pt-4 border-t border-gray-700">

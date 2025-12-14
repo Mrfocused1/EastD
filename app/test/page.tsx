@@ -9,12 +9,8 @@ import MembersSection from "@/components/MembersSection";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import PageLoader from "@/components/PageLoader";
-import HoldingPage from "@/components/HoldingPage";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
-
-// Set to true to show holding page, false to show full site
-const SHOW_HOLDING_PAGE = true;
 
 interface WelcomeContent {
   subtitle: string;
@@ -29,7 +25,7 @@ interface HomepageImages {
   studio3Image: string;
 }
 
-export default function Home() {
+export default function TestPage() {
   const [welcomeContent, setWelcomeContent] = useState<WelcomeContent>({
     subtitle: "EASTDOCK STUDIOS",
     title: "WELCOME",
@@ -111,11 +107,6 @@ export default function Home() {
 
     loadContent();
   }, []);
-
-  // Show holding page if enabled
-  if (SHOW_HOLDING_PAGE) {
-    return <HoldingPage />;
-  }
 
   return (
     <main className="min-h-screen">

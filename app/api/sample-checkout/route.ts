@@ -25,8 +25,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://eastdocstudios.site"}/sample/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://eastdocstudios.site"}/sample`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://www.eastdockstudios.co.uk"}/sample/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://www.eastdockstudios.co.uk"}/sample`,
       customer_email: email || undefined,
       metadata: {
         type: "test_payment",

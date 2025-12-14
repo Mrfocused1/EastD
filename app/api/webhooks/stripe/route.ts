@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerStripe } from '@/lib/stripe';
 import { sendBookingConfirmationEmail, sendAdminNotificationEmail, BookingEmailData } from '@/lib/email';
+import { createBookingEvent } from '@/lib/googleCalendar';
+import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+
+// Create Supabase client for server-side use
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Disable body parsing - we need raw body for signature verification
 export const dynamic = 'force-dynamic';
@@ -137,6 +144,103 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       console.log('Admin notification email sent');
     } else {
       console.error('Failed to send admin email:', adminEmailResult.error);
+    }
+
+    // Create Google Calendar event
+    try {
+      const studioSlug = metadata.studio;
+      const bookingDateStr = metadata.bookingDate || '';
+
+      // Parse the booking date and time
+      // bookingDate format is typically "YYYY-MM-DDTHH:MM"
+      const bookingDateTime = new Date(bookingDateStr);
+      const startTime = bookingDateStr.split('T')[1]?.substring(0, 5) || '09:00';
+
+      // Get duration from bookingDuration metadata (new structure)
+      let duration = 2; // default 2 hours
+      if (metadata.bookingDuration) {
+        duration = parseInt(metadata.bookingDuration) || 2;
+      } else {
+        // Fallback for old booking length format
+        const bookingLength = metadata.bookingLength || '';
+        const hourMatch = bookingLength.match(/(\d+)/);
+        if (hourMatch) {
+          duration = parseInt(hourMatch[1]) || 2;
+        }
+      }
+
+      // Parse equipment from metadata (new structure)
+      const addons: string[] = [];
+      if (metadata.equipment) {
+        try {
+          const equipment = JSON.parse(metadata.equipment);
+          Object.entries(equipment as Record<string, number>).forEach(([id, qty]) => {
+            if (qty && qty > 0) {
+              addons.push(`${id}: ${qty}`);
+            }
+          });
+        } catch (e) {
+          console.error('Error parsing equipment:', e);
+        }
+      }
+      // Fallback for old addon format
+      if (metadata.cameraLens) addons.push(`Camera/Lens: ${metadata.cameraLens}`);
+      if (metadata.videoSwitcher) addons.push(`Video Switcher: ${metadata.videoSwitcher}`);
+      if (metadata.accessories) addons.push(`Accessories: ${metadata.accessories}`);
+
+      // Add surcharge note if applicable
+      if (metadata.hasSurcharge === 'true') {
+        addons.push('Evening/Weekend Rate Applied (+15%)');
+      }
+
+      const eventId = await createBookingEvent(studioSlug, {
+        name: metadata.name || 'Customer',
+        email: metadata.email || session.customer_email || '',
+        phone: metadata.phone || '',
+        date: bookingDateTime,
+        startTime,
+        duration,
+        addons: addons.length > 0 ? addons : undefined,
+        comments: metadata.comments || undefined,
+      });
+
+      if (eventId) {
+        console.log('Google Calendar event created:', eventId);
+      } else {
+        console.log('No calendar configured for studio, skipping event creation');
+      }
+    } catch (calendarError) {
+      // Don't fail the webhook if calendar creation fails
+      console.error('Error creating calendar event:', calendarError);
+    }
+
+    // Track discount usage if a discount was applied
+    try {
+      if (metadata.discountId && metadata.discountCode && metadata.discountAmount) {
+        const discountAmount = parseInt(metadata.discountAmount);
+        if (discountAmount > 0) {
+          const originalTotal = parseInt(metadata.originalTotal || metadata.totalAmount || '0');
+          const finalTotal = parseInt(metadata.totalAmount || '0');
+          const bookingDateStr = metadata.bookingDate?.split('T')[0] || new Date().toISOString().split('T')[0];
+
+          await supabase.from('discount_usage').insert({
+            discount_code_id: metadata.discountId,
+            customer_email: metadata.email || session.customer_email || '',
+            customer_name: metadata.name || 'Customer',
+            booking_date: bookingDateStr,
+            studio: metadata.studioName || metadata.studio || 'Studio',
+            original_amount: originalTotal,
+            discount_amount: discountAmount,
+            final_amount: finalTotal,
+            stripe_session_id: session.id,
+          });
+
+          console.log('Discount usage recorded:', metadata.discountCode);
+        }
+      }
+    } catch (discountError) {
+      // Don't fail the webhook if discount tracking fails
+      console.error('Error tracking discount usage:', discountError);
     }
 
   } catch (error) {

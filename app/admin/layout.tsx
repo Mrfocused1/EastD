@@ -18,7 +18,8 @@ import {
   PoundSterling,
   Grid3X3,
   Mail,
-  Send
+  Send,
+  Tag
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -46,6 +47,7 @@ export default function AdminLayout({
     { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
     { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
     { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
+    { name: "Discounts", href: "/admin/discounts", icon: Tag },
     { name: "Emails", href: "/admin/emails", icon: Mail },
     { name: "Campaigns", href: "/admin/campaigns", icon: Send },
     { name: "Settings", href: "/admin/settings", icon: Settings },
@@ -99,6 +101,7 @@ export default function AdminLayout({
             { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
             { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
             { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
+            { name: "Discounts", href: "/admin/discounts", icon: Tag },
             { name: "Emails", href: "/admin/emails", icon: Mail },
             { name: "Campaigns", href: "/admin/campaigns", icon: Send },
             { name: "Settings", href: "/admin/settings", icon: Settings },

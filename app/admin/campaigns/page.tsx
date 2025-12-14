@@ -52,6 +52,9 @@ const MERGE_TAGS = [
   { tag: "{{booking_details}}", description: "Full booking breakdown table" },
   { tag: "{{studio_address}}", description: "Studio location address" },
   { tag: "{{studio_directions}}", description: "How to get there info" },
+  { tag: "{{discount_code}}", description: "Discount code (for promo emails)" },
+  { tag: "{{discount_description}}", description: "Discount description (e.g., 10% off)" },
+  { tag: "{{expiry_date}}", description: "Discount code expiry date" },
 ];
 
 export default function CampaignsPage() {
@@ -239,6 +242,9 @@ export default function CampaignsPage() {
       'after_deposit': 'After Deposit',
       'after_enquiry': 'After Enquiry',
       'before_booking': 'Before Booking Date',
+      'after_discount_used': 'After Discount Used',
+      'inactive_customer': 'Inactive Customer',
+      'first_booking': 'First-Time Booking',
       'manual': 'Manual Send',
     };
     return labels[trigger] || trigger;
@@ -391,6 +397,9 @@ export default function CampaignsPage() {
                       <option value="after_deposit">After Deposit Paid</option>
                       <option value="before_booking">Before Booking Date (Reminder)</option>
                       <option value="after_enquiry">After Enquiry Submitted</option>
+                      <option value="after_discount_used">After Discount Code Used</option>
+                      <option value="inactive_customer">Inactive Customer (Re-engagement)</option>
+                      <option value="first_booking">First-Time Booking Welcome</option>
                       <option value="manual">Manual Send Only</option>
                     </select>
                   </div>

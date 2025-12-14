@@ -17,7 +17,8 @@ import {
   PoundSterling,
   Mail,
   Grid3X3,
-  Send
+  Send,
+  Calendar
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -128,10 +129,17 @@ const getDefaultPages = (studioTitles: { studioDockOne: string; studioDockTwo: s
     description: "Create automated email sequences for customers",
     preview: null,
   },
+  {
+    name: "Google Calendar",
+    href: "/admin/calendar",
+    icon: Calendar,
+    description: "Connect Google Calendar for availability and booking sync",
+    preview: null,
+  },
 ];
 
 const stats = [
-  { label: "Pages", value: "14" },
+  { label: "Pages", value: "15" },
   { label: "Sections", value: "40+" },
   { label: "Images", value: "50+" },
 ];

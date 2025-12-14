@@ -313,7 +313,7 @@ export function generateBookingEmailHTML(data: BookingEmailData, template: Email
   <div style="background: #f8f9fa; padding: 20px; text-align: center; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 8px 8px;">
     <p style="margin: 0; font-size: 14px; color: #666;">
       East Dock Studios<br>
-      <a href="https://eastdockstudios.site" style="color: #0066cc;">www.eastdockstudios.site</a>
+      <a href="https://www.eastdockstudios.co.uk" style="color: #0066cc;">www.eastdockstudios.co.uk</a>
     </p>
   </div>
 
