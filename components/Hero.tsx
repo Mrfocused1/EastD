@@ -127,12 +127,20 @@ export default function Hero() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: FADE_DURATION, ease: "easeInOut" }}
-            className="absolute inset-0 bg-cover"
-            style={{
-              backgroundImage: `url('${content.images[currentIndex]?.url}')`,
-              backgroundPosition: `${currentFocalPoint.x}% ${currentFocalPoint.y}%`,
-            }}
+            className="absolute inset-0"
           >
+            <Image
+              src={content.images[currentIndex]?.url || DEFAULT_IMAGE.url}
+              alt="East Dock Studios"
+              fill
+              priority={currentIndex === 0}
+              quality={85}
+              sizes="100vw"
+              className="object-cover"
+              style={{
+                objectPosition: `${currentFocalPoint.x}% ${currentFocalPoint.y}%`,
+              }}
+            />
             <div className="absolute inset-0 bg-black/30"></div>
           </motion.div>
         </AnimatePresence>

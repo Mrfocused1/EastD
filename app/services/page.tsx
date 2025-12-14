@@ -211,6 +211,8 @@ export default function ServicesPage() {
               src={content.heroImage}
               alt="Our Services"
               fill
+              sizes="100vw"
+              quality={85}
               className="object-cover"
               priority
             />

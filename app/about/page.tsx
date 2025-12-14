@@ -178,6 +178,9 @@ export default function AboutPage() {
               src={content.heroImage}
               alt="About EASTDOCK STUDIOS"
               fill
+              sizes="100vw"
+              quality={85}
+              priority
               className="object-cover"
             />
           </motion.div>
@@ -190,7 +193,7 @@ export default function AboutPage() {
               className="text-center text-white"
             >
               <p className="text-sm tracking-[0.3em] mb-4 text-white">{content.heroSubtitle}</p>
-              <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.heroTitle}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.heroTitle}</h1>
             </motion.div>
           </div>
         </section>
@@ -251,6 +254,8 @@ export default function AboutPage() {
                     src={service.image}
                     alt={service.title}
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    quality={80}
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
@@ -275,6 +280,8 @@ export default function AboutPage() {
             src="https://images.pexels.com/photos/7991319/pexels-photo-7991319.jpeg?auto=compress&cs=tinysrgb&w=1920"
             alt="Book Your Studio Tour"
             fill
+            sizes="100vw"
+            quality={80}
             className="object-cover"
           />
           <div className="absolute inset-0 bg-black/50"></div>

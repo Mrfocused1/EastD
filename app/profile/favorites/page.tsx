@@ -16,10 +16,10 @@ import {
 } from "lucide-react";
 
 const STUDIOS = [
-  { slug: "studio-dock-one", name: "Studio Dock One", location: "Royal Victoria, E16" },
-  { slug: "studio-dock-two", name: "Studio Dock Two", location: "Olympic Park, E20" },
-  { slug: "studio-wharf", name: "Studio Wharf", location: "Canary Wharf, E14" },
-  { slug: "photography", name: "Photography Studio", location: "Royal Victoria, E16" },
+  { slug: "studio-dock-one", name: "Studio Dock One", location: "30 Seagull Lane, London, E16 1YP" },
+  { slug: "studio-dock-two", name: "Studio Dock Two", location: "30 Seagull Lane, London, E16 1YP" },
+  { slug: "studio-wharf", name: "Studio Wharf", location: "30 Seagull Lane, London, E16 1YP" },
+  { slug: "photography", name: "Photography Studio", location: "30 Seagull Lane, London, E16 1YP" },
 ];
 
 export default function FavoritesPage() {

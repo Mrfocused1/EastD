@@ -251,7 +251,7 @@ export default function StudioDockOnePage() {
             className="text-center text-white"
           >
             <p className="text-sm tracking-[0.3em] mb-4 text-white">EASTDOCK STUDIOS</p>
-            <h1 className="text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-7xl font-light tracking-wider mb-8 text-white">{content.studioTitle}</h1>
             <Link
               href="/booking?studio=studio-dock-one"
               className="inline-block border-2 border-white px-8 py-3 text-sm tracking-widest text-white hover:bg-[#DC143C] hover:border-[#DC143C] transition-all duration-300"
@@ -424,7 +424,7 @@ export default function StudioDockOnePage() {
               { name: studioTitles.photography, slug: "photography", image: studioThumbnails.photography }
             ].map((studio, index) => (
               <Link key={`studio-dock-one-other-${studio.slug}-${index}`} href={`/studios/${studio.slug}`} className="relative h-[400px] overflow-hidden group">
-                <Image src={studio.image} alt={studio.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Image src={studio.image} alt={studio.name} fill sizes="(max-width: 768px) 100vw, 33vw" quality={80} className="object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                   <div className="w-12 h-12 border border-white/50 rounded-full flex items-center justify-center mb-4">
