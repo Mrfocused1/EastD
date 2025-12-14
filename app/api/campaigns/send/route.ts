@@ -78,6 +78,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Type guard to satisfy TypeScript
+    if (!template) {
+      return NextResponse.json(
+        { error: 'Template not found' },
+        { status: 404 }
+      );
+    }
+
     // If test email provided, send only to that address
     if (testEmail) {
       const result = await sendCampaignEmail(
