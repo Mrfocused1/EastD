@@ -54,7 +54,15 @@ export default function Home() {
 
   // Only start preloading after content is loaded
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !contentLoaded || imagesLoading;
+
+  // Failsafe: force loading to complete after 3 seconds maximum
+  const [forceLoaded, setForceLoaded] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setForceLoaded(true), 3000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   // Load site mode setting
   useEffect(() => {
