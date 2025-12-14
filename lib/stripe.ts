@@ -18,9 +18,8 @@ export const getServerStripe = (): Stripe => {
 };
 
 // For backwards compatibility - but only use in server-side code!
-export const stripe = typeof window === 'undefined'
-  ? getServerStripe()
-  : (null as unknown as Stripe);
+// Note: Use getServerStripe() directly instead for lazy loading
+export const stripe = null as unknown as Stripe;
 
 // Client-side Stripe promise (lazy loaded)
 let stripePromise: Promise<StripeJS | null> | null = null;
