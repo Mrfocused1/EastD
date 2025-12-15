@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Lock, AlertCircle, CheckCircle, KeyRound } from "lucide-react";
 import { supabaseAuth } from "@/lib/supabase-auth";
 import { useRouter } from "next/navigation";
 
@@ -21,7 +21,6 @@ export default function AdminLogin() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [adminExists, setAdminExists] = useState<boolean | null>(null);
 
   // Check if user is already logged in as admin
   useEffect(() => {
@@ -39,31 +38,6 @@ export default function AdminLogin() {
     }
     checkAuth();
   }, [router]);
-
-  // Check if admin account exists
-  useEffect(() => {
-    async function checkAdminExists() {
-      try {
-        // Try to sign in with a dummy password to check if user exists
-        // This is a workaround since we can't directly query if a user exists
-        const { error } = await supabaseAuth.auth.signInWithPassword({
-          email: ADMIN_EMAIL,
-          password: "check_if_exists_dummy_password_12345",
-        });
-
-        // If error is "Invalid login credentials", user exists but password is wrong
-        // If error is "User not found" or similar, user doesn't exist
-        if (error?.message?.includes("Invalid login credentials")) {
-          setAdminExists(true);
-        } else {
-          setAdminExists(false);
-        }
-      } catch (err) {
-        setAdminExists(false);
-      }
-    }
-    checkAdminExists();
-  }, []);
 
   // Check URL for password reset token
   useEffect(() => {
@@ -93,7 +67,11 @@ export default function AdminLogin() {
       });
 
       if (error) {
-        setError(error.message);
+        if (error.message.includes("Invalid login credentials")) {
+          setError("Invalid password. Use 'Forgot password?' to reset it, or 'Setup new password' if this is your first time.");
+        } else {
+          setError(error.message);
+        }
       } else {
         router.push("/admin");
       }
@@ -110,7 +88,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     if (email.toLowerCase() !== ADMIN_EMAIL) {
-      setError(`Access denied. Only ${ADMIN_EMAIL} can create an admin account.`);
+      setError(`Access denied. Only ${ADMIN_EMAIL} can access admin.`);
       setLoading(false);
       return;
     }
@@ -128,7 +106,8 @@ export default function AdminLogin() {
     }
 
     try {
-      const { error } = await supabaseAuth.auth.signUp({
+      // First try to sign up (in case account doesn't exist)
+      const { error: signUpError } = await supabaseAuth.auth.signUp({
         email: ADMIN_EMAIL,
         password,
         options: {
@@ -139,19 +118,42 @@ export default function AdminLogin() {
         },
       });
 
-      if (error) {
-        setError(error.message);
+      if (signUpError) {
+        // If user already exists, try to sign in with magic link to update password
+        if (signUpError.message.includes("already registered")) {
+          // Send a password reset email
+          const { error: resetError } = await supabaseAuth.auth.resetPasswordForEmail(ADMIN_EMAIL, {
+            redirectTo: `${window.location.origin}/admin/login`,
+          });
+
+          if (resetError) {
+            setError("Account exists. Please check your email for a password reset link, or contact support.");
+          } else {
+            setSuccess("Account already exists! A password reset link has been sent to your email. Check your inbox and spam folder.");
+          }
+        } else {
+          setError(signUpError.message);
+        }
       } else {
-        setSuccess("Admin account created! You can now log in.");
-        setAdminExists(true);
-        setMode("login");
-        setPassword("");
-        setConfirmPassword("");
+        // Try to sign in immediately after signup
+        const { error: signInError } = await supabaseAuth.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password,
+        });
+
+        if (signInError) {
+          setSuccess("Admin account created! Please check your email to verify, then log in.");
+          setMode("login");
+        } else {
+          router.push("/admin");
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
+      setPassword("");
+      setConfirmPassword("");
     }
   }
 
@@ -175,7 +177,7 @@ export default function AdminLogin() {
       if (error) {
         setError(error.message);
       } else {
-        setSuccess("Password reset email sent! Check your inbox.");
+        setSuccess("Password reset email sent! Check your inbox and spam folder. The link will redirect you back here to set a new password.");
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -249,24 +251,24 @@ export default function AdminLogin() {
         <div className="bg-white border border-black/10 p-8">
           <h2 className="text-xl font-light text-black mb-6">
             {mode === "login" && "Admin Login"}
-            {mode === "setup" && "Create Admin Account"}
+            {mode === "setup" && "Setup Admin Account"}
             {mode === "forgot-password" && "Reset Password"}
             {mode === "reset-password" && "Set New Password"}
           </h2>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 flex-shrink-0" />
-              {success}
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{success}</span>
             </div>
           )}
 
@@ -318,7 +320,7 @@ export default function AdminLogin() {
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "LOGIN"}
               </button>
 
-              <div className="text-center space-y-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -331,21 +333,18 @@ export default function AdminLogin() {
                   Forgot password?
                 </button>
 
-                {adminExists === false && (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode("setup");
-                        setError("");
-                        setSuccess("");
-                      }}
-                      className="text-sm text-[#DC143C] hover:underline"
-                    >
-                      First time? Create admin account
-                    </button>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("setup");
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="text-sm text-[#DC143C] hover:underline flex items-center justify-center gap-1"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Setup new password
+                </button>
               </div>
             </form>
           )}
@@ -353,6 +352,10 @@ export default function AdminLogin() {
           {/* Setup Form */}
           {mode === "setup" && (
             <form onSubmit={handleSetup} className="space-y-4">
+              <p className="text-sm text-black/60 mb-4">
+                Enter your admin email and create a new password. If the account already exists, a password reset email will be sent.
+              </p>
+
               <div>
                 <label className="block text-sm text-black/60 mb-2">Admin Email</label>
                 <div className="relative">
@@ -370,7 +373,7 @@ export default function AdminLogin() {
               </div>
 
               <div>
-                <label className="block text-sm text-black/60 mb-2">Create Password</label>
+                <label className="block text-sm text-black/60 mb-2">New Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
                   <input
@@ -412,7 +415,7 @@ export default function AdminLogin() {
                 disabled={loading}
                 className="w-full py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "CREATE ACCOUNT"}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "SETUP ACCOUNT"}
               </button>
 
               <button
@@ -433,7 +436,7 @@ export default function AdminLogin() {
           {mode === "forgot-password" && (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <p className="text-sm text-black/60 mb-4">
-                Enter your admin email to receive a password reset link.
+                Enter your admin email to receive a password reset link. Check your spam folder if you don&apos;t see it.
               </p>
 
               <div>
