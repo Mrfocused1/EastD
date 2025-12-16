@@ -2,18 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Mail, Lock, AlertCircle, CheckCircle, KeyRound } from "lucide-react";
-import { supabaseAuth } from "@/lib/supabase-auth";
+import { Eye, EyeOff, Loader2, Lock, AlertCircle, CheckCircle, KeyRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const ADMIN_EMAIL = "admin@eastdockstudios.co.uk";
-
-type AuthMode = "login" | "setup" | "forgot-password" | "reset-password";
+type AuthMode = "login" | "setup";
 
 export default function AdminLogin() {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,57 +17,48 @@ export default function AdminLogin() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [needsSetup, setNeedsSetup] = useState(false);
 
-  // Check if user is already logged in as admin
+  // Check if already logged in or needs setup
   useEffect(() => {
-    async function checkAuth() {
+    async function checkStatus() {
       try {
-        const { data: { session } } = await supabaseAuth.auth.getSession();
-        if (session?.user?.email === ADMIN_EMAIL) {
+        const res = await fetch("/api/admin/auth/status");
+        const data = await res.json();
+
+        if (data.authenticated) {
           router.push("/admin");
           return;
+        }
+
+        setNeedsSetup(!data.hasPassword);
+        if (!data.hasPassword) {
+          setMode("setup");
         }
       } catch (err) {
         console.error("Error checking auth:", err);
       }
       setCheckingAuth(false);
     }
-    checkAuth();
+    checkStatus();
   }, [router]);
-
-  // Check URL for password reset token
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash;
-      if (hash.includes("type=recovery")) {
-        setMode("reset-password");
-      }
-    }
-  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    if (email.toLowerCase() !== ADMIN_EMAIL) {
-      setError("Access denied. Only the admin account can log in.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { error } = await supabaseAuth.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
-        password,
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
       });
 
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          setError("Invalid password. Use 'Forgot password?' to reset it, or 'Setup new password' if this is your first time.");
-        } else {
-          setError(error.message);
-        }
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid password");
       } else {
         router.push("/admin");
       }
@@ -87,12 +74,6 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
 
-    if (email.toLowerCase() !== ADMIN_EMAIL) {
-      setError(`Access denied. Only ${ADMIN_EMAIL} can access admin.`);
-      setLoading(false);
-      return;
-    }
-
     if (password.length < 8) {
       setError("Password must be at least 8 characters long");
       setLoading(false);
@@ -106,117 +87,19 @@ export default function AdminLogin() {
     }
 
     try {
-      // First try to sign up (in case account doesn't exist)
-      const { error: signUpError } = await supabaseAuth.auth.signUp({
-        email: ADMIN_EMAIL,
-        password,
-        options: {
-          data: {
-            full_name: "Admin",
-            role: "admin",
-          },
-        },
+      const res = await fetch("/api/admin/auth/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
       });
 
-      if (signUpError) {
-        // If user already exists, try to sign in with magic link to update password
-        if (signUpError.message.includes("already registered")) {
-          // Send a password reset email
-          const { error: resetError } = await supabaseAuth.auth.resetPasswordForEmail(ADMIN_EMAIL, {
-            redirectTo: `${window.location.origin}/admin/login`,
-          });
+      const data = await res.json();
 
-          if (resetError) {
-            setError("Account exists. Please check your email for a password reset link, or contact support.");
-          } else {
-            setSuccess("Account already exists! A password reset link has been sent to your email. Check your inbox and spam folder.");
-          }
-        } else {
-          setError(signUpError.message);
-        }
+      if (!res.ok) {
+        setError(data.error || "Failed to set up password");
       } else {
-        // Try to sign in immediately after signup
-        const { error: signInError } = await supabaseAuth.auth.signInWithPassword({
-          email: ADMIN_EMAIL,
-          password,
-        });
-
-        if (signInError) {
-          setSuccess("Admin account created! Please check your email to verify, then log in.");
-          setMode("login");
-        } else {
-          router.push("/admin");
-        }
-      }
-    } catch (err) {
-      setError("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-      setPassword("");
-      setConfirmPassword("");
-    }
-  }
-
-  async function handleForgotPassword(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
-    if (email.toLowerCase() !== ADMIN_EMAIL) {
-      setError(`Password reset is only available for ${ADMIN_EMAIL}`);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabaseAuth.auth.resetPasswordForEmail(ADMIN_EMAIL, {
-        redirectTo: `${window.location.origin}/admin/login`,
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess("Password reset email sent! Check your inbox and spam folder. The link will redirect you back here to set a new password.");
-      }
-    } catch (err) {
-      setError("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleResetPassword(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabaseAuth.auth.updateUser({
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess("Password updated successfully! You can now log in.");
-        setMode("login");
-        setPassword("");
-        setConfirmPassword("");
-        // Clear the hash from URL
-        window.history.replaceState(null, "", "/admin/login");
+        setSuccess("Password set! Redirecting...");
+        setTimeout(() => router.push("/admin"), 1000);
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -250,10 +133,7 @@ export default function AdminLogin() {
         {/* Card */}
         <div className="bg-white border border-black/10 p-8">
           <h2 className="text-xl font-light text-black mb-6">
-            {mode === "login" && "Admin Login"}
-            {mode === "setup" && "Setup Admin Account"}
-            {mode === "forgot-password" && "Reset Password"}
-            {mode === "reset-password" && "Set New Password"}
+            {mode === "login" ? "Admin Login" : "Setup Admin Password"}
           </h2>
 
           {/* Error Message */}
@@ -276,21 +156,6 @@ export default function AdminLogin() {
           {mode === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm text-black/60 mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="admin@eastdockstudios.co.uk"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
                 <label className="block text-sm text-black/60 mb-2">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
@@ -299,7 +164,7 @@ export default function AdminLogin() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-12 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="Enter your password"
+                    placeholder="Enter admin password"
                     required
                   />
                   <button
@@ -320,32 +185,20 @@ export default function AdminLogin() {
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "LOGIN"}
               </button>
 
-              <div className="flex flex-col gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("forgot-password");
-                    setError("");
-                    setSuccess("");
-                  }}
-                  className="text-sm text-black/60 hover:text-black"
-                >
-                  Forgot password?
-                </button>
-
+              {needsSetup && (
                 <button
                   type="button"
                   onClick={() => {
                     setMode("setup");
                     setError("");
-                    setSuccess("");
+                    setPassword("");
                   }}
-                  className="text-sm text-[#DC143C] hover:underline flex items-center justify-center gap-1"
+                  className="w-full text-sm text-[#DC143C] hover:underline flex items-center justify-center gap-1 pt-2"
                 >
                   <KeyRound className="w-4 h-4" />
                   Setup new password
                 </button>
-              </div>
+              )}
             </form>
           )}
 
@@ -353,24 +206,8 @@ export default function AdminLogin() {
           {mode === "setup" && (
             <form onSubmit={handleSetup} className="space-y-4">
               <p className="text-sm text-black/60 mb-4">
-                Enter your admin email and create a new password. If the account already exists, a password reset email will be sent.
+                Create a password for the admin panel.
               </p>
-
-              <div>
-                <label className="block text-sm text-black/60 mb-2">Admin Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="admin@eastdockstudios.co.uk"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-black/40 mt-1">Must be: {ADMIN_EMAIL}</p>
-              </div>
 
               <div>
                 <label className="block text-sm text-black/60 mb-2">New Password</label>
@@ -415,119 +252,23 @@ export default function AdminLogin() {
                 disabled={loading}
                 className="w-full py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "SETUP ACCOUNT"}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "SET PASSWORD"}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError("");
-                  setSuccess("");
-                }}
-                className="w-full text-sm text-black/60 hover:text-black"
-              >
-                Back to login
-              </button>
-            </form>
-          )}
-
-          {/* Forgot Password Form */}
-          {mode === "forgot-password" && (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <p className="text-sm text-black/60 mb-4">
-                Enter your admin email to receive a password reset link. Check your spam folder if you don&apos;t see it.
-              </p>
-
-              <div>
-                <label className="block text-sm text-black/60 mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="admin@eastdockstudios.co.uk"
-                    required
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "SEND RESET LINK"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError("");
-                  setSuccess("");
-                }}
-                className="w-full text-sm text-black/60 hover:text-black"
-              >
-                Back to login
-              </button>
-            </form>
-          )}
-
-          {/* Reset Password Form */}
-          {mode === "reset-password" && (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <p className="text-sm text-black/60 mb-4">
-                Enter your new password below.
-              </p>
-
-              <div>
-                <label className="block text-sm text-black/60 mb-2">New Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="Minimum 8 characters"
-                    required
-                    minLength={8}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-black/60 mb-2">Confirm New Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-black/30" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-black/20 focus:border-black outline-none text-black"
-                    placeholder="Confirm your password"
-                    required
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "UPDATE PASSWORD"}
-              </button>
+              {!needsSetup && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("login");
+                    setError("");
+                    setPassword("");
+                    setConfirmPassword("");
+                  }}
+                  className="w-full text-sm text-black/60 hover:text-black"
+                >
+                  Back to login
+                </button>
+              )}
             </form>
           )}
         </div>

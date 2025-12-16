@@ -25,9 +25,6 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { supabaseAuth } from "@/lib/supabase-auth";
-
-const ADMIN_EMAIL = "admin@eastdockstudios.co.uk";
 
 export default function AdminLayout({
   children,
@@ -52,9 +49,10 @@ export default function AdminLayout({
 
     async function checkAuth() {
       try {
-        const { data: { session } } = await supabaseAuth.auth.getSession();
+        const res = await fetch("/api/admin/auth/status");
+        const data = await res.json();
 
-        if (!session || session.user?.email !== ADMIN_EMAIL) {
+        if (!data.authenticated) {
           router.push("/admin/login");
           return;
         }
@@ -69,25 +67,12 @@ export default function AdminLayout({
     }
 
     checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabaseAuth.auth.onAuthStateChange((event, session) => {
-      if (pathname === "/admin/login") return;
-
-      if (!session || session.user?.email !== ADMIN_EMAIL) {
-        setIsAuthenticated(false);
-        router.push("/admin/login");
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [pathname, router]);
 
   // Sign out function
   async function handleSignOut() {
-    await supabaseAuth.auth.signOut();
+    // Clear the session cookie by calling logout endpoint
+    await fetch("/api/admin/auth/logout", { method: "POST" });
     router.push("/admin/login");
   }
   const [navigation, setNavigation] = useState([
