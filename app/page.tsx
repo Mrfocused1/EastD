@@ -80,9 +80,16 @@ export default function Home() {
 
   // Load site mode setting
   useEffect(() => {
+    let mounted = true;
+
     async function loadSiteMode() {
       try {
-        const { data, error } = await supabase
+        // Add a timeout to prevent hanging forever
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+
+        const queryPromise = supabase
           .from('site_content')
           .select('value')
           .eq('page', 'global')
@@ -90,19 +97,33 @@ export default function Home() {
           .eq('key', 'site_mode')
           .single();
 
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
+        if (!mounted) return;
+
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading site mode:', error);
+          // Default to "live" on error to show the site
+          setSiteMode("live");
+          return;
         }
 
-        // Default to "coming_soon" if not set
-        setSiteMode((data?.value as "coming_soon" | "live") || "coming_soon");
+        // Default to "live" if not set (changed from "coming_soon")
+        setSiteMode((data?.value as "coming_soon" | "live") || "live");
       } catch (err) {
-        console.error('Error:', err);
-        setSiteMode("coming_soon");
+        console.error('Error loading site mode:', err);
+        if (mounted) {
+          // Default to "live" to prevent the site from being stuck
+          setSiteMode("live");
+        }
       }
     }
 
     loadSiteMode();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
