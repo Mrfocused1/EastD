@@ -71,7 +71,7 @@ const DEFAULT_ADDONS = [
   { id: "videoSwitcherHalf", category: "Camera & Lens", label: "Video Switcher (upto Half Day)", price: 3500, maxQuantity: 1 },
 ];
 
-// Check if admin is authenticated via cookie
+// Check if admin is authenticated via cookie (with timeout)
 async function isAuthenticated(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
@@ -79,7 +79,8 @@ async function isAuthenticated(): Promise<boolean> {
 
     if (!sessionToken) return false;
 
-    const { data } = await supabaseAdmin
+    // Add timeout to auth check
+    const authPromise = supabaseAdmin
       .from('site_content')
       .select('value')
       .eq('page', 'admin')
@@ -87,7 +88,14 @@ async function isAuthenticated(): Promise<boolean> {
       .eq('key', 'session_token')
       .single();
 
-    return data?.value === sessionToken;
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), 5000);
+    });
+
+    const result = await Promise.race([authPromise, timeoutPromise]);
+
+    if (!result || !('data' in result)) return false;
+    return result.data?.value === sessionToken;
   } catch (error) {
     console.error('Auth check error:', error);
     return false;
@@ -96,61 +104,74 @@ async function isAuthenticated(): Promise<boolean> {
 
 // GET - Load pricing data
 export async function GET() {
-  try {
-    // Check authentication
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      // Return defaults with flag so page can still show content
-      return NextResponse.json(
-        { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, authRequired: true },
-        { status: 200 }
-      );
-    }
+  // Wrap entire handler in timeout to ensure it always responds
+  const timeoutPromise = new Promise<Response>((resolve) => {
+    setTimeout(() => {
+      resolve(NextResponse.json({
+        studios: DEFAULT_STUDIOS,
+        addons: DEFAULT_ADDONS,
+        fromDefaults: true,
+        timeout: true
+      }));
+    }, 8000);
+  });
 
-    const { data, error } = await supabaseAdmin
-      .from('site_content')
-      .select('key, value')
-      .eq('page', 'pricing')
-      .eq('section', 'config');
+  const dataPromise = (async () => {
+    try {
+      // Check authentication
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        // Return defaults with flag so page can still show content
+        return NextResponse.json(
+          { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, authRequired: true },
+          { status: 200 }
+        );
+      }
 
-    if (error) {
-      console.error('Error loading pricing:', error);
-      // Return defaults on error
+      const { data, error } = await supabaseAdmin
+        .from('site_content')
+        .select('key, value')
+        .eq('page', 'pricing')
+        .eq('section', 'config');
+
+      if (error) {
+        console.error('Error loading pricing:', error);
+        return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
+      }
+
+      const result: { studios?: unknown; addons?: unknown; fromDefaults?: boolean } = {};
+
+      if (data && data.length > 0) {
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key === 'studios') {
+            try {
+              result.studios = JSON.parse(item.value);
+            } catch (e) {
+              console.error('Error parsing studios:', e);
+            }
+          }
+          if (item.key === 'addons') {
+            try {
+              result.addons = JSON.parse(item.value);
+            } catch (e) {
+              console.error('Error parsing addons:', e);
+            }
+          }
+        });
+      }
+
+      if (!result.studios) result.studios = DEFAULT_STUDIOS;
+      if (!result.addons) result.addons = DEFAULT_ADDONS;
+      if (!data || data.length === 0) result.fromDefaults = true;
+
+      return NextResponse.json(result);
+    } catch (error) {
+      console.error('Error:', error);
       return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
     }
+  })();
 
-    const result: { studios?: unknown; addons?: unknown; fromDefaults?: boolean } = {};
-
-    if (data && data.length > 0) {
-      data.forEach((item: { key: string; value: string }) => {
-        if (item.key === 'studios') {
-          try {
-            result.studios = JSON.parse(item.value);
-          } catch (e) {
-            console.error('Error parsing studios:', e);
-          }
-        }
-        if (item.key === 'addons') {
-          try {
-            result.addons = JSON.parse(item.value);
-          } catch (e) {
-            console.error('Error parsing addons:', e);
-          }
-        }
-      });
-    }
-
-    // If no data found, return defaults
-    if (!result.studios) result.studios = DEFAULT_STUDIOS;
-    if (!result.addons) result.addons = DEFAULT_ADDONS;
-    if (!data || data.length === 0) result.fromDefaults = true;
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Error:', error);
-    // Return defaults on any error
-    return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
-  }
+  return Promise.race([dataPromise, timeoutPromise]);
 }
 
 // POST - Save pricing data
