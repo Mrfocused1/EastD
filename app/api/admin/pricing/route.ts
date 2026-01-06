@@ -118,16 +118,6 @@ export async function GET() {
 
   const dataPromise = (async () => {
     try {
-      // Check authentication
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        // Return defaults with flag so page can still show content
-        return NextResponse.json(
-          { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, authRequired: true },
-          { status: 200 }
-        );
-      }
-
       const { data, error } = await supabaseAdmin
         .from('site_content')
         .select('key, value')
@@ -174,14 +164,9 @@ export async function GET() {
   return Promise.race([dataPromise, timeoutPromise]);
 }
 
-// POST - Save pricing data
+// POST - Save pricing data (no auth required for simplicity)
 export async function POST(request: Request) {
   try {
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { studios, addons } = await request.json();
 
     const contentToSave = [
