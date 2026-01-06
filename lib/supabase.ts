@@ -4,6 +4,17 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const SUPABASE_URL = 'https://fhgvnjwiasusjfevimcw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3ZuandpYXN1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTk3MzcsImV4cCI6MjA3OTU3NTczN30.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg';
 
+// Custom fetch with timeout to prevent hanging requests
+const fetchWithTimeout = (url: RequestInfo | URL, options?: RequestInit) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeoutId));
+};
+
 // Simple browser client for public read operations
 // Does NOT manage auth sessions - prevents hangs from stale session refresh
 // See: https://github.com/supabase/supabase/issues/35754
@@ -12,7 +23,10 @@ export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false,
-  }
+  },
+  global: {
+    fetch: fetchWithTimeout,
+  },
 });
 
 // Types for site content
