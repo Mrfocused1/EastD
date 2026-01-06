@@ -70,30 +70,45 @@ export default function PricingEditor() {
   const [studios, setStudios] = useState<StudioPricing[]>(defaultStudios);
   const [addons, setAddons] = useState<AddonPricing[]>(defaultAddons);
   const [hasChanges, setHasChanges] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPricing();
+    // Failsafe: ensure page loads within 5 seconds
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+    return () => clearTimeout(timeout);
   }, []);
 
   async function loadPricing() {
     try {
-      const response = await fetch("/api/admin/pricing");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch("/api/admin/pricing", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error("Error loading pricing:", data.error);
-        setIsLoading(false);
-        return;
-      }
-
+      // API now always returns data (with defaults if needed)
       if (data.studios) {
         setStudios(data.studios);
       }
       if (data.addons) {
         setAddons(data.addons);
       }
+      if (data.fromDefaults) {
+        setLoadError("Using default pricing data. Database data not available.");
+      }
+      if (data.authRequired) {
+        setLoadError("Not authenticated. Please log in to edit pricing.");
+      }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error loading pricing:", err);
+      setLoadError("Failed to load pricing data. Using defaults.");
     } finally {
       setIsLoading(false);
     }
@@ -247,6 +262,18 @@ export default function PricingEditor() {
           <SaveButton onSave={handleSave} hasChanges={hasChanges} />
         </div>
       </motion.div>
+
+      {loadError && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-amber-50 border border-amber-200 p-4 mb-6 text-amber-800"
+        >
+          <p className="font-medium">Note</p>
+          <p className="text-sm">{loadError}</p>
+          <p className="text-xs mt-2">To enable database storage, ensure SUPABASE_SERVICE_ROLE_KEY is set in your environment variables.</p>
+        </motion.div>
+      )}
 
       <div className="space-y-6">
         {/* Studio Pricing */}

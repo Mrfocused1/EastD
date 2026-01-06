@@ -542,37 +542,32 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
 
   async function loadPricing() {
     try {
-      const { data, error } = await supabase
-        .from("site_content")
-        .select("key, value")
-        .eq("page", "pricing")
-        .eq("section", "config");
+      // Use API endpoint with timeout to bypass RLS and ensure data loads
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      if (error) {
-        console.error("Error loading pricing:", error);
+      const response = await fetch("/api/pricing", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error("Error loading pricing: HTTP", response.status);
+        // Keep using defaults (already set in state)
         return;
       }
 
-      if (data && data.length > 0) {
-        data.forEach((item: { key: string; value: string }) => {
-          if (item.key === "studios") {
-            try {
-              setPricingStudios(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing studios:", e);
-            }
-          }
-          if (item.key === "addons") {
-            try {
-              setPricingAddons(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing addons:", e);
-            }
-          }
-        });
+      const data = await response.json();
+
+      if (data.studios) {
+        setPricingStudios(data.studios);
+      }
+      if (data.addons) {
+        setPricingAddons(data.addons);
       }
     } catch (err) {
-      console.error("Error:", err);
+      // On timeout or any error, keep using defaults
+      console.error("Error loading pricing:", err);
     }
   }
 

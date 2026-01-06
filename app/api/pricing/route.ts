@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://fhgvnjwiasusjfevimcw.supabase.co';
@@ -8,8 +7,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Use service role key if available (bypasses RLS), otherwise fall back to anon key
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
 
-// Create admin client - uses service role to bypass RLS when available
-const supabaseAdmin = createClient(SUPABASE_URL, supabaseKey, {
+// Create client - uses service role to bypass RLS when available
+const supabaseServer = createClient(SUPABASE_URL, supabaseKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
@@ -57,43 +56,10 @@ const DEFAULT_ADDONS = [
   { id: "videoSwitcherHalf", category: "Camera & Lens", label: "Video Switcher (upto Half Day)", price: 3500, maxQuantity: 1 },
 ];
 
-// Check if admin is authenticated via cookie
-async function isAuthenticated(): Promise<boolean> {
-  try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get('admin_session')?.value;
-
-    if (!sessionToken) return false;
-
-    const { data } = await supabaseAdmin
-      .from('site_content')
-      .select('value')
-      .eq('page', 'admin')
-      .eq('section', 'auth')
-      .eq('key', 'session_token')
-      .single();
-
-    return data?.value === sessionToken;
-  } catch (error) {
-    console.error('Auth check error:', error);
-    return false;
-  }
-}
-
-// GET - Load pricing data
+// GET - Load pricing data (public endpoint)
 export async function GET() {
   try {
-    // Check authentication
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      // Return defaults with flag so page can still show content
-      return NextResponse.json(
-        { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, authRequired: true },
-        { status: 200 }
-      );
-    }
-
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseServer
       .from('site_content')
       .select('key, value')
       .eq('page', 'pricing')
@@ -136,49 +102,5 @@ export async function GET() {
     console.error('Error:', error);
     // Return defaults on any error
     return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
-  }
-}
-
-// POST - Save pricing data
-export async function POST(request: Request) {
-  try {
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { studios, addons } = await request.json();
-
-    const contentToSave = [
-      { page: 'pricing', section: 'config', key: 'studios', value: JSON.stringify(studios), type: 'array' },
-      { page: 'pricing', section: 'config', key: 'addons', value: JSON.stringify(addons), type: 'array' },
-    ];
-
-    for (const item of contentToSave) {
-      const { error } = await supabaseAdmin
-        .from('site_content')
-        .upsert(
-          {
-            ...item,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: 'page,section,key',
-          }
-        );
-
-      if (error) {
-        console.error('Error saving:', error);
-        return NextResponse.json({
-          error: 'Failed to save pricing. If using anon key, ensure SUPABASE_SERVICE_ROLE_KEY is set in environment variables.',
-          details: error.message
-        }, { status: 500 });
-      }
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Save error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
