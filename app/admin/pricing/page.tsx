@@ -7,7 +7,6 @@ import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
 import SaveButton from "@/components/admin/SaveButton";
-import { supabase } from "@/lib/supabase";
 
 interface StudioPricing {
   id: string;
@@ -78,35 +77,20 @@ export default function PricingEditor() {
 
   async function loadPricing() {
     try {
-      const { data, error } = await supabase
-        .from("site_content")
-        .select("key, value")
-        .eq("page", "pricing")
-        .eq("section", "config");
+      const response = await fetch("/api/admin/pricing");
+      const data = await response.json();
 
-      if (error) {
-        console.error("Error loading pricing:", error);
+      if (!response.ok) {
+        console.error("Error loading pricing:", data.error);
         setIsLoading(false);
         return;
       }
 
-      if (data && data.length > 0) {
-        data.forEach((item: { key: string; value: string }) => {
-          if (item.key === "studios") {
-            try {
-              setStudios(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing studios:", e);
-            }
-          }
-          if (item.key === "addons") {
-            try {
-              setAddons(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing addons:", e);
-            }
-          }
-        });
+      if (data.studios) {
+        setStudios(data.studios);
+      }
+      if (data.addons) {
+        setAddons(data.addons);
       }
     } catch (err) {
       console.error("Error:", err);
@@ -116,30 +100,20 @@ export default function PricingEditor() {
   }
 
   const handleSave = async () => {
-    const contentToSave = [
-      { page: "pricing", section: "config", key: "studios", value: JSON.stringify(studios), type: "array" },
-      { page: "pricing", section: "config", key: "addons", value: JSON.stringify(addons), type: "array" },
-    ];
-
     try {
-      for (const item of contentToSave) {
-        const { error } = await supabase
-          .from("site_content")
-          .upsert(
-            {
-              ...item,
-              updated_at: new Date().toISOString(),
-            },
-            {
-              onConflict: "page,section,key",
-            }
-          );
+      const response = await fetch("/api/admin/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studios, addons }),
+      });
 
-        if (error) {
-          console.error("Error saving:", error);
-          throw error;
-        }
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error saving:", data.error);
+        throw new Error(data.error);
       }
+
       setHasChanges(false);
     } catch (err) {
       console.error("Save failed:", err);
