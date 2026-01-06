@@ -3,11 +3,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageLoader from "@/components/PageLoader";
-import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 import {
   Radio,
@@ -141,21 +139,6 @@ export default function ServicesPage() {
   const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
 
   const [content, setContent] = useState<ServicesContent>(defaultContent);
-  const [contentLoaded, setContentLoaded] = useState(false);
-
-  // Failsafe: force loading to complete after 5 seconds maximum
-  const [forceLoaded, setForceLoaded] = useState(false);
-  useEffect(() => {
-    const timeout = setTimeout(() => setForceLoaded(true), 5000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  const imagesToPreload = useMemo(() => {
-    return [content.heroImage].filter(Boolean);
-  }, [content.heroImage]);
-
-  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   useEffect(() => {
     async function loadContent() {
@@ -167,7 +150,6 @@ export default function ServicesPage() {
 
         if (error) {
           console.error("Error loading services content:", error);
-          setContentLoaded(true);
           return;
         }
 
@@ -191,10 +173,8 @@ export default function ServicesPage() {
           });
           setContent(newContent);
         }
-        setContentLoaded(true);
       } catch (err) {
         console.error("Error:", err);
-        setContentLoaded(true);
       }
     }
 
@@ -208,7 +188,6 @@ export default function ServicesPage() {
 
   return (
     <>
-      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
         {/* Hero Section */}

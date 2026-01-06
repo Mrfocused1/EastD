@@ -4,11 +4,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageLoader from "@/components/PageLoader";
-import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 
 const defaultServices = [
@@ -71,27 +69,6 @@ export default function AboutPage() {
     linkedinUrl: "",
   });
   const [services, setServices] = useState(defaultServices);
-  const [contentLoaded, setContentLoaded] = useState(false);
-
-  // Failsafe: force loading to complete after 5 seconds maximum
-  const [forceLoaded, setForceLoaded] = useState(false);
-  useEffect(() => {
-    const timeout = setTimeout(() => setForceLoaded(true), 5000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  // Collect all images to preload
-  const imagesToPreload = useMemo(() => {
-    const images = [
-      content.heroImage,
-      "https://images.pexels.com/photos/7991319/pexels-photo-7991319.jpeg?auto=compress&cs=tinysrgb&w=1920",
-      ...services.map(s => s.image)
-    ];
-    return images.filter(Boolean);
-  }, [content.heroImage, services]);
-
-  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   useEffect(() => {
     async function loadContent() {
@@ -103,7 +80,6 @@ export default function AboutPage() {
 
         if (error) {
           console.error('Error loading about content:', error);
-          setContentLoaded(true);
           return;
         }
 
@@ -162,11 +138,8 @@ export default function AboutPage() {
             console.error('Error parsing services:', e);
           }
         }
-
-        setContentLoaded(true);
       } catch (err) {
         console.error('Error:', err);
-        setContentLoaded(true);
       }
     }
 
@@ -175,7 +148,6 @@ export default function AboutPage() {
 
   return (
     <>
-      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-white">
         {/* Hero Section */}

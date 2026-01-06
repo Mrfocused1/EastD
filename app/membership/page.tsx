@@ -2,11 +2,9 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageLoader from "@/components/PageLoader";
-import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 import { Check, X, Users, Briefcase, TrendingUp, DollarSign, Gift, Calendar, Sparkles, Network, Zap } from "lucide-react";
 
@@ -113,7 +111,6 @@ export default function MembershipPage() {
   const heroY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
 
   const [content, setContent] = useState<MembershipContent>(defaultContent);
-  const [contentLoaded, setContentLoaded] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -129,20 +126,6 @@ export default function MembershipPage() {
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Failsafe: force loading to complete after 5 seconds maximum
-  const [forceLoaded, setForceLoaded] = useState(false);
-  useEffect(() => {
-    const timeout = setTimeout(() => setForceLoaded(true), 5000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  const imagesToPreload = useMemo(() => {
-    return [content.heroImage].filter(Boolean);
-  }, [content.heroImage]);
-
-  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
-
   useEffect(() => {
     async function loadContent() {
       try {
@@ -153,7 +136,6 @@ export default function MembershipPage() {
 
         if (error) {
           console.error("Error loading membership content:", error);
-          setContentLoaded(true);
           return;
         }
 
@@ -199,10 +181,8 @@ export default function MembershipPage() {
           });
           setContent(newContent);
         }
-        setContentLoaded(true);
       } catch (err) {
         console.error("Error:", err);
-        setContentLoaded(true);
       }
     }
 
@@ -279,7 +259,6 @@ export default function MembershipPage() {
 
   return (
     <>
-      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
         {/* Hero Section */}

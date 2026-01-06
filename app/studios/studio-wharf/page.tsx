@@ -1,14 +1,12 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, Camera, Palette } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageLoader from "@/components/PageLoader";
-import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { supabase } from "@/lib/supabase";
 import { parseFocalPoints, FocalPoints, DEFAULT_FOCAL_POINTS } from "@/hooks/useFocalPoint";
 import FocalPointImage from "@/components/FocalPointImage";
@@ -56,7 +54,6 @@ export default function LuxPage() {
     offset: ["start end", "end start"],
   });
 
-  const [contentLoaded, setContentLoaded] = useState(false);
   const [studioTitles, setStudioTitles] = useState({
     studioDockOne: "Studio Dock One",
     studioDockTwo: "Studio Dock Two",
@@ -92,21 +89,6 @@ export default function LuxPage() {
     ],
   });
 
-  // Failsafe: force loading to complete after 5 seconds maximum
-  const [forceLoaded, setForceLoaded] = useState(false);
-  useEffect(() => {
-    const timeout = setTimeout(() => setForceLoaded(true), 5000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  // Collect all images to preload
-  const imagesToPreload = useMemo(() => {
-    return [content.heroImage.url, content.pricingImage.url, ...content.galleryImages.map(g => g.url)].filter(Boolean);
-  }, [content.heroImage, content.pricingImage, content.galleryImages]);
-
-  const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
-
   useEffect(() => {
     async function loadContent() {
       try {
@@ -117,7 +99,6 @@ export default function LuxPage() {
 
         if (error) {
           console.error('Error loading LUX content:', error);
-          setContentLoaded(true);
           return;
         }
 
@@ -155,10 +136,8 @@ export default function LuxPage() {
           });
           setContent(newContent);
         }
-        setContentLoaded(true);
       } catch (err) {
         console.error('Error:', err);
-        setContentLoaded(true);
       }
     }
 
@@ -221,7 +200,6 @@ export default function LuxPage() {
 
   return (
     <>
-      <PageLoader isLoading={isLoading} />
       <Header />
       <main className="min-h-screen bg-[#fdfbf8]">
       {/* Hero Section */}
