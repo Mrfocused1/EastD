@@ -78,28 +78,40 @@ export default function Home() {
     }
   }, [isLoading]);
 
-  // Load site mode setting
+  // Load site mode setting with timeout fallback
   useEffect(() => {
     async function loadSiteMode() {
-      try {
-        const { data, error } = await supabase
-          .from('site_content')
-          .select('value')
-          .eq('page', 'global')
-          .eq('section', 'settings')
-          .eq('key', 'site_mode')
-          .single();
+      // Create a timeout promise that resolves to "live" after 3 seconds
+      const timeoutPromise = new Promise<"live">((resolve) => {
+        setTimeout(() => resolve("live"), 3000);
+      });
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error loading site mode:', error);
+      // Create the actual fetch promise
+      const fetchPromise = (async () => {
+        try {
+          const { data, error } = await supabase
+            .from('site_content')
+            .select('value')
+            .eq('page', 'global')
+            .eq('section', 'settings')
+            .eq('key', 'site_mode')
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error loading site mode:', error);
+            return "live" as const; // Default to live on error
+          }
+
+          return (data?.value as "coming_soon" | "live") || "live";
+        } catch (err) {
+          console.error('Error loading site mode:', err);
+          return "live" as const; // Default to live on error
         }
+      })();
 
-        // Default to "coming_soon" if not set
-        setSiteMode((data?.value as "coming_soon" | "live") || "coming_soon");
-      } catch (err) {
-        console.error('Error:', err);
-        setSiteMode("coming_soon");
-      }
+      // Race between fetch and timeout - whichever completes first wins
+      const result = await Promise.race([fetchPromise, timeoutPromise]);
+      setSiteMode(result);
     }
 
     loadSiteMode();
@@ -107,6 +119,11 @@ export default function Home() {
 
   useEffect(() => {
     async function loadContent() {
+      // Set a timeout to ensure page loads even if fetch fails
+      const timeoutId = setTimeout(() => {
+        setContentLoaded(true);
+      }, 3000);
+
       try {
         // Load all homepage content (welcome section + images)
         const { data, error } = await supabase
@@ -114,6 +131,8 @@ export default function Home() {
           .select('section, key, value')
           .eq('page', 'homepage')
           .in('section', ['welcome', 'hero', 'studios']);
+
+        clearTimeout(timeoutId);
 
         if (error) {
           console.error('Error loading homepage content:', error);
@@ -151,7 +170,8 @@ export default function Home() {
         }
         setContentLoaded(true);
       } catch (err) {
-        console.error('Error:', err);
+        clearTimeout(timeoutId);
+        console.error('Error loading content:', err);
         setContentLoaded(true);
       }
     }
