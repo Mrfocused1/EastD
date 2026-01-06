@@ -7,12 +7,26 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Use service role key if available (bypasses RLS), otherwise fall back to anon key
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
 
+// Custom fetch with timeout to prevent hanging requests
+const fetchWithTimeout = (url: RequestInfo | URL, options?: RequestInit) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeoutId));
+};
+
 // Create client - uses service role to bypass RLS when available
 const supabaseServer = createClient(SUPABASE_URL, supabaseKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false,
+  },
+  global: {
+    fetch: fetchWithTimeout,
   },
 });
 

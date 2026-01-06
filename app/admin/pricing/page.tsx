@@ -116,22 +116,31 @@ export default function PricingEditor() {
 
   const handleSave = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for save
+
       const response = await fetch("/api/admin/pricing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ studios, addons }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
       if (!response.ok) {
         console.error("Error saving:", data.error);
-        throw new Error(data.error);
+        throw new Error(data.error || "Failed to save pricing");
       }
 
       setHasChanges(false);
+      setLoadError(null); // Clear any previous errors on successful save
     } catch (err) {
       console.error("Save failed:", err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error("Save timed out. Please check your internet connection and try again.");
+      }
       throw err;
     }
   };
