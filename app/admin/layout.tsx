@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Home,
   FileText,
@@ -33,49 +33,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check authentication
-  useEffect(() => {
-    // Skip auth check for login page
-    if (pathname === "/admin/login") {
-      setIsLoading(false);
-      setIsAuthenticated(true); // Allow rendering of login page
-      return;
-    }
-
-    async function checkAuth() {
-      try {
-        const res = await fetch("/api/admin/auth/status");
-        const data = await res.json();
-
-        if (!data.authenticated) {
-          router.push("/admin/login");
-          return;
-        }
-
-        setIsAuthenticated(true);
-      } catch (err) {
-        console.error("Auth error:", err);
-        router.push("/admin/login");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    checkAuth();
-  }, [pathname, router]);
-
-  // Sign out function
-  async function handleSignOut() {
-    // Clear the session cookie by calling logout endpoint
-    await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-  }
   const [navigation, setNavigation] = useState([
     { name: "Dashboard", href: "/admin", icon: Home },
     { name: "Homepage", href: "/admin/homepage", icon: Layout },
@@ -89,7 +48,6 @@ export default function AdminLayout({
     { name: "Images", href: "/admin/images", icon: ImageIcon },
     { name: "Gallery", href: "/admin/gallery", icon: Grid3X3 },
     { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
-    { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
     { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
     { name: "Discounts", href: "/admin/discounts", icon: Tag },
     { name: "Emails", href: "/admin/emails", icon: Mail },
@@ -144,7 +102,6 @@ export default function AdminLayout({
             { name: "Images", href: "/admin/images", icon: ImageIcon },
             { name: "Gallery", href: "/admin/gallery", icon: Grid3X3 },
             { name: "Booking Form", href: "/admin/booking", icon: ClipboardList },
-            { name: "Photography Booking", href: "/admin/photography-booking", icon: ClipboardList },
             { name: "Pricing", href: "/admin/pricing", icon: PoundSterling },
             { name: "Discounts", href: "/admin/discounts", icon: Tag },
             { name: "Emails", href: "/admin/emails", icon: Mail },
@@ -160,29 +117,6 @@ export default function AdminLayout({
 
     loadStudioTitles();
   }, []);
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#fdfbf8] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-black/40" />
-      </div>
-    );
-  }
-
-  // For login page, render children directly without sidebar
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
-  }
-
-  // If not authenticated, don't render anything (redirect will happen)
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#fdfbf8] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-black/40" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#fdfbf8]">
@@ -235,20 +169,13 @@ export default function AdminLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-black/10 space-y-2">
+          <div className="p-4 border-t border-black/10">
             <Link
               href="/"
               className="flex items-center justify-center gap-2 px-4 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black hover:text-white hover:border-black transition-all duration-300"
             >
               VIEW SITE
             </Link>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-600 text-sm tracking-widest hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300"
-            >
-              <LogOut className="w-4 h-4" />
-              SIGN OUT
-            </button>
           </div>
         </div>
       </aside>

@@ -80,6 +80,8 @@ export default function Home() {
 
   // Load site mode setting with timeout fallback
   useEffect(() => {
+    let mounted = true;
+
     async function loadSiteMode() {
       // Create a timeout promise that resolves to "live" after 3 seconds
       const timeoutPromise = new Promise<"live">((resolve) => {
@@ -97,6 +99,8 @@ export default function Home() {
             .eq('key', 'site_mode')
             .single();
 
+          if (!mounted) return "live" as const;
+
           if (error && error.code !== 'PGRST116') {
             console.error('Error loading site mode:', error);
             return "live" as const; // Default to live on error
@@ -111,10 +115,14 @@ export default function Home() {
 
       // Race between fetch and timeout - whichever completes first wins
       const result = await Promise.race([fetchPromise, timeoutPromise]);
-      setSiteMode(result);
+      if (mounted) setSiteMode(result);
     }
 
     loadSiteMode();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
