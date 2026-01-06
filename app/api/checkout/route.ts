@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerStripe, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, getAddonsForStudio, formatPrice } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { supabaseServer as supabase } from '@/lib/supabase-server';
 import { hasEveningWeekendSurcharge, EVENING_WEEKEND_SURCHARGE } from '@/lib/studioConfig';
 
 interface DiscountCode {
