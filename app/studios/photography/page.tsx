@@ -94,13 +94,20 @@ export default function PhotographyPage() {
     ],
   });
 
+  // Failsafe: force loading to complete after 5 seconds maximum
+  const [forceLoaded, setForceLoaded] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setForceLoaded(true), 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Collect all images to preload
   const imagesToPreload = useMemo(() => {
     return [content.heroImage.url, content.pricingImage.url, ...content.galleryImages.map(g => g.url)].filter(Boolean);
   }, [content.heroImage, content.pricingImage, content.galleryImages]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !contentLoaded || imagesLoading;
+  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   useEffect(() => {
     async function loadContent() {

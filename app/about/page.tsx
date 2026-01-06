@@ -73,6 +73,13 @@ export default function AboutPage() {
   const [services, setServices] = useState(defaultServices);
   const [contentLoaded, setContentLoaded] = useState(false);
 
+  // Failsafe: force loading to complete after 5 seconds maximum
+  const [forceLoaded, setForceLoaded] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setForceLoaded(true), 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Collect all images to preload
   const imagesToPreload = useMemo(() => {
     const images = [
@@ -84,7 +91,7 @@ export default function AboutPage() {
   }, [content.heroImage, services]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !contentLoaded || imagesLoading;
+  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   useEffect(() => {
     async function loadContent() {

@@ -143,12 +143,19 @@ export default function ServicesPage() {
   const [content, setContent] = useState<ServicesContent>(defaultContent);
   const [contentLoaded, setContentLoaded] = useState(false);
 
+  // Failsafe: force loading to complete after 5 seconds maximum
+  const [forceLoaded, setForceLoaded] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setForceLoaded(true), 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const imagesToPreload = useMemo(() => {
     return [content.heroImage].filter(Boolean);
   }, [content.heroImage]);
 
   const imagesLoading = useImagePreloader(contentLoaded ? imagesToPreload : []);
-  const isLoading = !contentLoaded || imagesLoading;
+  const isLoading = !forceLoaded && (!contentLoaded || imagesLoading);
 
   useEffect(() => {
     async function loadContent() {

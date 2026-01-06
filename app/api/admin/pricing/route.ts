@@ -102,11 +102,15 @@ async function isAuthenticated(): Promise<boolean> {
   }
 }
 
-// GET - Load pricing data
+// GET - Load pricing data (no auth required)
 export async function GET() {
+  const usingServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log('[Pricing GET] Request received, using service role:', usingServiceRole);
+
   // Wrap entire handler in timeout to ensure it always responds
   const timeoutPromise = new Promise<Response>((resolve) => {
     setTimeout(() => {
+      console.log('[Pricing GET] Timeout reached, returning defaults');
       resolve(NextResponse.json({
         studios: DEFAULT_STUDIOS,
         addons: DEFAULT_ADDONS,
@@ -118,16 +122,6 @@ export async function GET() {
 
   const dataPromise = (async () => {
     try {
-      // Check authentication
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        // Return defaults with flag so page can still show content
-        return NextResponse.json(
-          { studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, authRequired: true },
-          { status: 200 }
-        );
-      }
-
       const { data, error } = await supabaseAdmin
         .from('site_content')
         .select('key, value')
@@ -135,26 +129,30 @@ export async function GET() {
         .eq('section', 'config');
 
       if (error) {
-        console.error('Error loading pricing:', error);
-        return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
+        console.error('[Pricing GET] Error loading pricing:', error);
+        return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true, error: error.message });
       }
 
-      const result: { studios?: unknown; addons?: unknown; fromDefaults?: boolean } = {};
+      console.log('[Pricing GET] Data fetched:', data?.length || 0, 'rows');
+
+      const result: { studios?: unknown; addons?: unknown; fromDefaults?: boolean; usingServiceRole?: boolean } = {};
 
       if (data && data.length > 0) {
         data.forEach((item: { key: string; value: string }) => {
           if (item.key === 'studios') {
             try {
               result.studios = JSON.parse(item.value);
+              console.log('[Pricing GET] Parsed studios:', (result.studios as unknown[])?.length || 0);
             } catch (e) {
-              console.error('Error parsing studios:', e);
+              console.error('[Pricing GET] Error parsing studios:', e);
             }
           }
           if (item.key === 'addons') {
             try {
               result.addons = JSON.parse(item.value);
+              console.log('[Pricing GET] Parsed addons:', (result.addons as unknown[])?.length || 0);
             } catch (e) {
-              console.error('Error parsing addons:', e);
+              console.error('[Pricing GET] Error parsing addons:', e);
             }
           }
         });
@@ -163,10 +161,11 @@ export async function GET() {
       if (!result.studios) result.studios = DEFAULT_STUDIOS;
       if (!result.addons) result.addons = DEFAULT_ADDONS;
       if (!data || data.length === 0) result.fromDefaults = true;
+      result.usingServiceRole = usingServiceRole;
 
       return NextResponse.json(result);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('[Pricing GET] Error:', error);
       return NextResponse.json({ studios: DEFAULT_STUDIOS, addons: DEFAULT_ADDONS, fromDefaults: true });
     }
   })();
@@ -174,23 +173,26 @@ export async function GET() {
   return Promise.race([dataPromise, timeoutPromise]);
 }
 
-// POST - Save pricing data
+// POST - Save pricing data (no auth required for simplicity)
 export async function POST(request: Request) {
-  try {
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const usingServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log('[Pricing POST] Save request received');
+  console.log('[Pricing POST] Using service role key:', usingServiceRole);
 
+  try {
     const { studios, addons } = await request.json();
+    console.log('[Pricing POST] Studios to save:', studios?.length || 0);
+    console.log('[Pricing POST] Addons to save:', addons?.length || 0);
 
     const contentToSave = [
       { page: 'pricing', section: 'config', key: 'studios', value: JSON.stringify(studios), type: 'array' },
       { page: 'pricing', section: 'config', key: 'addons', value: JSON.stringify(addons), type: 'array' },
     ];
 
+    const results = [];
     for (const item of contentToSave) {
-      const { error } = await supabaseAdmin
+      console.log(`[Pricing POST] Saving ${item.key}...`);
+      const { data, error } = await supabaseAdmin
         .from('site_content')
         .upsert(
           {
@@ -200,20 +202,37 @@ export async function POST(request: Request) {
           {
             onConflict: 'page,section,key',
           }
-        );
+        )
+        .select();
 
       if (error) {
-        console.error('Error saving:', error);
+        console.error(`[Pricing POST] Error saving ${item.key}:`, JSON.stringify(error, null, 2));
         return NextResponse.json({
-          error: 'Failed to save pricing. If using anon key, ensure SUPABASE_SERVICE_ROLE_KEY is set in environment variables.',
-          details: error.message
+          error: 'Failed to save pricing',
+          details: error.message,
+          code: error.code,
+          hint: error.hint,
+          usingServiceRole,
+          key: item.key
         }, { status: 500 });
       }
+
+      console.log(`[Pricing POST] ${item.key} saved, rows returned:`, data?.length || 0);
+      results.push({ key: item.key, rowsAffected: data?.length || 0, data });
     }
 
-    return NextResponse.json({ success: true });
+    console.log('[Pricing POST] All saves completed successfully');
+    return NextResponse.json({
+      success: true,
+      usingServiceRole,
+      results
+    });
   } catch (error) {
-    console.error('Save error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('[Pricing POST] Save error:', error);
+    return NextResponse.json({
+      error: 'Server error',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      usingServiceRole
+    }, { status: 500 });
   }
 }

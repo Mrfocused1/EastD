@@ -71,6 +71,7 @@ export default function PricingEditor() {
   const [addons, setAddons] = useState<AddonPricing[]>(defaultAddons);
   const [hasChanges, setHasChanges] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{ success: boolean; message: string; details?: string } | null>(null);
 
   useEffect(() => {
     loadPricing();
@@ -101,10 +102,10 @@ export default function PricingEditor() {
         setAddons(data.addons);
       }
       if (data.fromDefaults) {
-        setLoadError("Using default pricing data. Database data not available.");
-      }
-      if (data.authRequired) {
-        setLoadError("Not authenticated. Please log in to edit pricing.");
+        const dbStatus = data.usingServiceRole
+          ? "Service role key is set but database data not found."
+          : "Using anon key (no service role key). Database data may not be accessible.";
+        setLoadError(`Using default pricing data. ${dbStatus}`);
       }
     } catch (err) {
       console.error("Error loading pricing:", err);
@@ -115,6 +116,7 @@ export default function PricingEditor() {
   }
 
   const handleSave = async () => {
+    setSaveStatus(null);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for save
@@ -128,17 +130,41 @@ export default function PricingEditor() {
       clearTimeout(timeoutId);
 
       const data = await response.json();
+      console.log("[Pricing Page] Save response:", data);
 
       if (!response.ok) {
-        console.error("Error saving:", data.error);
+        console.error("Error saving:", data);
+        const details = data.usingServiceRole !== undefined
+          ? `Service Role Key: ${data.usingServiceRole ? 'Yes' : 'No (using anon key - cannot write)'}. ${data.hint || ''}`
+          : '';
+        setSaveStatus({
+          success: false,
+          message: data.error || "Failed to save pricing",
+          details: details + (data.details ? ` Details: ${data.details}` : '')
+        });
         throw new Error(data.error || "Failed to save pricing");
       }
+
+      // Show success details
+      const details = data.usingServiceRole !== undefined
+        ? `Service Role Key: ${data.usingServiceRole ? 'Yes' : 'No'}. Rows saved: ${data.results?.map((r: { key: string; rowsAffected: number }) => `${r.key}: ${r.rowsAffected}`).join(', ') || 'unknown'}`
+        : '';
+      setSaveStatus({
+        success: true,
+        message: "Pricing saved successfully!",
+        details
+      });
 
       setHasChanges(false);
       setLoadError(null); // Clear any previous errors on successful save
     } catch (err) {
       console.error("Save failed:", err);
       if (err instanceof Error && err.name === 'AbortError') {
+        setSaveStatus({
+          success: false,
+          message: "Save timed out",
+          details: "Please check your internet connection and try again."
+        });
         throw new Error("Save timed out. Please check your internet connection and try again.");
       }
       throw err;
@@ -281,6 +307,18 @@ export default function PricingEditor() {
           <p className="font-medium">Note</p>
           <p className="text-sm">{loadError}</p>
           <p className="text-xs mt-2">To enable database storage, ensure SUPABASE_SERVICE_ROLE_KEY is set in your environment variables.</p>
+        </motion.div>
+      )}
+
+      {saveStatus && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={`p-4 mb-6 ${saveStatus.success ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}
+        >
+          <p className="font-medium">{saveStatus.success ? 'Success' : 'Error'}</p>
+          <p className="text-sm">{saveStatus.message}</p>
+          {saveStatus.details && <p className="text-xs mt-2 font-mono">{saveStatus.details}</p>}
         </motion.div>
       )}
 
