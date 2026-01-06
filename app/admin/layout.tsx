@@ -19,7 +19,10 @@ import {
   Grid3X3,
   Mail,
   Send,
-  Tag
+  Tag,
+  LogOut,
+  Loader2,
+  Activity
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -50,6 +53,7 @@ export default function AdminLayout({
     { name: "Emails", href: "/admin/emails", icon: Mail },
     { name: "Campaigns", href: "/admin/campaigns", icon: Send },
     { name: "Settings", href: "/admin/settings", icon: Settings },
+    { name: "Health Check", href: "/admin/health", icon: Activity },
   ]);
 
   // Set date on client side only to avoid hydration mismatch
@@ -103,6 +107,7 @@ export default function AdminLayout({
             { name: "Emails", href: "/admin/emails", icon: Mail },
             { name: "Campaigns", href: "/admin/campaigns", icon: Send },
             { name: "Settings", href: "/admin/settings", icon: Settings },
+            { name: "Health Check", href: "/admin/health", icon: Activity },
           ]);
         }
       } catch (err) {

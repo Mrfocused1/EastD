@@ -1,5 +1,5 @@
 import { google, calendar_v3 } from 'googleapis';
-import { supabase } from './supabase';
+import { supabaseServer as supabase } from './supabase-server';
 
 // OAuth2 client configuration
 const oauth2Client = new google.auth.OAuth2(

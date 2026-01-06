@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerStripe, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, getAddonsForStudio, formatPrice } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { getServerStripe, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, formatPrice } from '@/lib/stripe';
+import { supabaseServer as supabase } from '@/lib/supabase-server';
 import { hasEveningWeekendSurcharge, EVENING_WEEKEND_SURCHARGE } from '@/lib/studioConfig';
 
 interface DiscountCode {
@@ -190,11 +190,10 @@ export async function POST(request: NextRequest) {
       price: pkg.price,
     });
 
-    // Add equipment costs
-    const studioAddons = getAddonsForStudio(studio);
+    // Add equipment costs (use database-loaded addons)
     Object.entries(equipment as Record<string, number>).forEach(([addonId, quantity]) => {
       if (quantity > 0) {
-        const addon = studioAddons.find(a => a.id === addonId);
+        const addon = addons.find(a => a.id === addonId);
         if (addon) {
           const itemTotal = addon.price * quantity;
           breakdown.push({

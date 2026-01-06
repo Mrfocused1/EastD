@@ -7,7 +7,6 @@ import Link from "next/link";
 import Section from "@/components/admin/Section";
 import TextInput from "@/components/admin/TextInput";
 import SaveButton from "@/components/admin/SaveButton";
-import { supabase } from "@/lib/supabase";
 
 interface StudioPricing {
   id: string;
@@ -25,6 +24,7 @@ interface AddonPricing {
   category: string;
   label: string;
   price: number; // in pence
+  maxQuantity: number; // Maximum quantity a customer can order
 }
 
 const defaultStudios: StudioPricing[] = [
@@ -58,11 +58,11 @@ const defaultStudios: StudioPricing[] = [
 ];
 
 const defaultAddons: AddonPricing[] = [
-  { id: "camera", category: "cameraLens", label: "Additional Camera & Lens", price: 3000 },
-  { id: "switcher_half", category: "videoSwitcher", label: "Video Switcher Engineer - Half Day", price: 3500 },
-  { id: "switcher_full", category: "videoSwitcher", label: "Video Switcher Engineer - Full Day", price: 6000 },
-  { id: "teleprompter", category: "accessories", label: "Teleprompter", price: 2500 },
-  { id: "guest", category: "guests", label: "Additional Guest (per person)", price: 500 },
+  { id: "camera", category: "cameraLens", label: "Additional Camera & Lens", price: 3000, maxQuantity: 2 },
+  { id: "switcher_half", category: "videoSwitcher", label: "Video Switcher Engineer - Half Day", price: 3500, maxQuantity: 1 },
+  { id: "switcher_full", category: "videoSwitcher", label: "Video Switcher Engineer - Full Day", price: 6000, maxQuantity: 1 },
+  { id: "teleprompter", category: "accessories", label: "Teleprompter", price: 2500, maxQuantity: 2 },
+  { id: "guest", category: "guests", label: "Additional Guest (per person)", price: 500, maxQuantity: 10 },
 ];
 
 export default function PricingEditor() {
@@ -70,78 +70,77 @@ export default function PricingEditor() {
   const [studios, setStudios] = useState<StudioPricing[]>(defaultStudios);
   const [addons, setAddons] = useState<AddonPricing[]>(defaultAddons);
   const [hasChanges, setHasChanges] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPricing();
+    // Failsafe: ensure page loads within 5 seconds
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+    return () => clearTimeout(timeout);
   }, []);
 
   async function loadPricing() {
     try {
-      const { data, error } = await supabase
-        .from("site_content")
-        .select("key, value")
-        .eq("page", "pricing")
-        .eq("section", "config");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      if (error) {
-        console.error("Error loading pricing:", error);
-        setIsLoading(false);
-        return;
+      const response = await fetch("/api/admin/pricing", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      // API now always returns data (with defaults if needed)
+      if (data.studios) {
+        setStudios(data.studios);
       }
-
-      if (data && data.length > 0) {
-        data.forEach((item: { key: string; value: string }) => {
-          if (item.key === "studios") {
-            try {
-              setStudios(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing studios:", e);
-            }
-          }
-          if (item.key === "addons") {
-            try {
-              setAddons(JSON.parse(item.value));
-            } catch (e) {
-              console.error("Error parsing addons:", e);
-            }
-          }
-        });
+      if (data.addons) {
+        setAddons(data.addons);
+      }
+      if (data.fromDefaults) {
+        setLoadError("Using default pricing data. Database data not available.");
+      }
+      if (data.authRequired) {
+        setLoadError("Not authenticated. Please log in to edit pricing.");
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error loading pricing:", err);
+      setLoadError("Failed to load pricing data. Using defaults.");
     } finally {
       setIsLoading(false);
     }
   }
 
   const handleSave = async () => {
-    const contentToSave = [
-      { page: "pricing", section: "config", key: "studios", value: JSON.stringify(studios), type: "array" },
-      { page: "pricing", section: "config", key: "addons", value: JSON.stringify(addons), type: "array" },
-    ];
-
     try {
-      for (const item of contentToSave) {
-        const { error } = await supabase
-          .from("site_content")
-          .upsert(
-            {
-              ...item,
-              updated_at: new Date().toISOString(),
-            },
-            {
-              onConflict: "page,section,key",
-            }
-          );
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for save
 
-        if (error) {
-          console.error("Error saving:", error);
-          throw error;
-        }
+      const response = await fetch("/api/admin/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studios, addons }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error saving:", data.error);
+        throw new Error(data.error || "Failed to save pricing");
       }
+
       setHasChanges(false);
+      setLoadError(null); // Clear any previous errors on successful save
     } catch (err) {
       console.error("Save failed:", err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error("Save timed out. Please check your internet connection and try again.");
+      }
       throw err;
     }
   };
@@ -214,6 +213,8 @@ export default function PricingEditor() {
       newAddons[index].category = value;
     } else if (field === "id") {
       newAddons[index].id = value;
+    } else if (field === "maxQuantity") {
+      newAddons[index].maxQuantity = parseInt(value) || 1;
     }
     setAddons(newAddons);
     markChanged();
@@ -227,6 +228,7 @@ export default function PricingEditor() {
         category: "accessories",
         label: "New Add-on",
         price: 1000,
+        maxQuantity: 1,
       },
     ]);
     markChanged();
@@ -269,6 +271,18 @@ export default function PricingEditor() {
           <SaveButton onSave={handleSave} hasChanges={hasChanges} />
         </div>
       </motion.div>
+
+      {loadError && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-amber-50 border border-amber-200 p-4 mb-6 text-amber-800"
+        >
+          <p className="font-medium">Note</p>
+          <p className="text-sm">{loadError}</p>
+          <p className="text-xs mt-2">To enable database storage, ensure SUPABASE_SERVICE_ROLE_KEY is set in your environment variables.</p>
+        </motion.div>
+      )}
 
       <div className="space-y-6">
         {/* Studio Pricing */}
@@ -396,6 +410,16 @@ export default function PricingEditor() {
                         className="w-full pl-8 pr-3 py-2 border border-black/20 bg-white focus:outline-none focus:border-black transition-colors text-sm"
                       />
                     </div>
+                  </div>
+                  <div className="w-24">
+                    <label className="block text-xs text-black/60 mb-1">Max Qty</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={addon.maxQuantity || 1}
+                      onChange={(e) => updateAddon(index, "maxQuantity", e.target.value)}
+                      className="w-full px-3 py-2 border border-black/20 bg-white focus:outline-none focus:border-black transition-colors text-sm"
+                    />
                   </div>
                   <button
                     onClick={() => removeAddon(index)}
