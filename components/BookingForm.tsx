@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Calendar, Clock, ChevronLeft, ChevronRight, CreditCard, Loader2, Tag, Check, X, User } from "lucide-react";
-import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS, getAddonsForStudio } from "@/lib/stripe";
+import { calculateBookingTotal, formatPrice, StudioType, BookingLength, StudioPricing, AddonPricing, DEFAULT_STUDIOS, DEFAULT_ADDONS } from "@/lib/stripe";
 import {
   OPERATING_HOURS,
   SESSION_COOLDOWN_MINUTES,
@@ -453,9 +453,11 @@ export default function BookingForm({ preselectedStudio }: BookingFormProps = {}
   const [pricingStudios, setPricingStudios] = useState<StudioPricing[]>(DEFAULT_STUDIOS);
   const [pricingAddons, setPricingAddons] = useState<AddonPricing[]>(DEFAULT_ADDONS);
 
-  // Get available addons for the selected studio
+  // Get available addons for the selected studio (filter from database-loaded addons)
   const availableAddons = formData.studio
-    ? getAddonsForStudio(formData.studio)
+    ? pricingAddons.filter(addon =>
+        !addon.studioTypes || addon.studioTypes.length === 0 || addon.studioTypes.includes(formData.studio)
+      )
     : [];
 
   useEffect(() => {

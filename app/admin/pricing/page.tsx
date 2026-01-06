@@ -25,6 +25,7 @@ interface AddonPricing {
   category: string;
   label: string;
   price: number; // in pence
+  maxQuantity: number; // Maximum quantity a customer can order
 }
 
 const defaultStudios: StudioPricing[] = [
@@ -58,11 +59,11 @@ const defaultStudios: StudioPricing[] = [
 ];
 
 const defaultAddons: AddonPricing[] = [
-  { id: "camera", category: "cameraLens", label: "Additional Camera & Lens", price: 3000 },
-  { id: "switcher_half", category: "videoSwitcher", label: "Video Switcher Engineer - Half Day", price: 3500 },
-  { id: "switcher_full", category: "videoSwitcher", label: "Video Switcher Engineer - Full Day", price: 6000 },
-  { id: "teleprompter", category: "accessories", label: "Teleprompter", price: 2500 },
-  { id: "guest", category: "guests", label: "Additional Guest (per person)", price: 500 },
+  { id: "camera", category: "cameraLens", label: "Additional Camera & Lens", price: 3000, maxQuantity: 2 },
+  { id: "switcher_half", category: "videoSwitcher", label: "Video Switcher Engineer - Half Day", price: 3500, maxQuantity: 1 },
+  { id: "switcher_full", category: "videoSwitcher", label: "Video Switcher Engineer - Full Day", price: 6000, maxQuantity: 1 },
+  { id: "teleprompter", category: "accessories", label: "Teleprompter", price: 2500, maxQuantity: 2 },
+  { id: "guest", category: "guests", label: "Additional Guest (per person)", price: 500, maxQuantity: 10 },
 ];
 
 export default function PricingEditor() {
@@ -214,6 +215,8 @@ export default function PricingEditor() {
       newAddons[index].category = value;
     } else if (field === "id") {
       newAddons[index].id = value;
+    } else if (field === "maxQuantity") {
+      newAddons[index].maxQuantity = parseInt(value) || 1;
     }
     setAddons(newAddons);
     markChanged();
@@ -227,6 +230,7 @@ export default function PricingEditor() {
         category: "accessories",
         label: "New Add-on",
         price: 1000,
+        maxQuantity: 1,
       },
     ]);
     markChanged();
@@ -396,6 +400,16 @@ export default function PricingEditor() {
                         className="w-full pl-8 pr-3 py-2 border border-black/20 bg-white focus:outline-none focus:border-black transition-colors text-sm"
                       />
                     </div>
+                  </div>
+                  <div className="w-24">
+                    <label className="block text-xs text-black/60 mb-1">Max Qty</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={addon.maxQuantity || 1}
+                      onChange={(e) => updateAddon(index, "maxQuantity", e.target.value)}
+                      className="w-full px-3 py-2 border border-black/20 bg-white focus:outline-none focus:border-black transition-colors text-sm"
+                    />
                   </div>
                   <button
                     onClick={() => removeAddon(index)}
