@@ -4,10 +4,16 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const SUPABASE_URL = 'https://fhgvnjwiasusjfevimcw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoZ3ZuandpYXN1c2pmZXZpbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTk3MzcsImV4cCI6MjA3OTU3NTczN30.jB94OamqDhz0JaXyLzpPNb1GiAWTEKcJU2KqsNUpLAg';
 
-// Use the same client instance as supabase-auth to share session
-// This ensures authenticated users can write to tables with RLS
-import { supabaseAuth } from './supabase-auth';
-export const supabase: SupabaseClient = supabaseAuth;
+// Simple browser client for public read operations
+// Does NOT manage auth sessions - prevents hangs from stale session refresh
+// See: https://github.com/supabase/supabase/issues/35754
+export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  }
+});
 
 // Types for site content
 export interface SiteContent {
@@ -58,7 +64,7 @@ export async function getPageContent(page: string): Promise<PageContent> {
   return content;
 }
 
-// Update content
+// Update content - Note: May need authenticated client for RLS
 export async function updateContent(
   page: string,
   section: string,
