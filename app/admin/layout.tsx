@@ -23,7 +23,8 @@ import {
   LogOut,
   Loader2,
   Activity,
-  Database
+  Database,
+  CreditCard,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -46,6 +47,7 @@ export default function AdminLayout({
     { name: "Photography", href: "/admin/photography", icon: Camera },
     { name: "Services", href: "/admin/services", icon: Briefcase },
     { name: "Membership", href: "/admin/membership", icon: Users },
+    { name: "Membership CRM", href: "/admin/membership-crm", icon: CreditCard },
     { name: "CRM", href: "/admin/crm", icon: Database },
     { name: "About Page", href: "/admin/about", icon: FileText },
     { name: "Images", href: "/admin/images", icon: ImageIcon },
@@ -101,6 +103,7 @@ export default function AdminLayout({
             { name: "Photography", href: "/admin/photography", icon: Camera },
             { name: "Services", href: "/admin/services", icon: Briefcase },
             { name: "Membership", href: "/admin/membership", icon: Users },
+            { name: "Membership CRM", href: "/admin/membership-crm", icon: CreditCard },
             { name: "CRM", href: "/admin/crm", icon: Database },
             { name: "About Page", href: "/admin/about", icon: FileText },
             { name: "Images", href: "/admin/images", icon: ImageIcon },
