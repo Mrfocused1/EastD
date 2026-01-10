@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import AIBuilderChat from "@/components/admin/AIBuilderChat";
 
 export default function AdminLayout({
   children,
@@ -216,6 +217,9 @@ export default function AdminLayout({
           <X className="w-6 h-6" />
         </button>
       )}
+
+      {/* AI Builder Chat Widget */}
+      <AIBuilderChat />
     </div>
   );
 }
