@@ -1,9 +1,9 @@
-export default function Test() {
+export default function TestPage() {
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-4xl font-light text-black">Test</h1>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold text-gray-900">Test</h1>
       </div>
-    </main>
+    </div>
   );
 }
