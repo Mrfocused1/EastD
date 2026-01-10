@@ -206,54 +206,66 @@ export default function AIBuilderChat() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+          className="fixed bottom-6 right-6 z-50 bg-black text-white p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-black/90 group font-montserrat"
           aria-label="Open AI Builder Chat"
         >
-          <MessageSquare className="w-6 h-6" />
-          <span className="absolute -top-1 -right-1 bg-green-500 w-3 h-3 rounded-full animate-pulse"></span>
+          <MessageSquare className="w-6 h-6" strokeWidth={1.5} />
+          <span className="absolute -top-1 -right-1 bg-black w-3 h-3 rounded-full border-2 border-white animate-pulse"></span>
         </button>
       )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+        <div className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] bg-white shadow-2xl flex flex-col overflow-hidden border border-black/10">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Code className="w-5 h-5" />
+          <div className="bg-black text-white p-6 flex items-center justify-between border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="border border-white/20 p-2">
+                <Code className="w-5 h-5" strokeWidth={1.5} />
               </div>
               <div>
-                <h3 className="font-semibold">EastDock AI Builder</h3>
-                <p className="text-xs text-white/80">Your coding assistant</p>
+                <h3 className="font-montserrat text-sm tracking-widest font-light">AI BUILDER</h3>
+                <p className="text-xs text-white/60 tracking-wide mt-0.5">Your Coding Assistant</p>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="hover:bg-white/20 p-1 rounded transition-colors"
+              className="hover:bg-white/10 p-1.5 transition-colors"
               aria-label="Close chat"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" strokeWidth={1.5} />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#fdfbf8]">
             {messages.length === 0 && (
-              <div className="text-center text-gray-500 mt-8">
-                <Code className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p className="text-sm">
+              <div className="text-center text-[#636363] mt-8">
+                <Code className="w-12 h-12 mx-auto mb-4 text-black/40" strokeWidth={1.5} />
+                <p className="text-sm font-roboto leading-relaxed">
                   Hi! I'm your AI coding assistant.
                   <br />
                   I can help you build and debug your website.
                 </p>
-                <div className="mt-4 text-xs text-left bg-white p-3 rounded-lg">
-                  <p className="font-semibold mb-2">Try asking:</p>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>• "Add a testimonials section"</li>
-                    <li>• "Fix the navigation on mobile"</li>
-                    <li>• "Create a new about page"</li>
-                    <li>• "Update the hero section styling"</li>
+                <div className="mt-6 text-xs text-left bg-white p-4 border border-black/5">
+                  <p className="font-montserrat tracking-wide text-black/80 mb-3">TRY ASKING:</p>
+                  <ul className="space-y-2 text-[#636363] font-roboto">
+                    <li className="flex items-start gap-2">
+                      <span className="text-black/40 mt-0.5">•</span>
+                      <span>"Add a testimonials section"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-black/40 mt-0.5">•</span>
+                      <span>"Fix the navigation on mobile"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-black/40 mt-0.5">•</span>
+                      <span>"Create a new about page"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-black/40 mt-0.5">•</span>
+                      <span>"Update the hero section styling"</span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -265,28 +277,28 @@ export default function AIBuilderChat() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[80%] p-4 font-roboto ${
                     message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-800 border border-gray-200'
+                      ? 'bg-black text-white'
+                      : 'bg-white text-[#636363] border border-black/10'
                   }`}
                 >
                   {message.toolCalls && message.toolCalls.length > 0 && (
-                    <div className="mb-2 text-xs opacity-70">
-                      <Loader2 className="w-3 h-3 inline animate-spin mr-1" />
+                    <div className="mb-2 text-xs opacity-60 font-montserrat tracking-wide">
+                      <Loader2 className="w-3 h-3 inline animate-spin mr-1" strokeWidth={1.5} />
                       Executing tools...
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                   {message.toolResults && message.toolResults.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-3 space-y-1.5">
                       {message.toolResults.map((result, idx) => (
                         <div
                           key={idx}
-                          className="text-xs bg-gray-100 p-2 rounded flex items-start gap-1"
+                          className="text-xs bg-[#fdfbf8] p-2 border border-black/5 flex items-start gap-1.5"
                         >
-                          <Check className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-600">{result.name}</span>
+                          <Check className="w-3 h-3 text-black mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                          <span className="text-[#636363] font-montserrat tracking-wide">{result.name}</span>
                         </div>
                       ))}
                     </div>
@@ -297,8 +309,8 @@ export default function AIBuilderChat() {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                <div className="bg-white border border-black/10 p-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-black/60" strokeWidth={1.5} />
                 </div>
               </div>
             )}
@@ -308,47 +320,47 @@ export default function AIBuilderChat() {
 
           {/* Deployment Preview */}
           {deploymentPreview && (
-            <div className="bg-yellow-50 border-t border-yellow-200 p-3">
-              <div className="flex items-start gap-2 mb-2">
-                <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+            <div className="bg-white border-t border-black/10 p-5">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertCircle className="w-4 h-4 text-black/60 mt-0.5" strokeWidth={1.5} />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-yellow-800">
-                    Ready to deploy
+                  <p className="text-sm font-montserrat tracking-wide text-black">
+                    READY TO DEPLOY
                   </p>
-                  <p className="text-xs text-yellow-700 mt-1">
+                  <p className="text-xs text-[#636363] mt-1.5 font-roboto">
                     {deploymentPreview.files.length} file(s) will be modified
                   </p>
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-3 space-y-1.5">
                     {deploymentPreview.files.map((file, idx) => (
-                      <div key={idx} className="text-xs text-yellow-700 flex items-center gap-1">
-                        <Code className="w-3 h-3" />
+                      <div key={idx} className="text-xs text-[#636363] flex items-center gap-2 font-roboto">
+                        <Code className="w-3 h-3 text-black/40" strokeWidth={1.5} />
                         {file.path}
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={handleDeploy}
                   disabled={isDeploying}
-                  className="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-black text-white py-3 px-4 text-sm font-montserrat tracking-widest hover:bg-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isDeploying ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Deploying...
+                      <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                      DEPLOYING...
                     </>
                   ) : (
                     <>
-                      <GitCommit className="w-4 h-4" />
-                      Deploy to Production
+                      <GitCommit className="w-4 h-4" strokeWidth={1.5} />
+                      DEPLOY
                     </>
                   )}
                 </button>
                 <button
                   onClick={() => setDeploymentPreview(null)}
-                  className="px-3 py-2 text-sm text-yellow-800 hover:bg-yellow-100 rounded transition-colors"
+                  className="px-4 py-3 text-sm font-montserrat tracking-wide text-black/60 hover:bg-black/5 transition-colors border border-black/10"
                 >
                   Cancel
                 </button>
@@ -357,32 +369,32 @@ export default function AIBuilderChat() {
           )}
 
           {/* Input */}
-          <div className="p-4 bg-white border-t border-gray-200">
-            <div className="flex gap-2">
+          <div className="p-5 bg-white border-t border-black/10">
+            <div className="flex gap-3">
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me to build or fix something..."
-                className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 resize-none border border-black/10 px-4 py-3 text-sm font-roboto text-[#636363] focus:outline-none focus:border-black transition-colors placeholder:text-[#636363]/40"
                 rows={2}
                 disabled={isLoading}
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !input.trim()}
-                className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                className="bg-black text-white p-3 hover:bg-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
                 aria-label="Send message"
               >
                 {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" strokeWidth={1.5} />
                 ) : (
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5" strokeWidth={1.5} />
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-[#636363]/60 mt-3 font-roboto">
               Press Enter to send, Shift+Enter for new line
             </p>
           </div>
