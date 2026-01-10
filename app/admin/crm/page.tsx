@@ -29,7 +29,7 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import { supabase } from "@/@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 interface Client {
   id: string;
@@ -1016,7 +1016,7 @@ export default function CRMPage() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors"
+                  className="px-6 py-3 border border-black/20 text-black text-sm-widest hover:bg-black/5 transition-colors"
                 >
                   CANCEL
                 </button>
