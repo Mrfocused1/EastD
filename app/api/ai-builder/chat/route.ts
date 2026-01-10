@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createChatCompletion, glmClient } from '@/lib/glm-client';
+import { canModifyFile } from '@/lib/file-safety';
 import {
-  readFileSafe,
-  writeFileSafe,
-  listFilesSafe,
-  searchCode,
-  canModifyFile,
-} from '@/lib/file-safety';
+  readFileFromGitHub,
+  writeFileToGitHub,
+  listFilesInGitHub,
+  searchCodeInGitHub,
+  getRepositoryTree,
+} from '@/lib/github-file-operations';
 import OpenAI from 'openai';
 
 export const runtime = 'nodejs';
@@ -179,7 +180,7 @@ async function executeToolCall(
   switch (functionName) {
     case 'read_file': {
       const { path } = args;
-      const content = await readFileSafe(path);
+      const content = await readFileFromGitHub(path);
       return {
         success: true,
         path,
@@ -200,17 +201,37 @@ async function executeToolCall(
         };
       }
 
-      await writeFileSafe(path, content);
+      // Note: This creates a direct commit to the repo
+      // For production, you might want to batch these and commit together
+      const result = await writeFileToGitHub(
+        path,
+        content,
+        `AI Builder: Update ${path}`
+      );
+
       return {
         success: true,
         path,
         message: 'File written successfully',
+        commitSha: result.sha,
       };
     }
 
     case 'list_files': {
       const { directory } = args;
-      const files = await listFilesSafe(directory);
+
+      // Special case: if directory is empty or root, show repository tree
+      if (!directory || directory === '/' || directory === '.') {
+        const tree = await getRepositoryTree();
+        return {
+          success: true,
+          directory: 'root',
+          files: tree,
+          count: tree.length,
+        };
+      }
+
+      const files = await listFilesInGitHub(directory);
       return {
         success: true,
         directory,
@@ -221,7 +242,7 @@ async function executeToolCall(
 
     case 'search_code': {
       const { query, filePattern } = args;
-      const results = await searchCode(query, filePattern);
+      const results = await searchCodeInGitHub(query, filePattern);
       return {
         success: true,
         query,
