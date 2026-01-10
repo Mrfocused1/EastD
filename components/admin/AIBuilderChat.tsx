@@ -277,7 +277,7 @@ export default function AIBuilderChat() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-4 font-roboto ${
+                  className={`max-w-[80%] p-4 font-roboto break-words ${
                     message.role === 'user'
                       ? 'bg-black text-white'
                       : 'bg-white text-[#636363] border border-black/10'
@@ -289,16 +289,16 @@ export default function AIBuilderChat() {
                       Executing tools...
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">{message.content}</p>
                   {message.toolResults && message.toolResults.length > 0 && (
                     <div className="mt-3 space-y-1.5">
                       {message.toolResults.map((result, idx) => (
                         <div
                           key={idx}
-                          className="text-xs bg-[#fdfbf8] p-2 border border-black/5 flex items-start gap-1.5"
+                          className="text-xs bg-[#fdfbf8] p-2 border border-black/5 flex items-start gap-1.5 break-words"
                         >
                           <Check className="w-3 h-3 text-black mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                          <span className="text-[#636363] font-montserrat tracking-wide">{result.name}</span>
+                          <span className="text-[#636363] font-montserrat tracking-wide break-all">{result.name}</span>
                         </div>
                       ))}
                     </div>
@@ -322,8 +322,8 @@ export default function AIBuilderChat() {
           {deploymentPreview && (
             <div className="bg-white border-t border-black/10 p-5">
               <div className="flex items-start gap-3 mb-4">
-                <AlertCircle className="w-4 h-4 text-black/60 mt-0.5" strokeWidth={1.5} />
-                <div className="flex-1">
+                <AlertCircle className="w-4 h-4 text-black/60 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-montserrat tracking-wide text-black">
                     READY TO DEPLOY
                   </p>
@@ -332,9 +332,9 @@ export default function AIBuilderChat() {
                   </p>
                   <div className="mt-3 space-y-1.5">
                     {deploymentPreview.files.map((file, idx) => (
-                      <div key={idx} className="text-xs text-[#636363] flex items-center gap-2 font-roboto">
-                        <Code className="w-3 h-3 text-black/40" strokeWidth={1.5} />
-                        {file.path}
+                      <div key={idx} className="text-xs text-[#636363] flex items-center gap-2 font-roboto break-all">
+                        <Code className="w-3 h-3 text-black/40 flex-shrink-0" strokeWidth={1.5} />
+                        <span className="break-all">{file.path}</span>
                       </div>
                     ))}
                   </div>
