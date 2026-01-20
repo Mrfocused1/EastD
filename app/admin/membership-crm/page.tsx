@@ -33,6 +33,15 @@ import {
   Bell,
   BarChart3,
   PieChart,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Globe,
+  Link as LinkIcon,
+  Receipt,
+  Wallet,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -52,6 +61,13 @@ interface Client {
   totalPaid: number;
   bookingsCount: number;
   lastPaymentDate?: string;
+  socialMedia?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    website?: string;
+  };
 }
 
 interface Payment {
@@ -64,6 +80,18 @@ interface Payment {
   invoiceNumber: string;
 }
 
+interface PayAsYouGoTransaction {
+  id: string;
+  clientName: string;
+  clientEmail?: string;
+  amount: number;
+  date: string;
+  service: string;
+  paymentMethod: string;
+  notes?: string;
+  invoiceNumber: string;
+}
+
 interface ClientFormData {
   name: string;
   email: string;
@@ -73,6 +101,23 @@ interface ClientFormData {
   monthlyFee: string;
   startDate: string;
   paymentMethod: "card" | "bank_transfer" | "cash";
+  notes: string;
+  socialMedia: {
+    instagram: string;
+    facebook: string;
+    twitter: string;
+    linkedin: string;
+    website: string;
+  };
+}
+
+interface PayAsYouGoFormData {
+  clientName: string;
+  clientEmail: string;
+  amount: string;
+  date: string;
+  service: string;
+  paymentMethod: string;
   notes: string;
 }
 
@@ -89,9 +134,12 @@ const statusConfig = {
   cancelled: { label: "Cancelled", color: "bg-red-100 text-red-700", icon: XCircle },
 };
 
+type ViewMode = "dashboard" | "list" | "payg";
+
 export default function MembershipCRMPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [paygTransactions, setPaygTransactions] = useState<PayAsYouGoTransaction[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,8 +150,9 @@ export default function MembershipCRMPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPaygModal, setShowPaygModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "dashboard">("dashboard");
+  const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [formData, setFormData] = useState<ClientFormData>({
     name: "",
     email: "",
@@ -114,9 +163,26 @@ export default function MembershipCRMPage() {
     startDate: "",
     paymentMethod: "card",
     notes: "",
+    socialMedia: {
+      instagram: "",
+      facebook: "",
+      twitter: "",
+      linkedin: "",
+      website: "",
+    },
   });
 
-  // Load clients and payments
+  const [paygFormData, setPaygFormData] = useState<PayAsYouGoFormData>({
+    clientName: "",
+    clientEmail: "",
+    amount: "",
+    date: new Date().toISOString().split("T")[0],
+    service: "",
+    paymentMethod: "card",
+    notes: "",
+  });
+
+  // Load data
   useEffect(() => {
     loadData();
   }, []);
@@ -149,9 +215,10 @@ export default function MembershipCRMPage() {
   async function loadData() {
     setIsLoading(true);
     try {
-      const [clientsResult, paymentsResult] = await Promise.all([
+      const [clientsResult, paymentsResult, paygResult] = await Promise.all([
         supabase.from("membership_clients").select("*").order("created_at", { ascending: false }),
         supabase.from("membership_payments").select("*").order("date", { ascending: false }),
+        supabase.from("payg_transactions").select("*").order("date", { ascending: false }),
       ]);
 
       if (clientsResult.error) {
@@ -164,6 +231,12 @@ export default function MembershipCRMPage() {
         console.error("Error loading payments:", paymentsResult.error);
       } else if (paymentsResult.data) {
         setPayments(paymentsResult.data as Payment[]);
+      }
+
+      if (paygResult.error) {
+        console.error("Error loading PAYG transactions:", paygResult.error);
+      } else if (paygResult.data) {
+        setPaygTransactions(paygResult.data as PayAsYouGoTransaction[]);
       }
     } catch (err) {
       console.error("Error:", err);
@@ -194,6 +267,7 @@ export default function MembershipCRMPage() {
         notes: formData.notes || null,
         total_paid: 0,
         bookings_count: 0,
+        social_media: formData.socialMedia,
       });
 
       if (error) {
@@ -229,6 +303,7 @@ export default function MembershipCRMPage() {
           monthly_fee: parseFloat(formData.monthlyFee),
           payment_method: formData.paymentMethod,
           notes: formData.notes || null,
+          social_media: formData.socialMedia,
         })
         .eq("id", selectedClient.id);
 
@@ -330,6 +405,59 @@ export default function MembershipCRMPage() {
     }
   }
 
+  async function handleAddPaygTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const invoiceNumber = `PAYG-${Date.now()}`;
+      
+      const { error } = await supabase.from("payg_transactions").insert({
+        client_name: paygFormData.clientName,
+        client_email: paygFormData.clientEmail || null,
+        amount: parseFloat(paygFormData.amount),
+        date: paygFormData.date,
+        service: paygFormData.service,
+        payment_method: paygFormData.paymentMethod,
+        notes: paygFormData.notes || null,
+        invoice_number: invoiceNumber,
+      });
+
+      if (error) {
+        console.error("Error adding PAYG transaction:", error);
+        return;
+      }
+
+      await loadData();
+      setShowPaygModal(false);
+      resetPaygForm();
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeletePaygTransaction(id: string) {
+    if (!confirm("Are you sure you want to delete this transaction?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("payg_transactions")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting transaction:", error);
+        return;
+      }
+
+      await loadData();
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  }
+
   function openEditModal(client: Client) {
     setSelectedClient(client);
     setFormData({
@@ -342,6 +470,13 @@ export default function MembershipCRMPage() {
       startDate: client.startDate,
       paymentMethod: client.paymentMethod,
       notes: client.notes || "",
+      socialMedia: client.socialMedia || {
+        instagram: "",
+        facebook: "",
+        twitter: "",
+        linkedin: "",
+        website: "",
+      },
     });
     setShowEditModal(true);
   }
@@ -355,6 +490,25 @@ export default function MembershipCRMPage() {
       membershipType: "essential",
       monthlyFee: "",
       startDate: new Date().toISOString().split("T")[0],
+      paymentMethod: "card",
+      notes: "",
+      socialMedia: {
+        instagram: "",
+        facebook: "",
+        twitter: "",
+        linkedin: "",
+        website: "",
+      },
+    });
+  }
+
+  function resetPaygForm() {
+    setPaygFormData({
+      clientName: "",
+      clientEmail: "",
+      amount: "",
+      date: new Date().toISOString().split("T")[0],
+      service: "",
       paymentMethod: "card",
       notes: "",
     });
@@ -376,6 +530,19 @@ export default function MembershipCRMPage() {
     }).length,
   };
 
+  // Pay As You Go stats
+  const paygStats = {
+    totalTransactions: paygTransactions.length,
+    totalRevenue: paygTransactions.reduce((sum, t) => sum + t.amount, 0),
+    thisMonth: paygTransactions
+      .filter((t) => {
+        const date = new Date(t.date);
+        const now = new Date();
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      })
+      .reduce((sum, t) => sum + t.amount, 0),
+  };
+
   // Get upcoming payments (next 7 days)
   const upcomingPayments = clients
     .filter((c) => c.status === "active")
@@ -390,6 +557,10 @@ export default function MembershipCRMPage() {
   // Get client payments
   const getClientPayments = (clientId: string) => {
     return payments.filter((p) => p.clientId === clientId);
+  };
+
+  const formatGBP = (amount: number) => {
+    return `£${amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -464,6 +635,17 @@ export default function MembershipCRMPage() {
           <User className="w-4 h-4" />
           CLIENT LIST
         </button>
+        <button
+          onClick={() => setViewMode("payg")}
+          className={`flex items-center gap-2 px-4 py-2 text-sm tracking-wider transition-colors ${
+            viewMode === "payg"
+              ? "bg-black text-white"
+              : "bg-white border border-black/20 text-black hover:bg-black/5"
+          }`}
+        >
+          <Wallet className="w-4 h-4" />
+          PAY AS YOU GO
+        </button>
       </motion.div>
 
       {/* Dashboard View */}
@@ -502,14 +684,14 @@ export default function MembershipCRMPage() {
                 <DollarSign className="w-5 h-5 text-black/60" />
                 <p className="text-xs tracking-widest text-black/60 uppercase">Monthly MRR</p>
               </div>
-              <p className="text-3xl font-light text-black">£{stats.monthlyRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-light text-black">{formatGBP(stats.monthlyRevenue)}</p>
             </div>
             <div className="bg-white p-6 border border-black/10">
               <div className="flex items-center gap-3 mb-2">
                 <TrendingUp className="w-5 h-5 text-black/60" />
                 <p className="text-xs tracking-widest text-black/60 uppercase">Total Revenue</p>
               </div>
-              <p className="text-3xl font-light text-black">£{stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-light text-black">{formatGBP(stats.totalRevenue)}</p>
             </div>
             <div className="bg-white p-6 border border-black/10">
               <div className="flex items-center gap-3 mb-2">
@@ -539,7 +721,7 @@ export default function MembershipCRMPage() {
                     <div key={type}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-black">{membershipLabels[type]}</span>
-                        <span className="text-sm text-black/60">£{typeRevenue.toLocaleString()}</span>
+                        <span className="text-sm text-black/60">{formatGBP(typeRevenue)}</span>
                       </div>
                       <div className="h-2 bg-black/5 rounded-full overflow-hidden">
                         <div
@@ -581,7 +763,7 @@ export default function MembershipCRMPage() {
                           <p className="text-xs text-black/60">{membershipLabels[client.membershipType]}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-black">£{client.monthlyFee.toLocaleString()}</p>
+                          <p className="text-sm text-black">{formatGBP(client.monthlyFee)}</p>
                           <p className="text-xs text-black/60">
                             {daysUntil === 0 ? "Today" : `In ${daysUntil} day${daysUntil > 1 ? "s" : ""}`}
                           </p>
@@ -620,7 +802,7 @@ export default function MembershipCRMPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-black">£{payment.amount.toLocaleString()}</p>
+                        <p className="text-sm text-black">{formatGBP(payment.amount)}</p>
                         <p className="text-xs text-black/60">
                           {new Date(payment.date).toLocaleDateString("en-GB", {
                             day: "numeric",
@@ -637,7 +819,7 @@ export default function MembershipCRMPage() {
         </>
       )}
 
-      {/* List View */}
+      {/* List View - Clickable Client Cards */}
       {viewMode === "list" && (
         <>
           {/* Filters */}
@@ -682,7 +864,7 @@ export default function MembershipCRMPage() {
             </div>
           </motion.div>
 
-          {/* Clients List */}
+          {/* Clients Grid */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -703,24 +885,163 @@ export default function MembershipCRMPage() {
                 </p>
               </div>
             ) : (
-              <div className="bg-white border border-black/10 overflow-hidden">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredClients.map((client) => {
+                  const StatusIcon = statusConfig[client.status].icon;
+                  const isOverdue = new Date(client.nextBillingDate) < new Date() && client.status === "active";
+                  return (
+                    <motion.div
+                      key={client.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`bg-white border border-black/10 p-6 hover:shadow-lg transition-all cursor-pointer ${isOverdue ? "border-red-200" : ""}`}
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setShowDetailModal(true);
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center">
+                            <User className="w-6 h-6 text-black/60" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-black">{client.name}</h3>
+                            <p className="text-sm text-black/60">{client.email}</p>
+                          </div>
+                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[client.status].color}`}
+                        >
+                          <StatusIcon className="w-3 h-3" />
+                          {statusConfig[client.status].label}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        {client.company && (
+                          <p className="text-sm text-black/80 flex items-center gap-2">
+                            <span className="font-medium">Company:</span> {client.company}
+                          </p>
+                        )}
+                        <p className="text-sm text-black/80 flex items-center gap-2">
+                          <span className="font-medium">Membership:</span> {membershipLabels[client.membershipType]}
+                        </p>
+                        <p className="text-sm text-black/80 flex items-center gap-2">
+                          <span className="font-medium">Monthly:</span> {formatGBP(client.monthlyFee)}
+                        </p>
+                      </div>
+
+                      {/* Social Media Links Preview */}
+                      {client.socialMedia && (
+                        <div className="flex items-center gap-2 pt-4 border-t border-black/10">
+                          {client.socialMedia.instagram && <Instagram className="w-4 h-4 text-black/40" />}
+                          {client.socialMedia.facebook && <Facebook className="w-4 h-4 text-black/40" />}
+                          {client.socialMedia.twitter && <Twitter className="w-4 h-4 text-black/40" />}
+                          {client.socialMedia.linkedin && <Linkedin className="w-4 h-4 text-black/40" />}
+                          {client.socialMedia.website && <Globe className="w-4 h-4 text-black/40" />}
+                          {(!client.socialMedia.instagram && !client.socialMedia.facebook && 
+                            !client.socialMedia.twitter && !client.socialMedia.linkedin && 
+                            !client.socialMedia.website) && (
+                            <span className="text-xs text-black/40">No social links</span>
+                          )}
+                        </div>
+                      )}
+
+                      {isOverdue && (
+                        <div className="mt-3 p-2 bg-red-50 text-red-600 text-xs rounded">
+                          Payment overdue by {Math.ceil((new Date().getTime() - new Date(client.nextBillingDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+
+      {/* Pay As You Go View */}
+      {viewMode === "payg" && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="grid md:grid-cols-3 gap-4 mb-8"
+          >
+            <div className="bg-white p-6 border border-black/10">
+              <div className="flex items-center gap-3 mb-2">
+                <Receipt className="w-5 h-5 text-black/60" />
+                <p className="text-xs tracking-widest text-black/60 uppercase">Total Transactions</p>
+              </div>
+              <p className="text-3xl font-light text-black">{paygStats.totalTransactions}</p>
+            </div>
+            <div className="bg-white p-6 border border-black/10">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-5 h-5 text-black/60" />
+                <p className="text-xs tracking-widest text-black/60 uppercase">Total Revenue</p>
+              </div>
+              <p className="text-3xl font-light text-black">{formatGBP(paygStats.totalRevenue)}</p>
+            </div>
+            <div className="bg-white p-6 border border-black/10">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="w-5 h-5 text-black/60" />
+                <p className="text-xs tracking-widest text-black/60 uppercase">This Month</p>
+              </div>
+              <p className="text-3xl font-light text-black">{formatGBP(paygStats.thisMonth)}</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="bg-white border border-black/10"
+          >
+            <div className="p-6 border-b border-black/10 flex items-center justify-between">
+              <h2 className="text-xl font-medium text-black">Pay As You Go Transactions</h2>
+              <button
+                onClick={() => {
+                  resetPaygForm();
+                  setShowPaygModal(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white text-sm tracking-wider hover:bg-black/80 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                ADD TRANSACTION
+              </button>
+            </div>
+
+            {paygTransactions.length === 0 ? (
+              <div className="p-12 text-center">
+                <Receipt className="w-12 h-12 text-black/20 mx-auto mb-4" />
+                <p className="text-black/60 mb-2">No transactions recorded</p>
+                <p className="text-sm text-black/40">Add your first Pay As You Go transaction</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-black/5 border-b border-black/10">
+                  <thead className="bg-black/5">
                     <tr>
+                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
+                        Invoice
+                      </th>
                       <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
                         Client
                       </th>
-                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium hidden md:table-cell">
-                        Membership
+                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
+                        Service
                       </th>
-                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium hidden lg:table-cell">
-                        Status
+                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
+                        Date
                       </th>
-                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium hidden lg:table-cell">
-                        Monthly Fee
+                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
+                        Method
                       </th>
-                      <th className="text-left px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium hidden xl:table-cell">
-                        Next Billing
+                      <th className="text-right px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
+                        Amount
                       </th>
                       <th className="text-right px-6 py-4 text-xs tracking-widest text-black/60 uppercase font-medium">
                         Actions
@@ -728,72 +1049,51 @@ export default function MembershipCRMPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredClients.map((client, index) => {
-                      const StatusIcon = statusConfig[client.status].icon;
-                      const isOverdue = new Date(client.nextBillingDate) < new Date() && client.status === "active";
-                      return (
-                        <tr
-                          key={client.id}
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setShowDetailModal(true);
-                          }}
-                          className={`border-b border-black/10 hover:bg-black/5 cursor-pointer transition-colors ${
-                            isOverdue ? "bg-red-50/50" : ""
-                          }`}
-                        >
-                          <td className="px-6 py-4">
-                            <div>
-                              <p className="font-medium text-black">{client.name}</p>
-                              <p className="text-sm text-black/60">{client.email}</p>
-                              {client.company && (
-                                <p className="text-xs text-black/40 mt-1">{client.company}</p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 hidden md:table-cell">
-                            <span className="text-sm text-black/80">
-                              {membershipLabels[client.membershipType]}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 hidden lg:table-cell">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusConfig[client.status].color}`}
-                            >
-                              <StatusIcon className="w-3 h-3" />
-                              {statusConfig[client.status].label}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 hidden lg:table-cell">
-                            <span className="text-sm text-black">£{client.monthlyFee.toLocaleString()}</span>
-                          </td>
-                          <td className="px-6 py-4 hidden xl:table-cell">
-                            <span className={`text-sm ${isOverdue ? "text-red-600 font-medium" : "text-black/80"}`}>
-                              {new Date(client.nextBillingDate).toLocaleDateString("en-GB", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                              {isOverdue && " (Overdue)"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClient(client);
-                                setShowDetailModal(true);
-                              }}
-                              className="p-2 text-black/40 hover:text-black hover:bg-black/5 rounded transition-colors"
-                            >
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {paygTransactions.map((transaction) => (
+                      <tr key={transaction.id} className="border-t border-black/10 hover:bg-black/5">
+                        <td className="px-6 py-4 text-sm text-black font-mono">{transaction.invoiceNumber}</td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-black">{transaction.clientName}</p>
+                          {transaction.clientEmail && (
+                            <p className="text-xs text-black/60">{transaction.clientEmail}</p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-black">{transaction.service}</td>
+                        <td className="px-6 py-4 text-sm text-black/60">
+                          {new Date(transaction.date).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-black/60 capitalize">
+                          {transaction.paymentMethod.replace("_", " ")}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-black text-right font-medium">
+                          {formatGBP(transaction.amount)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleDeletePaygTransaction(transaction.id)}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Total Revenue Summary */}
+            {paygTransactions.length > 0 && (
+              <div className="p-6 bg-black/5 border-t border-black/10">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-black/60">Total Pay As You Go Revenue</p>
+                  <p className="text-2xl font-light text-black">{formatGBP(paygStats.totalRevenue)}</p>
+                </div>
               </div>
             )}
           </motion.div>
@@ -806,7 +1106,7 @@ export default function MembershipCRMPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white max-w-3xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="sticky top-0 bg-white border-b border-black/10 p-6 flex items-center justify-between">
               <h2 className="text-xl font-medium text-black">Add New Client</h2>
@@ -938,6 +1238,82 @@ export default function MembershipCRMPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Social Media Links */}
+              <div>
+                <h3 className="text-sm font-medium text-black/80 mb-4 flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4" />
+                  Social Media Links
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Instagram className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Instagram URL"
+                      value={formData.socialMedia.instagram}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, instagram: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Facebook className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Facebook URL"
+                      value={formData.socialMedia.facebook}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, facebook: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Twitter/X URL"
+                      value={formData.socialMedia.twitter}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, twitter: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="LinkedIn URL"
+                      value={formData.socialMedia.linkedin}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, linkedin: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 md:col-span-2">
+                    <Globe className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Website URL"
+                      value={formData.socialMedia.website}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, website: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-black/80 mb-2">
                   Notes
@@ -1029,6 +1405,92 @@ export default function MembershipCRMPage() {
                 </div>
               </div>
 
+              {/* Social Media Links */}
+              {selectedClient.socialMedia && (
+                <div className="mb-8">
+                  <h3 className="text-sm tracking-widest text-black/60 uppercase mb-4">
+                    Social Media & Links
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedClient.socialMedia.instagram && (
+                      <a
+                        href={selectedClient.socialMedia.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-black/5 hover:bg-black/10 transition-colors"
+                      >
+                        <Instagram className="w-5 h-5 text-pink-600" />
+                        <div>
+                          <p className="text-xs text-black/40">Instagram</p>
+                          <p className="text-sm text-black truncate">View Profile</p>
+                        </div>
+                      </a>
+                    )}
+                    {selectedClient.socialMedia.facebook && (
+                      <a
+                        href={selectedClient.socialMedia.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-black/5 hover:bg-black/10 transition-colors"
+                      >
+                        <Facebook className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <p className="text-xs text-black/40">Facebook</p>
+                          <p className="text-sm text-black truncate">View Profile</p>
+                        </div>
+                      </a>
+                    )}
+                    {selectedClient.socialMedia.twitter && (
+                      <a
+                        href={selectedClient.socialMedia.twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-black/5 hover:bg-black/10 transition-colors"
+                      >
+                        <Twitter className="w-5 h-5 text-black/60" />
+                        <div>
+                          <p className="text-xs text-black/40">Twitter/X</p>
+                          <p className="text-sm text-black truncate">View Profile</p>
+                        </div>
+                      </a>
+                    )}
+                    {selectedClient.socialMedia.linkedin && (
+                      <a
+                        href={selectedClient.socialMedia.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-black/5 hover:bg-black/10 transition-colors"
+                      >
+                        <Linkedin className="w-5 h-5 text-blue-700" />
+                        <div>
+                          <p className="text-xs text-black/40">LinkedIn</p>
+                          <p className="text-sm text-black truncate">View Profile</p>
+                        </div>
+                      </a>
+                    )}
+                    {selectedClient.socialMedia.website && (
+                      <a
+                        href={selectedClient.socialMedia.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-black/5 hover:bg-black/10 transition-colors"
+                      >
+                        <Globe className="w-5 h-5 text-black/60" />
+                        <div>
+                          <p className="text-xs text-black/40">Website</p>
+                          <p className="text-sm text-black truncate">Visit Website</p>
+                        </div>
+                      </a>
+                    )}
+                    {(!selectedClient.socialMedia.instagram && !selectedClient.socialMedia.facebook &&
+                      !selectedClient.socialMedia.twitter && !selectedClient.socialMedia.linkedin &&
+                      !selectedClient.socialMedia.website) && (
+                      <p className="text-sm text-black/40 col-span-full">No social media links added</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Membership Details */}
               <div className="mb-8">
                 <h3 className="text-sm tracking-widest text-black/60 uppercase mb-4">
@@ -1041,7 +1503,7 @@ export default function MembershipCRMPage() {
                   </div>
                   <div className="p-4 border border-black/10">
                     <p className="text-xs text-black/40 mb-1">Monthly Fee</p>
-                    <p className="text-black">£{selectedClient.monthlyFee.toLocaleString()}</p>
+                    <p className="text-black">{formatGBP(selectedClient.monthlyFee)}</p>
                   </div>
                   <div className="p-4 border border-black/10">
                     <p className="text-xs text-black/40 mb-1">Payment Method</p>
@@ -1069,7 +1531,7 @@ export default function MembershipCRMPage() {
                   </div>
                   <div className="p-4 border border-black/10">
                     <p className="text-xs text-black/40 mb-1">Total Paid</p>
-                    <p className="text-black">£{selectedClient.totalPaid.toLocaleString()}</p>
+                    <p className="text-black">{formatGBP(selectedClient.totalPaid)}</p>
                   </div>
                 </div>
               </div>
@@ -1149,7 +1611,7 @@ export default function MembershipCRMPage() {
                               {payment.method.replace("_", " ")}
                             </td>
                             <td className="px-4 py-3 text-sm text-black text-right">
-                              £{payment.amount.toLocaleString()}
+                              {formatGBP(payment.amount)}
                             </td>
                           </tr>
                         ))}
@@ -1197,7 +1659,7 @@ export default function MembershipCRMPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white max-w-3xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="sticky top-0 bg-white border-b border-black/10 p-6 flex items-center justify-between">
               <h2 className="text-xl font-medium text-black">Edit Client</h2>
@@ -1315,6 +1777,82 @@ export default function MembershipCRMPage() {
                   <option value="cash">Cash</option>
                 </select>
               </div>
+
+              {/* Social Media Links */}
+              <div>
+                <h3 className="text-sm font-medium text-black/80 mb-4 flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4" />
+                  Social Media Links
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Instagram className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Instagram URL"
+                      value={formData.socialMedia.instagram}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, instagram: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Facebook className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Facebook URL"
+                      value={formData.socialMedia.facebook}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, facebook: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Twitter/X URL"
+                      value={formData.socialMedia.twitter}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, twitter: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="LinkedIn URL"
+                      value={formData.socialMedia.linkedin}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, linkedin: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 md:col-span-2">
+                    <Globe className="w-4 h-4 text-black/40" />
+                    <input
+                      type="url"
+                      placeholder="Website URL"
+                      value={formData.socialMedia.website}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMedia: { ...formData.socialMedia, website: e.target.value }
+                      })}
+                      className="flex-1 px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-black/80 mb-2">
                   Notes
@@ -1388,7 +1926,7 @@ export default function MembershipCRMPage() {
               </div>
               <div>
                 <p className="text-sm text-black/60 mb-2">Amount</p>
-                <p className="text-3xl font-light text-black">£{selectedClient.monthlyFee.toLocaleString()}</p>
+                <p className="text-3xl font-light text-black">{formatGBP(selectedClient.monthlyFee)}</p>
               </div>
               <div>
                 <p className="text-sm text-black/60 mb-2">Payment Method</p>
@@ -1407,6 +1945,142 @@ export default function MembershipCRMPage() {
                   className="px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors"
                 >
                   CONFIRM PAYMENT
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Add Pay As You Go Transaction Modal */}
+      {showPaygModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white max-w-lg w-full"
+          >
+            <div className="border-b border-black/10 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-medium text-black">Add Pay As You Go Transaction</h2>
+              <button
+                onClick={() => setShowPaygModal(false)}
+                className="p-2 text-black/60 hover:text-black hover:bg-black/5 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddPaygTransaction} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black/80 mb-2">
+                  Client Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={paygFormData.clientName}
+                  onChange={(e) => setPaygFormData({ ...paygFormData, clientName: e.target.value })}
+                  className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black/80 mb-2">
+                  Client Email
+                </label>
+                <input
+                  type="email"
+                  value={paygFormData.clientEmail}
+                  onChange={(e) => setPaygFormData({ ...paygFormData, clientEmail: e.target.value })}
+                  className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black/80 mb-2">
+                    Amount (£) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={paygFormData.amount}
+                    onChange={(e) => setPaygFormData({ ...paygFormData, amount: e.target.value })}
+                    className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black/80 mb-2">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={paygFormData.date}
+                    onChange={(e) => setPaygFormData({ ...paygFormData, date: e.target.value })}
+                    className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black/80 mb-2">
+                  Service *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Studio Booking, Photography Session"
+                  value={paygFormData.service}
+                  onChange={(e) => setPaygFormData({ ...paygFormData, service: e.target.value })}
+                  className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black/80 mb-2">
+                  Payment Method *
+                </label>
+                <select
+                  required
+                  value={paygFormData.paymentMethod}
+                  onChange={(e) => setPaygFormData({ ...paygFormData, paymentMethod: e.target.value })}
+                  className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors bg-white"
+                >
+                  <option value="card">Card</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="cash">Cash</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black/80 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={paygFormData.notes}
+                  onChange={(e) => setPaygFormData({ ...paygFormData, notes: e.target.value })}
+                  className="w-full px-4 py-2 border border-black/20 focus:outline-none focus:border-black transition-colors resize-none"
+                />
+              </div>
+              <div className="flex justify-end gap-4 pt-4 border-t border-black/10">
+                <button
+                  type="button"
+                  onClick={() => setShowPaygModal(false)}
+                  className="px-6 py-3 border border-black/20 text-black text-sm tracking-widest hover:bg-black/5 transition-colors"
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-6 py-3 bg-black text-white text-sm tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      SAVING...
+                    </>
+                  ) : (
+                    "ADD TRANSACTION"
+                  )}
                 </button>
               </div>
             </form>
