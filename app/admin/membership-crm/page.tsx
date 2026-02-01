@@ -470,12 +470,12 @@ export default function MembershipCRMPage() {
       startDate: client.startDate,
       paymentMethod: client.paymentMethod,
       notes: client.notes || "",
-      socialMedia: client.socialMedia || {
-        instagram: "",
-        facebook: "",
-        twitter: "",
-        linkedin: "",
-        website: "",
+      socialMedia: {
+        instagram: client.socialMedia?.instagram || "",
+        facebook: client.socialMedia?.facebook || "",
+        twitter: client.socialMedia?.twitter || "",
+        linkedin: client.socialMedia?.linkedin || "",
+        website: client.socialMedia?.website || "",
       },
     });
     setShowEditModal(true);
