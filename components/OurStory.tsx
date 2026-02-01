@@ -6,17 +6,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-const defaultServices = [
-  { title: "PODCASTS", image: "https://images.pexels.com/photos/7034272/pexels-photo-7034272.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { title: "VOICEOVERS", image: "https://images.pexels.com/photos/7087833/pexels-photo-7087833.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { title: "COMMERCIALS", image: "https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { title: "INTERVIEWS", image: "https://images.pexels.com/photos/5717546/pexels-photo-5717546.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { title: "DOCUMENTARIES", image: "https://images.pexels.com/photos/7991316/pexels-photo-7991316.jpeg?auto=compress&cs=tinysrgb&w=800" },
-  { title: "ROUND TABLES", image: "https://images.pexels.com/photos/7034620/pexels-photo-7034620.jpeg?auto=compress&cs=tinysrgb&w=800" },
-];
-
 export default function OurStory() {
-  const [services, setServices] = useState(defaultServices);
+  const [services, setServices] = useState<Array<{ title: string; image: string }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadServices() {
@@ -29,23 +21,49 @@ export default function OurStory() {
           .eq('key', 'items')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error loading services from database:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data?.value) {
           try {
             const parsed = JSON.parse(data.value);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setServices(parsed);
             }
           } catch (e) {
-            console.error('Error parsing services:', e);
+            console.error('Error parsing services JSON:', e);
           }
         }
       } catch (err) {
         console.error('Error loading services:', err);
+      } finally {
+        setIsLoading(false);
       }
     }
 
     loadServices();
   }, []);
+  if (isLoading) {
+    return (
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="h-[350px] bg-gray-100 animate-pulse"></div>
+            <div className="h-[350px] bg-gray-100 animate-pulse"></div>
+            <div className="h-[350px] bg-gray-100 animate-pulse"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!services || services.length === 0) {
+    return null;
+  }
+
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-6">
