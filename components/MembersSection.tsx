@@ -20,14 +20,16 @@ interface Member {
   zIndex: number;
 }
 
-// Default members as fallback
+// IMPORTANT: These defaults are synced with the database (last updated: 2026-01-02)
+// These should ONLY be used as a temporary fallback while data loads from Supabase
+// If you update members in the admin panel, you must also update these defaults to match
 const defaultMembers: Member[] = [
   {
     id: "member-1",
-    name: "Sarah Chen",
-    role: "Content Creator",
+    name: "The Uncut Podcast",
+    role: "Podcasters / Content Creators",
     color: "#8b5a4a",
-    image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373182873-bczdftgd0vn.jpg",
     focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: -121.72,
     translateYPercent: -24.99,
@@ -37,10 +39,10 @@ const defaultMembers: Member[] = [
   },
   {
     id: "member-2",
-    name: "Marcus Williams",
-    role: "Director / Producer",
+    name: "BMoni & Mr Ugandan Shnack",
+    role: "Online Personality & Fashion Model",
     color: "#c45d4a",
-    image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373193356-wmn2zmh4nac.jpg",
     focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 0,
     translateYPercent: -11.91,
@@ -50,10 +52,10 @@ const defaultMembers: Member[] = [
   },
   {
     id: "member-3",
-    name: "Emma Rodriguez",
-    role: "Photographer",
+    name: "Get the Gist Podcast",
+    role: "Podcasters / Content Creators",
     color: "#2d2d2d",
-    image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373200589-4dwqjv7wsgu.jpg",
     focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 108.9,
     translateYPercent: 0,
@@ -63,10 +65,10 @@ const defaultMembers: Member[] = [
   },
   {
     id: "member-4",
-    name: "David Park",
-    role: "Brand Strategist",
+    name: "Septimus ",
+    role: "Content Creator",
     color: "#d4a574",
-    image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767375442358-2i2e0uale9h.jpg",
     focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 246.43,
     translateYPercent: -18.5,
@@ -76,10 +78,10 @@ const defaultMembers: Member[] = [
   },
   {
     id: "member-5",
-    name: "Alex Thompson",
-    role: "Filmmaker",
+    name: "Ratings & Reviews",
+    role: "Youtube Show",
     color: "#6b8e7f",
-    image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+    image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767375448034-ja8z6veuvpg.jpg",
     focalPoints: DEFAULT_FOCAL_POINTS,
     translateXPercent: 355.33,
     translateYPercent: -8.2,

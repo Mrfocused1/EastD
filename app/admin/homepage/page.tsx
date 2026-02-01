@@ -13,6 +13,7 @@ import { stringifyFocalPoints, parseFocalPoints } from "@/hooks/useFocalPoint";
 
 export default function HomepageEditor() {
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoadedFromDB, setDataLoadedFromDB] = useState(false);
 
   // Hero section state - 5 slideshow images with focal points
   const [heroImages, setHeroImages] = useState([
@@ -73,13 +74,16 @@ export default function HomepageEditor() {
   ]);
 
   // Members state (scrolling images)
+  // IMPORTANT: Initial state is synced with database (last updated: 2026-01-02)
+  // These values are loaded from Supabase on component mount
+  // The useEffect below will override these with current database values
   const [members, setMembers] = useState([
     {
       id: "member-1",
-      name: "Sarah Chen",
-      role: "Content Creator",
+      name: "The Uncut Podcast",
+      role: "Podcasters / Content Creators",
       color: "#8b5a4a",
-      image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373182873-bczdftgd0vn.jpg",
       translateXPercent: -121.72,
       translateYPercent: -24.99,
       rotation: 0,
@@ -88,10 +92,10 @@ export default function HomepageEditor() {
     },
     {
       id: "member-2",
-      name: "Marcus Williams",
-      role: "Director / Producer",
+      name: "BMoni & Mr Ugandan Shnack",
+      role: "Online Personality & Fashion Model",
       color: "#c45d4a",
-      image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373193356-wmn2zmh4nac.jpg",
       translateXPercent: 0,
       translateYPercent: -11.91,
       rotation: 0,
@@ -100,10 +104,10 @@ export default function HomepageEditor() {
     },
     {
       id: "member-3",
-      name: "Emma Rodriguez",
-      role: "Photographer",
+      name: "Get the Gist Podcast",
+      role: "Podcasters / Content Creators",
       color: "#2d2d2d",
-      image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767373200589-4dwqjv7wsgu.jpg",
       translateXPercent: 108.9,
       translateYPercent: 0,
       rotation: 0,
@@ -112,10 +116,10 @@ export default function HomepageEditor() {
     },
     {
       id: "member-4",
-      name: "David Park",
-      role: "Brand Strategist",
+      name: "Septimus ",
+      role: "Content Creator",
       color: "#d4a574",
-      image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767375442358-2i2e0uale9h.jpg",
       translateXPercent: 246.43,
       translateYPercent: -18.5,
       rotation: 0,
@@ -124,10 +128,10 @@ export default function HomepageEditor() {
     },
     {
       id: "member-5",
-      name: "Alex Thompson",
-      role: "Filmmaker",
+      name: "Ratings & Reviews",
+      role: "Youtube Show",
       color: "#6b8e7f",
-      image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=500",
+      image: "https://fhgvnjwiasusjfevimcw.supabase.co/storage/v1/object/public/images/uploads/1767375448034-ja8z6veuvpg.jpg",
       translateXPercent: 355.33,
       translateYPercent: -8.2,
       rotation: 0,
@@ -244,6 +248,7 @@ export default function HomepageEditor() {
         console.error('Error:', err);
       } finally {
         setIsLoading(false);
+        setDataLoadedFromDB(true);
       }
     }
 
@@ -251,6 +256,13 @@ export default function HomepageEditor() {
   }, []);
 
   const handleSave = async () => {
+    // CRITICAL: Prevent saving if data hasn't been loaded from database yet
+    // This prevents overwriting database content with stale hardcoded defaults
+    if (!dataLoadedFromDB) {
+      console.error('Cannot save: Data has not been loaded from database yet');
+      throw new Error('Data not loaded from database. Please wait for the page to fully load before saving.');
+    }
+
     const contentToSave = [
       // Hero - 5 slideshow images with focal points
       { page: 'homepage', section: 'hero', key: 'hero_image_1', value: heroImages[0], type: 'image' },
