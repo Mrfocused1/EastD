@@ -46,10 +46,12 @@ export default function ImageUpload({
     };
     reader.readAsDataURL(file);
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage with optimization and auto-deletion of old image
     setIsUploading(true);
     try {
-      const url = await uploadImage(file);
+      const url = await uploadImage(file, {
+        oldImageUrl: value, // Pass current image URL so it gets deleted after upload
+      });
       if (url) {
         onChange(url);
         setPreview(null); // Clear preview, use actual URL
